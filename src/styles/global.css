@@ -1,28 +1,100 @@
 /* =========================================================================
-   光・門檻・衰敗 — 攝影 zine
-   視覺語言：美術館展覽圖錄。瑞士式中性無襯線、紙與墨兩色、大量留白。
-   參考：Turrell / Eliasson / Viola / Rist / Anadol —— 緩慢、沉思、光。
-   規則：無卡片、無陰影、無漸層（藝術品本身除外）、影像不裁切。
+   灰階・生機・門檻 — 攝影 zine（v2）
+   依據：DESIGN.md v2（落地）＋ .agents/skills/Design.md（母文件通則）
+   定調：整站是灰階的、安靜衰敗的空間；綠是裡面唯一還活著的東西——稀少、克制。
+   兩個房間：亮房（閱讀，宋體內文）／暗房（圖錄・作品・3D）。共用 12 欄脊椎。
+   v2：① 三套地基 token（space/type/motion）② 語意表面 token，依房間重映
+       ③ 綠收束（內文連結退回墨色，綠只給狀態/生命跡象）④ 閱讀室編輯元件
+   規則：無卡片、無陰影、無漸層（藝術品/光場除外）、影像不裁切。
    ========================================================================= */
 
 :root {
-  /* 最多三色：紙、墨，外加 hero 光場（藝術品本身的光）。 */
-  --paper: #e7e4dc;
-  --ink: #14130e;
-  /* 墨的不同濃度只是同一色的透明度，不算新色。 */
+  /* ---- 原色：亮房灰階（中性、肉眼近乎無暖）------------------------------ */
+  --paper: #f4f4f2;
+  --ink: #0e0e0d;
+  /* 墨濃度＝同色透明度層級，不算新色 */
   --ink-70: color-mix(in oklab, var(--ink) 70%, var(--paper));
   --ink-45: color-mix(in oklab, var(--ink) 45%, var(--paper));
   --ink-15: color-mix(in oklab, var(--ink) 15%, var(--paper));
-  --hero-bg: #0d0c09; /* hero 暗室，襯托光 */
 
-  --col-gap: clamp(16px, 2.2vw, 30px);
+  /* ---- 原色：暗房（圖錄・作品・3D）＋平行墨階 ------------------------- */
+  --gallery: #0c0c0b;
+  --gallery-ink: #ececea;
+  --g-ink-70: color-mix(in oklab, var(--gallery-ink) 70%, var(--gallery));
+  --g-ink-45: color-mix(in oklab, var(--gallery-ink) 45%, var(--gallery));
+  --g-ink-20: color-mix(in oklab, var(--gallery-ink) 20%, var(--gallery));
+  --hairline-dark: color-mix(in oklab, var(--gallery-ink) 14%, transparent);
+  --hero-bg: var(--gallery);
+
+  /* ---- 唯一重點色：地衣／氧化銅綠（低彩、帶灰、沉靜的生機）------------
+     用量嚴格克制（見 DESIGN §8 白名單）：只給狀態/當前/聚焦/進度/一粒綠光。 */
+  --life: #4f5e44; /* 亮底上 */
+  --life-dark: #93a47f; /* 暗底上 */
+
+  /* ---- 編輯雙體：介面無襯線 / 長文宋體 -------------------------------- */
+  --font-ui: 'Helvetica Neue', Helvetica, 'Inter', Arial, 'PingFang TC',
+    'Noto Sans TC', system-ui, sans-serif;
+  --font-read: 'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', Georgia,
+    'Times New Roman', serif;
+
+  /* ---- 地基 ①：間距（8px 模數・t-shirt 命名）------------------------- */
+  --space-3xs: 4px;
+  --space-2xs: 8px;
+  --space-xs: 12px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+  --space-2xl: 64px;
+  --space-3xl: 96px;
+  --space-4xl: 128px;
+  --space-5xl: 160px;
   --margin: clamp(20px, 5vw, 90px);
-  --measure: 62ch;
+  --col-gap: clamp(16px, 2.2vw, 30px);
+  --measure: 40rem; /* 約 38–40 個中文字寬 */
+
+  /* ---- 地基 ②：字級（modular scale・1.25 大三度）-------------------- */
+  --step--2: 0.72rem; /* micro label */
+  --step--1: 0.82rem; /* small UI / caption */
+  --step-0: 1rem; /* UI 基準（17px root）*/
+  --step-1: 1.25rem;
+  --step-2: 1.5625rem;
+  --step-3: 1.953rem;
+  --display: clamp(2.1rem, 6vw, 4.6rem);
+  --hero-title: clamp(1.9rem, 5vw, 3.4rem);
+  --read-size: 1.12rem; /* ≈19px，亮房長文基準 */
+
+  /* ---- 地基 ③：動態（duration / easing）----------------------------- */
+  --dur-fast: 0.4s;
+  --dur: 0.6s;
+  --dur-slow: 1.5s;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease: ease;
+
+  /* ---- 語意表面 token（預設＝亮房；暗房由 html[data-room] 重映）------- */
+  --surface: var(--paper);
+  --text: var(--ink);
+  --text-muted: var(--ink-70);
+  --text-dim: var(--ink-45);
+  --line: var(--ink-15);
+  --accent: var(--life);
+  --header-bg: color-mix(in oklab, var(--paper) 88%, transparent);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 暗房：重映語意 token（圖錄・作品・3D 共用同一片黑）。 */
+html[data-room='dark'] {
+  --surface: var(--gallery);
+  --text: var(--gallery-ink);
+  --text-muted: var(--g-ink-70);
+  --text-dim: var(--g-ink-45);
+  --line: var(--hairline-dark);
+  --accent: var(--life-dark);
+  --header-bg: color-mix(in oklab, var(--gallery) 82%, transparent);
 }
 
 *,
@@ -32,14 +104,14 @@
 }
 
 html {
-  background: var(--paper);
-  color: var(--ink);
-  /* 瑞士式中性無襯線 */
-  font-family: 'Helvetica Neue', Helvetica, 'Inter', Arial, 'PingFang TC',
-    'Noto Sans TC', system-ui, sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  /* 介面預設：瑞士式中性無襯線（長文另切換為宋體 --font-read） */
+  font-family: var(--font-ui);
   font-size: 17px;
   line-height: 1.55;
   -webkit-text-size-adjust: 100%;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
 body {
@@ -47,13 +119,20 @@ body {
 }
 
 ::selection {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--text);
+  color: var(--surface);
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* 聚焦環＝生命跡象之一：地衣綠（合法綠用法）。 */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 1px;
 }
 
 img {
@@ -74,15 +153,15 @@ ol {
 
 /* ---- 排版尺度（中性、克制的字重）------------------------------------- */
 .label {
-  font-size: 0.72rem;
+  font-size: var(--step--2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-45);
+  color: var(--text-dim);
   font-weight: 500;
 }
 
 .display {
-  font-size: clamp(2.1rem, 6vw, 4.6rem);
+  font-size: var(--display);
   line-height: 1.02;
   font-weight: 500;
   letter-spacing: -0.015em;
@@ -99,21 +178,39 @@ ol {
   column-gap: var(--col-gap);
 }
 
+/* ---- 閱讀進度條（亮房長文；綠填充＝你在這/進行中）-------------------- */
+.read-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 30;
+  background: transparent;
+  pointer-events: none;
+}
+.read-progress > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+}
+
 /* ---- 頁首（少於 7 個導覽項，極簡介面）-------------------------------- */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: color-mix(in oklab, var(--paper) 88%, transparent);
+  background: var(--header-bg);
   backdrop-filter: blur(6px);
 }
 .site-header__inner {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: var(--space-md);
   padding-block: 1.1rem;
-  border-bottom: 1px solid var(--ink-15);
+  border-bottom: 1px solid var(--line);
 }
 .brand {
   font-size: 0.82rem;
@@ -126,18 +223,22 @@ ol {
   gap: clamp(1rem, 3vw, 2.4rem);
 }
 .nav a {
-  font-size: 0.72rem;
+  font-size: var(--step--2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-45);
+  color: var(--text-dim);
   padding-bottom: 2px;
   border-bottom: 1px solid transparent;
-  transition: color 0.6s ease, border-color 0.6s ease;
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
-.nav a:hover,
+.nav a:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+/* 當前所在＝唯一的生命跡象：地衣綠標記。 */
 .nav a[aria-current='page'] {
-  color: var(--ink);
-  border-color: var(--ink);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* ---- HERO：全螢幕藝術品 ---------------------------------------------- */
@@ -160,7 +261,7 @@ ol {
   /* 無漸層遮罩；文字直接落在暗場邊緣 */
 }
 .hero__title {
-  font-size: clamp(1.9rem, 5vw, 3.4rem);
+  font-size: var(--hero-title);
   font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.04;
@@ -177,7 +278,7 @@ ol {
   top: clamp(1.2rem, 4vh, 2.4rem);
   left: var(--margin);
   color: color-mix(in oklab, var(--paper) 60%, transparent);
-  font-size: 0.72rem;
+  font-size: var(--step--2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -185,7 +286,7 @@ ol {
 /* ---- 區段標頭 -------------------------------------------------------- */
 .section-head {
   padding-block: clamp(3.5rem, 9vh, 7rem) clamp(1.5rem, 4vh, 3rem);
-  border-bottom: 1px solid var(--ink-15);
+  border-bottom: 1px solid var(--line);
 }
 .section-head__title {
   grid-column: 1 / -1;
@@ -211,8 +312,8 @@ ol {
   padding-block: clamp(2.5rem, 7vh, 5rem) 1rem;
   font-size: clamp(1.1rem, 3vw, 1.5rem);
   font-weight: 500;
-  color: var(--ink-70);
-  border-top: 1px solid var(--ink-15);
+  color: var(--text-muted);
+  border-top: 1px solid var(--line);
 }
 
 .entry {
@@ -231,9 +332,17 @@ ol {
 }
 .entry__num {
   font-variant-numeric: tabular-nums;
-  font-size: 0.72rem;
+  font-size: var(--step--2);
   letter-spacing: 0.14em;
-  color: var(--ink-45);
+  color: var(--text-dim);
+}
+/* 檔案索引「最新」標記＝一處生命跡象：地衣綠（白名單准用）。 */
+.entry__latest {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step--2);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 .entry__themes {
   display: flex;
@@ -241,35 +350,35 @@ ol {
   gap: 0.8rem;
 }
 .entry__themes span {
-  font-size: 0.72rem;
+  font-size: var(--step--2);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-45);
+  color: var(--text-dim);
 }
 .entry__img {
   width: 100%;
   /* 影像不裁切：自然比例。緩慢、沉思的揭示。 */
-  transition: opacity 1.4s ease;
+  transition: opacity var(--dur-slow) var(--ease);
 }
 .entry__title {
   margin-top: 1rem;
   font-size: clamp(1.3rem, 3.2vw, 2rem);
   font-weight: 500;
   letter-spacing: -0.01em;
-  transition: color 0.6s ease;
+  transition: color var(--dur) var(--ease);
 }
 .entry__plate:hover .entry__title {
-  color: var(--ink-45);
+  color: var(--text-dim);
 }
 .entry__placeholder {
   width: 100%;
   aspect-ratio: 3 / 2;
-  border: 1px solid var(--ink-15);
+  border: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--ink-45);
-  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-size: var(--step--2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -313,10 +422,10 @@ ol {
   font-size: 0.78rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-45);
+  color: var(--text-dim);
 }
 .work__meta a:hover {
-  color: var(--ink);
+  color: var(--text);
 }
 @media (min-width: 720px) {
   .work__title {
@@ -332,22 +441,78 @@ ol {
   margin-bottom: clamp(2rem, 6vh, 4rem);
 }
 
+/* 長文：宋體內文、舒適行高與段距、窄 measure（亮房；暗房作品描述亦共用）。 */
 .prose {
   max-width: var(--measure);
-  font-size: 1.06rem;
-  line-height: 1.7;
+  font-family: var(--font-read);
+  font-size: var(--read-size);
+  line-height: 1.85; /* 中文舒適行高 */
+  color: var(--text-muted);
 }
 .prose > * + * {
-  margin-top: 1.4rem;
+  margin-top: 1.6em;
 }
 .prose img {
   width: 100%;
   margin-block: clamp(2rem, 6vh, 4rem);
 }
+/* 圖說系統：與圖錄編號語言一致的無襯線小字。 */
+.prose figure {
+  margin-block: clamp(2rem, 6vh, 4rem);
+}
+.prose figure img {
+  margin-block: 0;
+}
+.prose figcaption {
+  margin-top: 0.7rem;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+/* 標題用無襯線，在宋體內文中製造「呼吸點」與節奏對比。 */
+.prose h2,
+.prose h3 {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.005em;
+}
 .prose h2 {
   font-size: 1.4rem;
-  font-weight: 500;
-  margin-top: 2.5rem;
+  margin-top: 2.6rem;
+}
+.prose h3 {
+  font-size: 1.15rem;
+  margin-top: 2rem;
+}
+/* 內文連結＝墨色、無底線，hover 才顯下緣細線（綠已退出內文，見 DESIGN §8）。 */
+.prose a {
+  color: var(--text);
+  border-bottom: 1px solid var(--text-dim);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.prose a:hover {
+  border-color: var(--text);
+}
+/* 抽言（pull quote）：大宋體、墨色短左線，左右留白。 */
+.prose blockquote {
+  margin-block: clamp(2rem, 6vh, 3.5rem);
+  margin-inline: 0;
+  padding-left: 1.4rem;
+  border-left: 2px solid var(--text);
+  font-size: 1.32rem;
+  line-height: 1.7;
+  color: var(--text);
+}
+/* 章節分隔記號：置中短髮絲，取代純留白。 */
+.prose hr {
+  border: none;
+  width: 3.5rem;
+  height: 1px;
+  margin: clamp(2.5rem, 7vh, 4rem) auto;
+  background: var(--text-dim);
 }
 
 /* ---- 影像集（不裁切、單欄為主、大量留白）--------------------------- */
@@ -363,7 +528,7 @@ ol {
 .plates figcaption {
   margin-top: 0.7rem;
   font-size: 0.78rem;
-  color: var(--ink-45);
+  color: var(--text-dim);
   letter-spacing: 0.04em;
 }
 
@@ -371,14 +536,14 @@ ol {
 .empty {
   grid-column: 1 / -1;
   padding-block: clamp(3rem, 10vh, 7rem);
-  color: var(--ink-45);
+  color: var(--text-dim);
   font-size: 0.95rem;
   max-width: var(--measure);
 }
 
 /* ---- 頁尾 ------------------------------------------------------------ */
 .site-footer {
-  border-top: 1px solid var(--ink-15);
+  border-top: 1px solid var(--line);
   margin-top: clamp(4rem, 12vh, 9rem);
   padding-block: 2.5rem clamp(2.5rem, 6vh, 4rem);
 }
@@ -387,18 +552,18 @@ ol {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
-  font-size: 0.72rem;
+  font-size: var(--step--2);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ink-45);
+  color: var(--text-dim);
 }
 
 /* ---- 慢速、克制的入場揭示 ------------------------------------------ */
 [data-reveal] {
   opacity: 0;
   transform: translateY(14px);
-  transition: opacity 1.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
   will-change: opacity, transform;
 }
 [data-reveal].is-visible {
@@ -406,7 +571,7 @@ ol {
   transform: none;
 }
 
-/* ---- 影像放大檢視（無陰影、極簡介面）------------------------------- */
+/* ---- 影像放大檢視（無陰影、極簡介面；自成暗場 overlay）------------- */
 .lightbox {
   position: fixed;
   inset: 0;
@@ -415,7 +580,7 @@ ol {
   align-items: center;
   justify-content: center;
   padding: clamp(1rem, 4vw, 3rem);
-  background: color-mix(in oklab, var(--ink) 96%, black);
+  background: color-mix(in oklab, #0c0c0b 96%, black);
   cursor: zoom-out;
   /* 關閉時：不可見、不攔截點擊 */
   opacity: 0;
@@ -441,7 +606,7 @@ ol {
   right: clamp(1rem, 4vw, 2rem);
   background: none;
   border: none;
-  color: var(--paper);
+  color: #ececea;
   font-size: 1.6rem;
   line-height: 1;
   cursor: pointer;

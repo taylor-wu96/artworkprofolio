@@ -53,7 +53,7 @@ const action = `https://buttondown.com/api/emails/embed-subscribe/${username}`;
 
 <style>
   .subscribe {
-    border-top: 1px solid var(--ink-15);
+    border-top: 1px solid var(--line);
     padding-block: clamp(3.5rem, 10vh, 7rem);
   }
   .subscribe__inner {
@@ -74,7 +74,7 @@ const action = `https://buttondown.com/api/emails/embed-subscribe/${username}`;
     margin-top: 0.8rem;
     max-width: 38ch;
     font-size: 0.92rem;
-    color: var(--ink-45);
+    color: var(--text-dim);
   }
   .subscribe__form {
     grid-column: 1 / -1;
@@ -84,20 +84,20 @@ const action = `https://buttondown.com/api/emails/embed-subscribe/${username}`;
     align-items: baseline;
     gap: 1rem;
     max-width: 32rem;
-    border-bottom: 1px solid var(--ink);
+    border-bottom: 1px solid var(--text);
     padding-bottom: 0.6rem;
   }
   .subscribe__input {
     flex: 1;
     background: none;
     border: none;
-    color: var(--ink);
+    color: var(--text);
     font: inherit;
     font-size: 1.05rem;
     padding: 0;
   }
   .subscribe__input::placeholder {
-    color: var(--ink-45);
+    color: var(--text-dim);
   }
   .subscribe__input:focus {
     outline: none;
@@ -106,24 +106,24 @@ const action = `https://buttondown.com/api/emails/embed-subscribe/${username}`;
     background: none;
     border: none;
     cursor: pointer;
-    color: var(--ink);
+    color: var(--text);
     font: inherit;
     font-size: 0.72rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     white-space: nowrap;
     padding: 0;
-    transition: color 0.6s ease;
+    transition: color var(--dur) var(--ease);
   }
   .subscribe__submit:hover {
-    color: var(--ink-45);
+    color: var(--text-dim);
   }
   .subscribe__msg {
     margin-top: 0.9rem;
     min-height: 1.2em;
     font-size: 0.78rem;
     letter-spacing: 0.04em;
-    color: var(--ink-45);
+    color: var(--text-dim);
   }
 
   @media (min-width: 720px) {

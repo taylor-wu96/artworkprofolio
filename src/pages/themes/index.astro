@@ -6,7 +6,7 @@ import { THEMES_LIST } from '../../lib/queries.js';
 const themes = await safeFetch(THEMES_LIST);
 ---
 
-<Base title="主題 — 光・門檻・衰敗">
+<Base title="主題 — 光・門檻・衰敗" activeSection="themes" room="dark">
   <div class="container">
     <header class="section-head grid-12">
       <span class="label section-head__label">分類 / Themes</span>
@@ -24,7 +24,7 @@ const themes = await safeFetch(THEMES_LIST);
             <a class="entry__plate" href={`/themes/${t.slug}`}>
               <h2 class="entry__title" style="margin-top:0">{t.title}</h2>
               {t.description && (
-                <p class="hero__sub" style="color:var(--ink-45);margin-top:0.6rem;max-width:46ch">
+                <p class="hero__sub" style="color:var(--text-dim);margin-top:0.6rem;max-width:46ch">
                   {t.description}
                 </p>
               )}

@@ -15,7 +15,7 @@ let lastYear = null;
 const total = posts.length;
 ---
 
-<Base activeSection="works">
+<Base activeSection="works" room="dark">
   <section class="hero">
     <Hero3D client:only="react" />
     <span class="hero__index">攝影檔案 / Archive</span>
@@ -50,6 +50,7 @@ const total = posts.length;
               <li class="entry grid-12" data-reveal>
                 <div class="entry__meta">
                   <span class="entry__num">作品 {num} / {String(total).padStart(2, '0')}</span>
+                  {i === 0 && <span class="entry__latest">最新 / Latest</span>}
                   {p.themes?.length > 0 && (
                     <span class="entry__themes">
                       {p.themes.map((t) => <span>{t.title}</span>)}

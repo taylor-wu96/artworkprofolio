@@ -24,23 +24,39 @@ const fmtDate = (d) =>
 const category = post.category || 'artwork';
 const activeSection = category === 'gallery' ? 'gallery' : (category === 'essay' ? 'writings' : 'works');
 const labelName = category === 'gallery' ? '影像 / Gallery' : (category === 'essay' ? '創作 / Essay' : '作品 / Work');
+// 房間：散文＝亮房（閱讀），作品/影像＝暗房（圖錄）。見 DESIGN §1。
+const room = category === 'essay' ? 'light' : 'dark';
+
+// 閱讀時間估算（中文 ~350 字/分），僅用於散文頭部。
+const readingMinutes = (() => {
+  if (!Array.isArray(post.body)) return null;
+  let chars = 0;
+  for (const blk of post.body) {
+    if (blk?._type === 'block' && Array.isArray(blk.children)) {
+      for (const c of blk.children) chars += c?.text?.length || 0;
+    }
+  }
+  return chars > 0 ? Math.max(1, Math.round(chars / 350)) : null;
+})();
 ---
 
 <Base
   title={`${post.title} — 光・門檻・衰敗`}
   image={post.cover ? urlFor(post.cover).width(1200).url() : undefined}
   activeSection={activeSection}
+  room={room}
 >
   <article class={`detail-view container ${category}-view`}>
     
     {category === 'essay' ? (
       /* --- 散文創作排版 --- */
-      <div class="essay-layout" data-reveal>
+      <div class="essay-layout" data-reveal data-read-progress>
         <header class="essay-header">
           <span class="label essay-label">{labelName}</span>
           <h1 class="essay-title">{post.title}</h1>
           <div class="essay-meta">
             <span>{fmtDate(post.publishedAt)}</span>
+            {readingMinutes && <span>約 {readingMinutes} 分鐘</span>}
             {post.themes?.length > 0 &&
               post.themes.map((t) => <a href={`/themes/${t.slug}`} class="essay-theme-link">{t.title}</a>)}
           </div>
@@ -187,26 +203,39 @@ const labelName = category === 'gallery' ? '影像 / Gallery' : (category === 'e
     font-size: 0.78rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--ink-45);
+    color: var(--text-dim);
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 1.2rem;
   }
+  .essay-theme-link {
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--dur-fast) var(--ease);
+  }
+  /* 綠已退出內文/介面 hover（DESIGN §8）：主題連結用墨色細線。 */
   .essay-theme-link:hover {
-    color: var(--ink);
+    border-color: currentColor;
   }
   .essay-cover {
     width: 100%;
     margin-bottom: clamp(3rem, 8vh, 5rem);
-    border: 1px solid var(--ink-15);
+    border: 1px solid var(--line);
   }
-  
+
   .prose--essay {
-    font-family: Georgia, 'Times New Roman', 'Noto Serif TC', PMingLiU, serif;
-    font-size: 1.12rem;
+    font-family: var(--font-read);
+    font-size: var(--read-size);
     line-height: 1.85;
-    color: var(--ink-70);
+    color: var(--text-muted);
     letter-spacing: 0.01em;
+  }
+  /* 導言（lead）：開場段落略大、實墨、行高更鬆，承擔開場重量。 */
+  .prose--essay > p:first-of-type {
+    font-size: 1.28rem;
+    line-height: 1.8;
+    color: var(--text);
+    margin-bottom: 2rem;
   }
 
   /* 影像集專屬排版 */

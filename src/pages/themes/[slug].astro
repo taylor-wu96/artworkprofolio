@@ -20,7 +20,7 @@ const fmtDate = (d) =>
 const total = theme.posts?.length ?? 0;
 ---
 
-<Base title={`${theme.title} — 主題`}>
+<Base title={`${theme.title} — 主題`} activeSection="themes" room="dark">
   <div class="container">
     <header class="section-head grid-12">
       <span class="label section-head__label">主題 / Theme</span>
@@ -28,7 +28,7 @@ const total = theme.posts?.length ?? 0;
     </header>
 
     {theme.description && (
-      <p class="empty" style="color:var(--ink-70)">{theme.description}</p>
+      <p class="empty" style="color:var(--text-muted)">{theme.description}</p>
     )}
 
     {total > 0 ? (

@@ -1,0 +1,83 @@
+# 重構進度 — 灰階・生機・門檻
+
+> 依據：[DESIGN.md](DESIGN.md)（落地）＋ [.agents/skills/Design.md](.agents/skills/Design.md)（母文件通則）
+> 兩階段：**A 色彩＋閱讀版面**（先做、待 Review）→ **B 3D 演化**（Review 後接續）
+> 規則：每完成一細項就勾選並補一行備註。建立日：2026-06-21。
+
+---
+
+## 階段 A — 色彩系統 ＋ 閱讀版面（亮房）
+
+### A1. 色彩 token（`src/styles/global.css :root`）
+- [x] A1-1 暖色 → 中性灰階：`--paper #f4f4f2`、`--ink #0e0e0d`
+- [x] A1-2 墨濃度層級：保留 `--ink-70 / -45 / -15`（不改名，避免多檔回歸）
+- [x] A1-3 新增暗房 token：`--gallery #0c0c0b`、`--gallery-ink #ececea`
+- [x] A1-4 新增地衣綠：`--life #4f5e44`（亮底）、`--life-dark #93a47f`（暗底）
+- [x] A1-5 全域既有 `--hero-bg` 對齊到 `--gallery`
+
+### A2. 字體系統（編輯雙體）
+- [x] A2-1 定義 `--font-ui`（瑞士無襯線，沿用現有 stack）
+- [x] A2-2 定義 `--font-read`（Noto Serif TC → 思源宋體 → Songti → Georgia fallback）
+- [x] A2-3 引入 Noto Serif TC（Google Fonts css2，wght 400;600，CJK 自動 subset）
+- [x] A2-4 介面預設 `--font-ui`（html）；驗證 body 仍為無襯線
+
+### A3. 閱讀版面（`.prose` 升級 → 亮房長文規格）
+- [x] A3-1 內文改 `--font-read`、字級 1.12rem(≈19px)、行高 1.85（驗證：35.2px）
+- [x] A3-2 measure 收窄 `--measure: 40rem`（驗證：680px）
+- [x] A3-3 段距加大：`> * + * { margin-top: 1.6em }`
+- [x] A3-4 連結：地衣綠、無底線、hover 顯下緣細線
+- [x] A3-5 h2/h3 用無襯線製造呼吸點
+- [x] A3-6 內文圖片滿欄、blockquote 細左線
+- 備註：`[slug].astro` 的 `.prose--essay` 由 Georgia 硬指定改為 `--font-read`
+
+### A4. 全域與選取/狀態
+- [x] A4-1 `::selection` 維持墨/紙（足夠克制，未改）
+- [x] A4-2 nav `aria-current` 用地衣綠（驗證：rgb(79,94,68)）；hover 維持墨
+- [ ] A4-3 檔案索引「最新／進行中」標記用地衣綠 — 延後（待有「最新」語意資料）
+
+### A5. 套頁與驗證
+- [x] A5-1 套用閱讀頁：`post/[slug].astro`（essay）、`about.astro`（bio 1.85 + 綠連結）
+- [x] A5-2 首頁/themes/newsletter/footer 新 token 下無回歸（截圖確認）
+- [x] A5-3 dev 視覺驗證：亮房宋體長文 + 暗房 hero + 綠克制（截圖）
+- [x] A5-4 `npm run build` 通過、15 頁、無警告
+- [x] A5-5 截圖交付 Review
+
+> **A 完成 → 等使用者 Review → 再開始 B**
+> 備註：A4-3 延後（需內容語意支援）。其餘 A 全數完成並驗證。
+
+---
+
+## 階段 B — 3D 演化（沉思內核，Review 後接續）
+
+### B1. 滾動驅動
+- [x] B1-1 光場隨捲動沉降(position.y)、後退(position.z)、淡出(opacity×(1-s·0.85))、微縮(scale)
+- [x] B1-2 滾動進度用 ref + rAF 節流寫入(`useScrollProgress`)，useFrame 讀取不 re-render
+- 驗證：捲動 35% 視窗時光場明顯下沉變暗(截圖)
+
+### B2. 指標互動
+- [x] B2-1 光隨游標極輕微聚散：`state.pointer` → 目標旋轉(±0.12/0.16)，重阻尼 lerp(d·1.6)
+- 備註：阻尼步長鎖定 `min(delta,0.05)` 避免掉幀爆衝
+
+### B3. 一粒綠光
+- [x] B3-1 獨立 green points 層：18 點(行動 10)、size 0.085、color `#93a47f`(--life-dark)
+- [x] B3-2 綠光獨立慢脈動(~呼吸)，與主光場色溫循環分離；隨滾動同步淡出
+
+### B4. 效能/無障礙
+- [x] B4-1 `prefers-reduced-motion`：停自轉/呼吸/色溫循環/指標位移，僅保留靜態光場
+- [x] B4-2 行動裝置降點數(8000→4000；綠 18→10)
+- [x] B4-3 本機驗證(無 console error，canvas 1384×1740 WebGL) + 截圖；`npm run build` 15 頁通過
+
+### B5. 衰敗演化（實驗 → 暫緩）
+- [~] B5-1 嘗試：主光場改 GPU ShaderMaterial「壽命循環侵蝕」（外漂＋生滅淡出）
+  - 結論：**已還原為階段 B 的 pointsMaterial 密實光雲**。
+  - 原因：AdditiveBlending 下 `pointsMaterial` 會忽略 opacity、每點全亮相加，堆疊出
+    密實亮核；自訂 shader 對每點乘上 env×opacity 後，亮核無法累積，JPEG 壓暗成稀疏星點，
+    視覺上是退步。多次調參（drift / 包絡底線 / 對齊 sizeAttenuation / 提高亮度基準）仍
+    無法重現已核可的密實沉思感，故回退。
+- [ ] B5-2 替代方案（待決定）：不動點雲，於其後**獨立疊一層薄侵蝕曲面**（subdivided plane
+  + 頂點噪聲位移，點陣/細線材質），讓「衰敗」由另一元素承載，保留光雲原貌。
+
+---
+
+## 變更紀錄
+- 2026-06-21：建立重構進度檔，開始階段 A。

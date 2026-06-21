@@ -9,6 +9,8 @@ interface Props {
   description?: string;
   image?: string;
   activeSection?: 'works' | 'gallery' | 'writings' | 'themes' | 'about';
+  // 兩個房間：暗房（圖錄・作品・3D）／亮房（閱讀，預設）。見 DESIGN §1。
+  room?: 'light' | 'dark';
 }
 
 const {
@@ -16,6 +18,7 @@ const {
   description = '一個關於光、門檻與邊界、衰敗與生機並存的攝影檔案。',
   image,
   activeSection,
+  room = 'light',
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -29,11 +32,19 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
 ---
 
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-room={room}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- 編輯雙體：長文宋體 Noto Serif TC（CJK 由 unicode-range 自動 subset） -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&display=swap"
+    />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -49,6 +60,9 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
     <ClientRouter />
   </head>
   <body>
+    <!-- 閱讀進度條：僅在標記 [data-read-progress] 的長文頁顯示綠填充。 -->
+    <div class="read-progress" aria-hidden="true"><span></span></div>
+
     <header class="site-header">
       <div class="container site-header__inner">
         <a class="brand" href="/">光・門檻・衰敗</a>
@@ -101,6 +115,35 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
       }
       observe();
       document.addEventListener('astro:after-swap', observe);
+    </script>
+
+    <script>
+      // 閱讀進度：追蹤 [data-read-progress] 文章捲動，綠色填充（亮房長文）。
+      function bindReadProgress() {
+        const fill = document.querySelector<HTMLElement>('.read-progress > span');
+        const article = document.querySelector<HTMLElement>('[data-read-progress]');
+        if (!fill) return;
+        if (!article) {
+          fill.style.width = '0';
+          return;
+        }
+        let raf = 0;
+        const update = () => {
+          raf = 0;
+          const start = article.offsetTop;
+          const span = article.offsetHeight - window.innerHeight;
+          const p = span > 0 ? (window.scrollY - start) / span : 0;
+          fill.style.width = `${Math.min(Math.max(p, 0), 1) * 100}%`;
+        };
+        const onScroll = () => {
+          if (!raf) raf = requestAnimationFrame(update);
+        };
+        update();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+      }
+      bindReadProgress();
+      document.addEventListener('astro:page-load', bindReadProgress);
     </script>
   </body>
 </html>
