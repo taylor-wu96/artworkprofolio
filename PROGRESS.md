@@ -27,7 +27,7 @@
 - [x] 本機 `npm run dev` 可開啟（已驗證 HTTP 200）
 - [x] `npm run build` 可產出 `dist/`（已驗證，無警告）
 - [x] git init 並首次 commit（6ec068a）
-- [ ] 推上 GitHub（**需使用者操作**：建立 repo 後 `git remote add` + push）
+- [x] 推上 GitHub（`git@github.com:taylor-wu96/artworkprofolio.git`，main 分支，已產生 ed25519 金鑰）
 - [ ] 接 Cloudflare Pages 自動部署（**需使用者操作**）
 
 ## 階段二：後台與內容
