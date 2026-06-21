@@ -42,8 +42,11 @@
 - [x] 文章列表頁 + 文章內頁（內文改用 `astro-portabletext`）
 - [x] 主題篩選頁
 - [x] build + dev smoke test 通過（3 頁 + RSS，HTTP 200，無 env/bundle 錯誤）
-- [ ] **新增內容**（後台 `cd ~/Desktop/studio-artwork-portfolio && npm run dev` → localhost:3333）
-- [ ] 部署 Studio：`npx sanity deploy`（免費託管於 *.sanity.studio）
+- [x] **種子內容**（CLI `dataset import`：3 themes + 3 posts；前台已渲染 9 頁、RSS 3 項，已驗證）
+- [x] Sanity MCP server 已加到 user/global（`~/.claude.json`）— **待你 `/mcp` 完成 OAuth + 重啟 session**
+- [ ] 加真實作品 / 上傳影像（後台 `npm run dev` → localhost:3333，或 MCP 授權後由我代勞）
+- [ ] 部署 Studio：`npx sanity deploy`（需決定 *.sanity.studio 主機名）
+- [ ] Studio repo 推上 GitHub（目前只在本機，2 個 commit）
 - [ ] Sanity Webhook → Cloudflare Deploy hook（**需使用者操作**）
 
 ## 階段三：視覺亮點
