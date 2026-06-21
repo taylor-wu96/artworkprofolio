@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import Lightbox from '../components/Lightbox.astro';
 
 interface Props {
   title?: string;
@@ -36,6 +38,7 @@ const ogImage = image ? new URL(image, Astro.site).toString() : undefined;
     <meta name="twitter:card" content="summary_large_image" />
 
     <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml" />
+    <ClientRouter />
   </head>
   <body>
     <header class="site-header">
@@ -57,5 +60,7 @@ const ogImage = image ? new URL(image, Astro.site).toString() : undefined;
         © {new Date().getFullYear()} — 攝影 zine．以 Astro + Sanity 打造．
       </div>
     </footer>
+
+    <Lightbox />
   </body>
 </html>

@@ -4,6 +4,7 @@ import { urlFor } from '../lib/sanity.js';
 
 const { node } = Astro.props;
 const src = node?.asset ? urlFor(node).width(1600).url() : null;
+const full = node?.asset ? urlFor(node).width(2000).url() : null;
 ---
 
-{src && <img src={src} alt={node.alt ?? ''} loading="lazy" />}
+{src && <img class="zoomable" src={src} data-full={full} alt={node.alt ?? ''} loading="lazy" />}

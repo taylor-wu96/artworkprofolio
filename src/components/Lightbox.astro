@@ -1,0 +1,105 @@
+---
+// 無相依的影像 lightbox。任何帶 class="zoomable" 的 <img> 點擊即放大。
+// 用 document 層級事件委派，能在 View Transitions 導覽後持續作用。
+---
+
+<div id="lightbox" class="lightbox" hidden aria-hidden="true">
+  <button class="lightbox__close" type="button" aria-label="關閉">×</button>
+  <img class="lightbox__img" alt="" />
+</div>
+
+<style>
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: color-mix(in oklab, var(--bg) 92%, black);
+    backdrop-filter: blur(6px);
+    cursor: zoom-out;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .lightbox[data-open] {
+    opacity: 1;
+  }
+  .lightbox__img {
+    max-width: 92vw;
+    max-height: 88vh;
+    object-fit: contain;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.6);
+  }
+  .lightbox__close {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    background: none;
+    border: none;
+    color: var(--fg);
+    font-size: 2.5rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .lightbox__close:hover {
+    color: var(--accent);
+  }
+  :global(img.zoomable) {
+    cursor: zoom-in;
+  }
+</style>
+
+<script>
+  // 每次互動都重新查 overlay 元素 —— View Transitions 導覽後 body 會換新，
+  // 不能把元素參考存進 closure。document 層級的監聽只綁一次即可永久作用。
+  function openBox(src: string, alt: string) {
+    const box = document.getElementById('lightbox');
+    const img = box?.querySelector('.lightbox__img') as HTMLImageElement | null;
+    if (!box || !img) return;
+    img.src = src;
+    img.alt = alt;
+    box.hidden = false;
+    box.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => box.setAttribute('data-open', ''));
+  }
+
+  function closeBox() {
+    const box = document.getElementById('lightbox');
+    const img = box?.querySelector('.lightbox__img') as HTMLImageElement | null;
+    if (!box || !img) return;
+    box.removeAttribute('data-open');
+    box.setAttribute('aria-hidden', 'true');
+    setTimeout(() => {
+      box.hidden = true;
+      img.src = '';
+    }, 200);
+  }
+
+  if (!(window as any).__lightboxBound) {
+    (window as any).__lightboxBound = true;
+
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const zoomable = target.closest('img.zoomable') as HTMLImageElement | null;
+      if (zoomable) {
+        openBox(zoomable.dataset.full || zoomable.currentSrc || zoomable.src, zoomable.alt);
+        return;
+      }
+      if (target.closest('#lightbox')) closeBox();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      const box = document.getElementById('lightbox');
+      if (e.key === 'Escape' && box && !box.hidden) closeBox();
+    });
+
+    // 導覽後關掉殘留的 overlay 狀態。
+    document.addEventListener('astro:after-swap', () => {
+      const box = document.getElementById('lightbox');
+      if (box) box.hidden = true;
+    });
+  }
+</script>
