@@ -33,7 +33,8 @@
 ## 階段二：後台與內容
 - [x] 建立 Sanity Studio（`./studio/`，schema + config 已就緒）
 - [x] 定義 `theme` / `post` / `index` schema
-- [ ] 設定 Project ID / dataset（**需使用者帳號**：`cd studio && npx sanity init`）
+- [x] 安裝 studio 相依並升級至 Sanity 6.1.0（`sanity build` 已驗證 exit 0）
+- [ ] 設定 Project ID / dataset（**需使用者帳號**：`cd studio && npx sanity login && npx sanity init`）
 - [x] 前台 client 串接（`src/lib/sanity.js` + `queries.js`，含 safeFetch 容錯）
 - [x] 文章列表頁 + 文章內頁（`index.astro` / `post/[slug].astro`）
 - [x] 主題篩選頁（`themes/index.astro` / `themes/[slug].astro`）
