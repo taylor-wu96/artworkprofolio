@@ -21,6 +21,11 @@
 
 ---
 
+## 上線狀態
+- 前台：**https://artworkprofolio.a0716116z.workers.dev**（Cloudflare Workers，git 連動自動建置）
+- 後台：**https://taylor-artwork-portfolio.sanity.studio/**
+- 前台 repo：github.com/taylor-wu96/artworkprofolio｜後台 repo：github.com/taylor-wu96/artwork-portfolio-studio
+
 ## 階段一：骨架可上線
 - [x] 建立 Astro 專案（根目錄）— Astro 6.4.8
 - [x] 加入 React 整合（`@astrojs/react` 5）— React 19
@@ -30,7 +35,7 @@
 - [x] `npm run build` 可產出 `dist/`（已驗證，無警告）
 - [x] git init 並首次 commit（6ec068a）
 - [x] 推上 GitHub（`git@github.com:taylor-wu96/artworkprofolio.git`，main 分支，已產生 ed25519 金鑰）
-- [ ] 接 Cloudflare Pages 自動部署（**需使用者操作**）
+- [x] Cloudflare 自動部署（Workers Builds，git push 自動重建，已上線）
 
 ## 階段二：後台與內容
 - [x] 建立 standalone Sanity Studio（`~/Desktop/studio-artwork-portfolio`，project z4fuhbhm）
@@ -60,7 +65,9 @@
 - [ ] 進階：drei `useTexture` 3D 影像牆
 
 ## 階段四：收尾與延伸
-- [ ] 自訂網域、OG/SEO、RSS
+- [x] OG/SEO（Base.astro head）、RSS、**sitemap**（@astrojs/sitemap）、robots.txt、正式 site URL
+- [ ] 自訂網域（目前用 *.workers.dev）
+- [ ] 自動重建 webhook（Sanity publish → Cloudflare）— **待 Cloudflare Deploy Hook URL**
 - [ ] 聯絡表單 / 電子報 / zine 販售連結（視需要）
 
 ---
