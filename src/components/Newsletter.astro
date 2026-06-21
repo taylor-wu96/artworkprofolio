@@ -2,7 +2,9 @@
 // 電子報訂閱（Buttondown）。靜態站無需後端：表單直接 POST 到 Buttondown
 // 的 embed 端點，再由 Buttondown 寄出雙重確認信。
 // 設定：在 .env 填 PUBLIC_BUTTONDOWN_USERNAME（你的 Buttondown 帳號名）。
-const username = import.meta.env.PUBLIC_BUTTONDOWN_USERNAME || 'your-buttondown-username';
+// 帳號名是公開值（就在表單 action 網址裡）；內建正式預設值，零設定即可運作，
+// 要換帳號用 PUBLIC_BUTTONDOWN_USERNAME 覆蓋。
+const username = import.meta.env.PUBLIC_BUTTONDOWN_USERNAME || 'taylor__96';
 const configured = username !== 'your-buttondown-username';
 const action = `https://buttondown.com/api/emails/embed-subscribe/${username}`;
 ---
