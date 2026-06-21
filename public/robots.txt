@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://artworkprofolio.a0716116z.workers.dev/sitemap-index.xml
