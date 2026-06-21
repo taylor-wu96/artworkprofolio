@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers 靜態資產部署設定。
+  // `npm run build` 產出 dist/，`npx wrangler deploy` 把它當靜態網站發佈。
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "artworkprofolio",
+  "compatibility_date": "2026-06-21",
+  "assets": {
+    "directory": "./dist"
+  }
+}
