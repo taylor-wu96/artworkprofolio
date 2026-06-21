@@ -27,3 +27,6 @@ pnpm-debug.log*
 # installed agent skills (dev tooling, not app code)
 .agents/
 skills-lock.json
+
+# local preview config
+.claude/launch.json

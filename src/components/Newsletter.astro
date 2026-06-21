@@ -1,0 +1,165 @@
+---
+// 電子報訂閱（Buttondown）。靜態站無需後端：表單直接 POST 到 Buttondown
+// 的 embed 端點，再由 Buttondown 寄出雙重確認信。
+// 設定：在 .env 填 PUBLIC_BUTTONDOWN_USERNAME（你的 Buttondown 帳號名）。
+const username = import.meta.env.PUBLIC_BUTTONDOWN_USERNAME || 'your-buttondown-username';
+const configured = username !== 'your-buttondown-username';
+const action = `https://buttondown.com/api/emails/embed-subscribe/${username}`;
+---
+
+<section class="subscribe" aria-labelledby="subscribe-heading" data-reveal>
+  <div class="container subscribe__inner grid-12">
+    <div class="subscribe__intro">
+      <span class="label">通訊 / Subscribe</span>
+      <h2 id="subscribe-heading" class="subscribe__title">新作發表時，收到一封信</h2>
+      <p class="subscribe__note">
+        不定期、無廣告。關於光、門檻與衰敗的新影像與書寫。
+      </p>
+    </div>
+
+    {configured ? (
+      <form
+        class="subscribe__form"
+        action={action}
+        method="post"
+        target="_blank"
+        data-newsletter
+      >
+        <div class="subscribe__field">
+          <label class="vh" for="newsletter-email">電子郵件</label>
+          <input
+            id="newsletter-email"
+            class="subscribe__input"
+            type="email"
+            name="email"
+            required
+            placeholder="you@example.com"
+            autocomplete="email"
+            inputmode="email"
+          />
+          <button class="subscribe__submit" type="submit">訂閱 →</button>
+        </div>
+        <p class="subscribe__msg" data-msg aria-live="polite"></p>
+      </form>
+    ) : (
+      <p class="subscribe__note" style="align-self:end">
+        通訊功能設定中。
+      </p>
+    )}
+  </div>
+</section>
+
+<style>
+  .subscribe {
+    border-top: 1px solid var(--ink-15);
+    padding-block: clamp(3.5rem, 10vh, 7rem);
+  }
+  .subscribe__inner {
+    row-gap: clamp(1.6rem, 5vh, 2.6rem);
+    align-items: end;
+  }
+  .subscribe__intro {
+    grid-column: 1 / -1;
+  }
+  .subscribe__title {
+    margin-top: 0.7rem;
+    font-size: clamp(1.5rem, 3.6vw, 2.4rem);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+  }
+  .subscribe__note {
+    margin-top: 0.8rem;
+    max-width: 38ch;
+    font-size: 0.92rem;
+    color: var(--ink-45);
+  }
+  .subscribe__form {
+    grid-column: 1 / -1;
+  }
+  .subscribe__field {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    max-width: 32rem;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 0.6rem;
+  }
+  .subscribe__input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: 1.05rem;
+    padding: 0;
+  }
+  .subscribe__input::placeholder {
+    color: var(--ink-45);
+  }
+  .subscribe__input:focus {
+    outline: none;
+  }
+  .subscribe__submit {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 0;
+    transition: color 0.6s ease;
+  }
+  .subscribe__submit:hover {
+    color: var(--ink-45);
+  }
+  .subscribe__msg {
+    margin-top: 0.9rem;
+    min-height: 1.2em;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-45);
+  }
+
+  @media (min-width: 720px) {
+    .subscribe__intro {
+      grid-column: 1 / 7;
+    }
+    .subscribe__form {
+      grid-column: 8 / -1;
+    }
+  }
+</style>
+
+<script>
+  // 漸進增強：攔截送出，以 no-cors POST 到 Buttondown，行內顯示狀態、不重新整理。
+  // JS 關閉時退回原生表單送出（target=_blank 開啟 Buttondown 確認頁）。
+  if (!(window as any).__newsletterBound) {
+    (window as any).__newsletterBound = true;
+    document.addEventListener('submit', async (e) => {
+      const form = (e.target as HTMLElement)?.closest?.('form[data-newsletter]') as HTMLFormElement | null;
+      if (!form) return;
+      e.preventDefault();
+      const msg = form.querySelector('[data-msg]') as HTMLElement | null;
+      const input = form.querySelector('input[name="email"]') as HTMLInputElement | null;
+      const email = input?.value.trim();
+      if (!email) return;
+      if (msg) msg.textContent = '訂閱中…';
+      try {
+        await fetch(form.action, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ email }),
+        });
+        form.reset();
+        if (msg) msg.textContent = '已送出。請查收信箱完成確認訂閱。';
+      } catch {
+        if (msg) msg.textContent = '送出失敗，請稍後再試。';
+      }
+    });
+  }
+</script>
