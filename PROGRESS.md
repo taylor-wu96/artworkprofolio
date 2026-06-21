@@ -57,6 +57,13 @@
 ## 階段三：視覺亮點（更新）
 - [x] View Transitions 頁面轉場（Base.astro ClientRouter）
 - [x] 影像 lightbox（Lightbox.astro，無相依，cover/gallery/內文影像可點開放大）
+- [x] **整站重新設計**：美術館圖錄式視覺（瑞士無襯線、紙/墨兩色、12 欄、大量留白、
+      無卡片/陰影/漸層、影像不裁切、時間性檔案索引）
+- [x] **3D hero 重做**：緩慢呼吸的光點雲（Anadol/Turrell 風），取代旋轉 torusKnot
+- [x] 修掉 lightbox 覆蓋層攔截全站點擊的 bug（視覺驗證時發現）
+
+> 註：首頁索引目前多為「無影像」佔位框，因現有 post 尚未設封面。
+>     這是 image-first 設計的預期樣貌——上傳封面後版面才完整。
 
 ## 階段三：視覺亮點
 - [x] R3F Hero 場景（`Hero3D.jsx`：掃動光 + 侵蝕感形體，呼應光/門檻/衰敗）
