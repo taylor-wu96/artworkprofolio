@@ -10,13 +10,16 @@ interface Props {
 }
 
 const {
-  title = '光・門檻・衰敗 — 攝影 zine',
-  description = '一個關於光、門檻與邊界、衰敗與生機並存的攝影作品集。',
+  title = '光・門檻・衰敗 — 攝影檔案',
+  description = '一個關於光、門檻與邊界、衰敗與生機並存的攝影檔案。',
   image,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = image ? new URL(image, Astro.site).toString() : undefined;
+const path = Astro.url.pathname;
+const isWorks = path === '/' || path.startsWith('/post');
+const isThemes = path.startsWith('/themes');
 ---
 
 <!doctype html>
@@ -29,7 +32,6 @@ const ogImage = image ? new URL(image, Astro.site).toString() : undefined;
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -42,11 +44,11 @@ const ogImage = image ? new URL(image, Astro.site).toString() : undefined;
   </head>
   <body>
     <header class="site-header">
-      <div class="container">
+      <div class="container site-header__inner">
         <a class="brand" href="/">光・門檻・衰敗</a>
-        <nav class="nav">
-          <a href="/">作品</a>
-          <a href="/themes">主題</a>
+        <nav class="nav" aria-label="主導覽">
+          <a href="/" aria-current={isWorks ? 'page' : undefined}>作品</a>
+          <a href="/themes" aria-current={isThemes ? 'page' : undefined}>主題</a>
         </nav>
       </div>
     </header>
@@ -56,11 +58,38 @@ const ogImage = image ? new URL(image, Astro.site).toString() : undefined;
     </main>
 
     <footer class="site-footer">
-      <div class="container">
-        © {new Date().getFullYear()} — 攝影 zine．以 Astro + Sanity 打造．
+      <div class="container site-footer__inner">
+        <span>光・門檻・衰敗</span>
+        <span>攝影檔案 · {new Date().getFullYear()}</span>
+        <a href="/rss.xml">RSS</a>
       </div>
     </footer>
 
     <Lightbox />
+
+    <script>
+      // 緩慢、克制的入場揭示：元素進入視窗才現形。
+      function observe() {
+        const els = document.querySelectorAll('[data-reveal]:not(.is-visible)');
+        if (!('IntersectionObserver' in window)) {
+          els.forEach((el) => el.classList.add('is-visible'));
+          return;
+        }
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add('is-visible');
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.08 }
+        );
+        els.forEach((el) => io.observe(el));
+      }
+      observe();
+      document.addEventListener('astro:after-swap', observe);
+    </script>
   </body>
 </html>

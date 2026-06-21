@@ -6,57 +6,79 @@ import { POSTS_LIST } from '../lib/queries.js';
 
 const posts = await safeFetch(POSTS_LIST);
 
+const year = (d) => (d ? new Date(d).getFullYear() : null);
 const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+// 依年份分組，呈現時間性的檔案瀏覽。
+let lastYear = null;
+const total = posts.length;
 ---
 
 <Base>
   <section class="hero">
     <Hero3D client:only="react" />
-    <div class="hero__overlay">
-      <div class="container">
-        <h1 class="hero__title">光・門檻・衰敗</h1>
-        <p class="hero__subtitle">
-          光如何落下、邊界如何被跨越、衰敗與生機如何在同一格底片裡共存。
-        </p>
-      </div>
+    <span class="hero__index">攝影檔案 / Archive</span>
+    <div class="hero__caption">
+      <h1 class="hero__title">光・門檻・衰敗</h1>
+      <p class="hero__sub">
+        光如何落下、邊界如何被跨越、衰敗與生機如何在同一格底片裡共存。
+      </p>
     </div>
   </section>
 
   <div class="container">
-    <h2 class="section-title">作品</h2>
+    <header class="section-head grid-12">
+      <span class="label section-head__label">索引 / Works</span>
+      <h2 class="display section-head__title">作品檔案</h2>
+    </header>
 
-    {posts.length > 0 ? (
-      <ul class="grid" style="list-style:none;padding:0;margin:0;">
-        {posts.map((p) => (
-          <li>
-            <a class="card" href={`/post/${p.slug}`}>
-              {p.cover && (
-                <img
-                  src={urlFor(p.cover).width(800).height(600).fit('crop').url()}
-                  alt={p.title}
-                  loading="lazy"
-                />
+    {total > 0 ? (
+      <ol class="archive">
+        {posts.map((p, i) => {
+          const y = year(p.publishedAt);
+          const showYear = y !== lastYear;
+          lastYear = y;
+          const num = String(total - i).padStart(2, '0');
+          return (
+            <>
+              {showYear && y && (
+                <li class="grid-12" aria-hidden="true">
+                  <p class="year-marker">{y}</p>
+                </li>
               )}
-              <div class="card__body">
-                <h3 class="card__title">{p.title}</h3>
-                <p class="card__meta">{fmtDate(p.publishedAt)}</p>
-                {p.themes?.length > 0 && (
-                  <ul class="tags" style="margin-top:.5rem;">
-                    {p.themes.map((t) => (
-                      <li class="tag">{t.title}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </a>
-          </li>
-        ))}
-      </ul>
+              <li class="entry grid-12" data-reveal>
+                <div class="entry__meta">
+                  <span class="entry__num">作品 {num} / {String(total).padStart(2, '0')}</span>
+                  {p.themes?.length > 0 && (
+                    <span class="entry__themes">
+                      {p.themes.map((t) => <span>{t.title}</span>)}
+                    </span>
+                  )}
+                  <span class="entry__num">{fmtDate(p.publishedAt)}</span>
+                </div>
+                <a class="entry__plate" href={`/post/${p.slug}`}>
+                  {p.cover ? (
+                    <img
+                      class="entry__img"
+                      src={urlFor(p.cover).width(1600).url()}
+                      alt={p.title}
+                      loading={i < 2 ? 'eager' : 'lazy'}
+                    />
+                  ) : (
+                    <div class="entry__placeholder">無影像 / NO IMAGE</div>
+                  )}
+                  <h3 class="entry__title">{p.title}</h3>
+                </a>
+              </li>
+            </>
+          );
+        })}
+      </ol>
     ) : (
-      <div class="empty">
-        後台尚無已發佈的作品。到 Sanity Studio 新增第一篇 post，這裡就會自動出現。
-      </div>
+      <p class="empty">
+        檔案尚未建立。到 Sanity Studio 新增第一件作品，這份索引就會開始記錄。
+      </p>
     )}
   </div>
 </Base>

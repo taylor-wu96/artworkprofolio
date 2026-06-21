@@ -17,31 +17,46 @@ if (!theme) {
 
 const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+const total = theme.posts?.length ?? 0;
 ---
 
 <Base title={`${theme.title} — 主題`}>
   <div class="container">
-    <h2 class="section-title">{theme.title}</h2>
-    {theme.description && <p style="color:var(--fg-muted);max-width:46ch;">{theme.description}</p>}
+    <header class="section-head grid-12">
+      <span class="label section-head__label">主題 / Theme</span>
+      <h1 class="display section-head__title">{theme.title}</h1>
+    </header>
 
-    {theme.posts?.length > 0 ? (
-      <ul class="grid" style="list-style:none;padding:0;margin:1.5rem 0 0;">
-        {theme.posts.map((p) => (
-          <li>
-            <a class="card" href={`/post/${p.slug}`}>
-              {p.cover && (
-                <img src={urlFor(p.cover).width(800).height(600).fit('crop').url()} alt={p.title} loading="lazy" />
+    {theme.description && (
+      <p class="empty" style="color:var(--ink-70)">{theme.description}</p>
+    )}
+
+    {total > 0 ? (
+      <ol class="archive">
+        {theme.posts.map((p, i) => (
+          <li class="entry grid-12" data-reveal>
+            <div class="entry__meta">
+              <span class="entry__num">作品 {String(total - i).padStart(2, '0')}</span>
+              <span class="entry__num">{fmtDate(p.publishedAt)}</span>
+            </div>
+            <a class="entry__plate" href={`/post/${p.slug}`}>
+              {p.cover ? (
+                <img
+                  class="entry__img"
+                  src={urlFor(p.cover).width(1600).url()}
+                  alt={p.title}
+                  loading={i < 2 ? 'eager' : 'lazy'}
+                />
+              ) : (
+                <div class="entry__placeholder">無影像 / NO IMAGE</div>
               )}
-              <div class="card__body">
-                <h3 class="card__title">{p.title}</h3>
-                <p class="card__meta">{fmtDate(p.publishedAt)}</p>
-              </div>
+              <h2 class="entry__title">{p.title}</h2>
             </a>
           </li>
         ))}
-      </ul>
+      </ol>
     ) : (
-      <div class="empty">此主題尚無作品。</div>
+      <p class="empty">此主題尚無作品。</p>
     )}
   </div>
 </Base>

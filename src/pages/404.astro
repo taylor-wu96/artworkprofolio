@@ -3,9 +3,13 @@ import Base from '../layouts/Base.astro';
 ---
 
 <Base title="找不到頁面 — 光・門檻・衰敗">
-  <div class="container" style="padding-block:5rem;text-align:center;">
-    <h1 style="font-size:3rem;margin:0;">404</h1>
-    <p style="color:var(--fg-muted);">這道門檻後面什麼也沒有。</p>
-    <p style="margin-top:1.5rem;"><a href="/" class="tag">回到作品</a></p>
+  <div class="container" style="padding-block: clamp(5rem, 20vh, 12rem)">
+    <span class="label">404</span>
+    <h1 class="display" style="margin-top: 1rem">這道門檻後面什麼也沒有。</h1>
+    <p style="margin-top: 2rem">
+      <a href="/" class="label" style="color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 3px">
+        回到檔案
+      </a>
+    </p>
   </div>
 </Base>

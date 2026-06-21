@@ -21,28 +21,30 @@ const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
 ---
 
-<Base title={`${post.title} — 光・門檻・衰敗`} image={post.cover ? urlFor(post.cover).width(1200).url() : undefined}>
-  <article class="article container">
+<Base
+  title={`${post.title} — 光・門檻・衰敗`}
+  image={post.cover ? urlFor(post.cover).width(1200).url() : undefined}
+>
+  <article class="work container">
+    <header class="work__header grid-12">
+      <span class="label" style="grid-column: 1 / -1">作品 / Work</span>
+      <h1 class="display work__title">{post.title}</h1>
+      <div class="work__meta">
+        <span>{fmtDate(post.publishedAt)}</span>
+        {post.themes?.length > 0 &&
+          post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
+      </div>
+    </header>
+
     {post.cover && (
       <img
-        class="cover zoomable"
-        src={urlFor(post.cover).width(1600).height(900).fit('crop').url()}
-        data-full={urlFor(post.cover).width(2000).url()}
+        class="work__cover zoomable"
+        src={urlFor(post.cover).width(2000).url()}
+        data-full={urlFor(post.cover).width(2600).url()}
         alt={post.title}
+        data-reveal
       />
     )}
-    <h1>{post.title}</h1>
-    <p class="meta">
-      {fmtDate(post.publishedAt)}
-      {post.themes?.length > 0 && (
-        <>
-          {' · '}
-          {post.themes.map((t, i) => (
-            <>{i > 0 ? '、' : ''}<a href={`/themes/${t.slug}`}>{t.title}</a></>
-          ))}
-        </>
-      )}
-    </p>
 
     {post.body && (
       <div class="prose">
@@ -51,13 +53,13 @@ const fmtDate = (d) =>
     )}
 
     {post.gallery?.length > 0 && (
-      <div class="gallery">
+      <div class="plates">
         {post.gallery.map((img) => (
-          <figure>
+          <figure data-reveal>
             <img
               class="zoomable"
-              src={urlFor(img).width(800).url()}
-              data-full={urlFor(img).width(2000).url()}
+              src={urlFor(img).width(2000).url()}
+              data-full={urlFor(img).width(2600).url()}
               alt={img.caption ?? ''}
               loading="lazy"
             />

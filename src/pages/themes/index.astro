@@ -8,26 +8,34 @@ const themes = await safeFetch(THEMES_LIST);
 
 <Base title="主題 — 光・門檻・衰敗">
   <div class="container">
-    <h2 class="section-title">主題</h2>
+    <header class="section-head grid-12">
+      <span class="label section-head__label">分類 / Themes</span>
+      <h1 class="display section-head__title">主題</h1>
+    </header>
 
     {themes.length > 0 ? (
-      <ul class="grid" style="list-style:none;padding:0;margin:0;">
-        {themes.map((t) => (
-          <li>
-            <a class="card" href={`/themes/${t.slug}`}>
-              <div class="card__body">
-                <h3 class="card__title">{t.title}</h3>
-                {t.description && <p class="card__meta">{t.description}</p>}
-                <p class="card__meta" style="margin-top:.5rem;">{t.count ?? 0} 件作品</p>
-              </div>
+      <ol class="archive">
+        {themes.map((t, i) => (
+          <li class="entry grid-12" data-reveal>
+            <div class="entry__meta">
+              <span class="entry__num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="entry__num">{t.count ?? 0} 件</span>
+            </div>
+            <a class="entry__plate" href={`/themes/${t.slug}`}>
+              <h2 class="entry__title" style="margin-top:0">{t.title}</h2>
+              {t.description && (
+                <p class="hero__sub" style="color:var(--ink-45);margin-top:0.6rem;max-width:46ch">
+                  {t.description}
+                </p>
+              )}
             </a>
           </li>
         ))}
-      </ul>
+      </ol>
     ) : (
-      <div class="empty">
-        後台尚無主題。到 Sanity Studio 新增 theme（例：光、門檻與邊界、衰敗與生機）。
-      </div>
+      <p class="empty">
+        尚無主題。到 Sanity Studio 新增 theme（例：光、門檻與邊界、衰敗與生機）。
+      </p>
     )}
   </div>
 </Base>
