@@ -4,6 +4,7 @@
   "exclude": ["dist", "studio"],
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "react"
+    "jsxImportSource": "react",
+    "types": ["@sanity/astro/module"]
   }
 }

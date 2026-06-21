@@ -13,14 +13,19 @@
   "dependencies": {
     "@astrojs/react": "^5.0.7",
     "@astrojs/rss": "^4.0.18",
-    "@portabletext/to-html": "^5.0.2",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
+    "@sanity/astro": "^3.4.1",
     "@sanity/client": "^7.23.0",
     "@sanity/image-url": "^2.1.1",
     "astro": "^6.4.8",
+    "astro-portabletext": "^0.13.0",
+    "groq": "^6.1.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-is": "^19.2.7",
+    "sanity": "^6.1.0",
+    "styled-components": "^6.4.2",
     "three": "^0.184.0"
   }
 }

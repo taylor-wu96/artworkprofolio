@@ -2,7 +2,8 @@
 import Base from '../../layouts/Base.astro';
 import { urlFor, safeFetch } from '../../lib/sanity.js';
 import { POST_SLUGS, POST_BY_SLUG } from '../../lib/queries.js';
-import { toHTML } from '@portabletext/to-html';
+import { PortableText } from 'astro-portabletext';
+import PortableImage from '../../components/PortableImage.astro';
 
 export async function getStaticPaths() {
   const slugs = await safeFetch(POST_SLUGS);
@@ -18,20 +19,6 @@ if (!post) {
 
 const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
-
-// 把 Portable Text 內文轉成 HTML，並讓內嵌影像走 Sanity 影像 CDN。
-const bodyHtml = post.body
-  ? toHTML(post.body, {
-      components: {
-        types: {
-          image: ({ value }) =>
-            value?.asset
-              ? `<img src="${urlFor(value).width(1600).url()}" alt="${value.alt ?? ''}" loading="lazy" />`
-              : '',
-        },
-      },
-    })
-  : '';
 ---
 
 <Base title={`${post.title} — 光・門檻・衰敗`} image={post.cover ? urlFor(post.cover).width(1200).url() : undefined}>
@@ -52,7 +39,11 @@ const bodyHtml = post.body
       )}
     </p>
 
-    {bodyHtml && <div class="prose" set:html={bodyHtml} />}
+    {post.body && (
+      <div class="prose">
+        <PortableText value={post.body} components={{ type: { image: PortableImage } }} />
+      </div>
+    )}
 
     {post.gallery?.length > 0 && (
       <div class="gallery">

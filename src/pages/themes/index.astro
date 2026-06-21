@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { isSanityConfigured, safeFetch } from '../../lib/sanity.js';
+import { safeFetch } from '../../lib/sanity.js';
 import { THEMES_LIST } from '../../lib/queries.js';
 
 const themes = await safeFetch(THEMES_LIST);
@@ -26,9 +26,7 @@ const themes = await safeFetch(THEMES_LIST);
       </ul>
     ) : (
       <div class="empty">
-        {isSanityConfigured
-          ? '後台尚無主題。到 Sanity Studio 新增 theme（例：光、門檻與邊界、衰敗與生機）。'
-          : '尚未接上 Sanity。接好後台後，這裡會列出你的主題分類。'}
+        後台尚無主題。到 Sanity Studio 新增 theme（例：光、門檻與邊界、衰敗與生機）。
       </div>
     )}
   </div>

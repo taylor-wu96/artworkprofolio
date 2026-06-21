@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Hero3D from '../components/Hero3D.jsx';
-import { urlFor, isSanityConfigured, safeFetch } from '../lib/sanity.js';
+import { urlFor, safeFetch } from '../lib/sanity.js';
 import { POSTS_LIST } from '../lib/queries.js';
 
 const posts = await safeFetch(POSTS_LIST);
@@ -55,9 +55,7 @@ const fmtDate = (d) =>
       </ul>
     ) : (
       <div class="empty">
-        {isSanityConfigured
-          ? '後台尚無已發佈的作品。到 Sanity Studio 新增第一篇 post 吧。'
-          : '尚未接上 Sanity。填好 .env 的 SANITY_PROJECT_ID 後，這裡會自動顯示你的作品。'}
+        後台尚無已發佈的作品。到 Sanity Studio 新增第一篇 post，這裡就會自動出現。
       </div>
     )}
   </div>

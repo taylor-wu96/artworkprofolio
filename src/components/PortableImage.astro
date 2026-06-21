@@ -1,0 +1,9 @@
+---
+// astro-portabletext 內嵌影像的序列化器：把 Sanity image 走影像 CDN 輸出。
+import { urlFor } from '../lib/sanity.js';
+
+const { node } = Astro.props;
+const src = node?.asset ? urlFor(node).width(1600).url() : null;
+---
+
+{src && <img src={src} alt={node.alt ?? ''} loading="lazy" />}

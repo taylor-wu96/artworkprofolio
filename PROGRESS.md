@@ -4,7 +4,7 @@
 > 主題：光 / 門檻與邊界 / 衰敗與生機並存
 > 此檔用來記錄建置進度，避免中斷後忘記做到哪。每完成一步就勾選並補上備註。
 
-最後更新：2026-06-21（階段一程式完成，待使用者接 GitHub / Cloudflare / Sanity）
+最後更新：2026-06-21（Sanity 已接通：standalone Studio + schema 已部署 + @sanity/astro 整合完成）
 
 ---
 
@@ -13,9 +13,11 @@
 - npm：10.9.7
 - git：2.39.5
 - 工作目錄：`/Users/taylor/Desktop/profolio`
-- 結構規劃：
-  - `./`（根）＝ Astro 前台
-  - `./studio/` ＝ Sanity Studio 後台
+- 結構（standalone，後台與前台並列，非內嵌）：
+  - `~/Desktop/profolio/`            ＝ Astro 前台（此 repo）
+  - `~/Desktop/studio-artwork-portfolio/` ＝ Sanity Studio 後台（獨立 repo）
+- Sanity 專案：**z4fuhbhm**（"artwork portfolio"）、dataset `production`
+- 登入帳號：a0716116z@icloud.com（GitHub 登入）
 
 ---
 
@@ -31,14 +33,17 @@
 - [ ] 接 Cloudflare Pages 自動部署（**需使用者操作**）
 
 ## 階段二：後台與內容
-- [x] 建立 Sanity Studio（`./studio/`，schema + config 已就緒）
-- [x] 定義 `theme` / `post` / `index` schema
-- [x] 安裝 studio 相依並升級至 Sanity 6.1.0（`sanity build` 已驗證 exit 0）
-- [ ] 設定 Project ID / dataset（**需使用者帳號**：`cd studio && npx sanity login && npx sanity init`）
-- [x] 前台 client 串接（`src/lib/sanity.js` + `queries.js`，含 safeFetch 容錯）
-- [x] 文章列表頁 + 文章內頁（`index.astro` / `post/[slug].astro`）
-- [x] 主題篩選頁（`themes/index.astro` / `themes/[slug].astro`）
-- [ ] 設定 .env 的 SANITY_PROJECT_ID（**需先有 Project ID**）
+- [x] 建立 standalone Sanity Studio（`~/Desktop/studio-artwork-portfolio`，project z4fuhbhm）
+- [x] 定義 `theme` / `post` / `index` schema（依 sanity-best-practices skill）
+- [x] **部署 schema 到 Content Lake**（`_.schemas.default` 已存在；用 `--no-extract-manifest` 繞過本機 worker crash）
+- [x] 設定 Project ID / dataset（`.env`：`PUBLIC_SANITY_PROJECT_ID=z4fuhbhm`）
+- [x] @sanity/astro 整合（`astro.config.mjs` + `sanity:client` 虛擬模組 + `loadEnv`）
+- [x] 前台 client 串接改用 `sanity:client`（`src/lib/sanity.js`）
+- [x] 文章列表頁 + 文章內頁（內文改用 `astro-portabletext`）
+- [x] 主題篩選頁
+- [x] build + dev smoke test 通過（3 頁 + RSS，HTTP 200，無 env/bundle 錯誤）
+- [ ] **新增內容**（後台 `cd ~/Desktop/studio-artwork-portfolio && npm run dev` → localhost:3333）
+- [ ] 部署 Studio：`npx sanity deploy`（免費託管於 *.sanity.studio）
 - [ ] Sanity Webhook → Cloudflare Deploy hook（**需使用者操作**）
 
 ## 階段三：視覺亮點
@@ -60,13 +65,22 @@
 4. Sanity Webhook 與 Cloudflare Deploy hook 網址
 
 ## 接手指引（下次回來看這裡）
-你（編輯）需要做的下一步，依序：
-1. **GitHub**：建立空 repo → `git remote add origin <網址>` → `git push -u origin main`
-2. **Cloudflare Pages**：連該 repo，Build=`npm run build`、Output=`dist`
-3. **Sanity**：`cd studio && npm install && npx sanity login && npx sanity init`
-   取得 Project ID 後 → 根目錄 `cp .env.example .env` 填入 → 在 Cloudflare 也加同名環境變數
-4. 後台新增 theme/post → 前台重建即顯示內容
+1. **加內容**：`cd ~/Desktop/studio-artwork-portfolio && npm run dev` → 開 localhost:3333
+   新增 theme（光/門檻與邊界/衰敗與生機）與 post → Publish
+2. **看前台**：`cd ~/Desktop/profolio && npm run dev` → localhost:4321，作品會出現
+3. **Cloudflare Pages**：連 `artworkprofolio` repo，Build=`npm run build`、Output=`dist`，
+   並加環境變數 `PUBLIC_SANITY_PROJECT_ID=z4fuhbhm`、`PUBLIC_SANITY_DATASET=production`
+4. **部署後台**：`cd ~/Desktop/studio-artwork-portfolio && npx sanity deploy`
+5. **自動重建**：Cloudflare Deploy hook ↔ Sanity Webhook
+
+## 已知問題 / 備忘
+- 本機 `npx sanity schema deploy`（預設）/`schema list`/`manifest extract`(worker) 會 exit 134 abort。
+  解法：先 `npx sanity manifest extract`，再 `npx sanity schema deploy --no-extract-manifest`。
+- Studio 為獨立 git repo，尚未推到 GitHub（可另開 repo 或放同 monorepo）。
 
 ## 變更紀錄
 - 2026-06-21：建立進度檔，開始階段一。
-- 2026-06-21：完成階段一全部程式 + 階段二程式 + 階段三 hero。build/dev 已驗證，首次 commit 6ec068a。剩餘為需使用者帳號操作的接線項目。
+- 2026-06-21：完成階段一全部程式 + 階段二程式 + 階段三 hero。首次 commit 6ec068a。
+- 2026-06-21：推上 GitHub（artworkprofolio）。
+- 2026-06-21：用 sanity-best-practices skill 正式接通 Sanity — 建 standalone Studio（z4fuhbhm）、
+  部署 schema、改用 @sanity/astro + sanity:client + astro-portabletext；移除內嵌 studio/ 與 @portabletext/to-html。
