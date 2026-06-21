@@ -1,0 +1,58 @@
+---
+import Base from '../../layouts/Base.astro';
+import { urlFor, safeFetch } from '../../lib/sanity.js';
+import { GALLERIES_LIST } from '../../lib/queries.js';
+
+const galleries = await safeFetch(GALLERIES_LIST);
+const total = galleries.length;
+
+const fmtDate = (d) =>
+  d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' }) : '';
+---
+
+<Base title="影像集 — 光・門檻・衰敗" activeSection="gallery">
+  <div class="container">
+    <header class="section-head grid-12">
+      <span class="label section-head__label">影像 / Galleries</span>
+      <h1 class="display section-head__title">影像檔案</h1>
+    </header>
+
+    {total > 0 ? (
+      <ol class="archive">
+        {galleries.map((p, i) => {
+          const num = String(total - i).padStart(2, '0');
+          return (
+            <li class="entry grid-12" data-reveal>
+              <div class="entry__meta">
+                <span class="entry__num">藝廊 {num} / {String(total).padStart(2, '0')}</span>
+                <span class="entry__num">{fmtDate(p.publishedAt)}</span>
+                {p.themes?.length > 0 && (
+                  <span class="entry__themes">
+                    {p.themes.map((t) => <span>{t.title}</span>)}
+                  </span>
+                )}
+              </div>
+              <a class="entry__plate" href={`/post/${p.slug}`}>
+                {p.cover ? (
+                  <img
+                    class="entry__img"
+                    src={urlFor(p.cover).width(1600).url()}
+                    alt={p.title}
+                    loading={i < 2 ? 'eager' : 'lazy'}
+                  />
+                ) : (
+                  <div class="entry__placeholder">無影像 / NO IMAGE</div>
+                )}
+                <h3 class="entry__title">{p.title}</h3>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    ) : (
+      <p class="empty">
+        影像檔案尚未建立。到 Sanity Studio 新增分類為「影像集」的作品，這份索引就會開始記錄。
+      </p>
+    )}
+  </div>
+</Base>

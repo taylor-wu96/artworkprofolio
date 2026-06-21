@@ -2,9 +2,9 @@
 import Base from '../layouts/Base.astro';
 import Hero3D from '../components/Hero3D.jsx';
 import { urlFor, safeFetch } from '../lib/sanity.js';
-import { POSTS_LIST } from '../lib/queries.js';
+import { ARTWORKS_LIST } from '../lib/queries.js';
 
-const posts = await safeFetch(POSTS_LIST);
+const posts = await safeFetch(ARTWORKS_LIST);
 
 const year = (d) => (d ? new Date(d).getFullYear() : null);
 const fmtDate = (d) =>
@@ -15,7 +15,7 @@ let lastYear = null;
 const total = posts.length;
 ---
 
-<Base>
+<Base activeSection="works">
   <section class="hero">
     <Hero3D client:only="react" />
     <span class="hero__index">攝影檔案 / Archive</span>

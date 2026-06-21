@@ -19,54 +19,234 @@ if (!post) {
 
 const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+// 依分類決定 activeSection 與標籤名稱
+const category = post.category || 'artwork';
+const activeSection = category === 'gallery' ? 'gallery' : (category === 'essay' ? 'writings' : 'works');
+const labelName = category === 'gallery' ? '影像 / Gallery' : (category === 'essay' ? '創作 / Essay' : '作品 / Work');
 ---
 
 <Base
   title={`${post.title} — 光・門檻・衰敗`}
   image={post.cover ? urlFor(post.cover).width(1200).url() : undefined}
+  activeSection={activeSection}
 >
-  <article class="work container">
-    <header class="work__header grid-12">
-      <span class="label" style="grid-column: 1 / -1">作品 / Work</span>
-      <h1 class="display work__title">{post.title}</h1>
-      <div class="work__meta">
-        <span>{fmtDate(post.publishedAt)}</span>
-        {post.themes?.length > 0 &&
-          post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
+  <article class={`detail-view container ${category}-view`}>
+    
+    {category === 'essay' ? (
+      /* --- 散文創作排版 --- */
+      <div class="essay-layout" data-reveal>
+        <header class="essay-header">
+          <span class="label essay-label">{labelName}</span>
+          <h1 class="essay-title">{post.title}</h1>
+          <div class="essay-meta">
+            <span>{fmtDate(post.publishedAt)}</span>
+            {post.themes?.length > 0 &&
+              post.themes.map((t) => <a href={`/themes/${t.slug}`} class="essay-theme-link">{t.title}</a>)}
+          </div>
+        </header>
+
+        {post.cover && (
+          <img
+            class="essay-cover zoomable"
+            src={urlFor(post.cover).width(1600).url()}
+            data-full={urlFor(post.cover).width(2400).url()}
+            alt={post.title}
+          />
+        )}
+
+        {post.body && (
+          <div class="prose prose--essay">
+            <PortableText value={post.body} components={{ type: { image: PortableImage } }} />
+          </div>
+        )}
       </div>
-    </header>
+    ) : category === 'gallery' ? (
+      /* --- 影像集排版 --- */
+      <div class="gallery-layout">
+        <header class="work__header grid-12">
+          <span class="label" style="grid-column: 1 / -1">{labelName}</span>
+          <h1 class="display work__title">{post.title}</h1>
+          <div class="work__meta">
+            <span>{fmtDate(post.publishedAt)}</span>
+            {post.themes?.length > 0 &&
+              post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
+          </div>
+        </header>
 
-    {post.cover && (
-      <img
-        class="work__cover zoomable"
-        src={urlFor(post.cover).width(2000).url()}
-        data-full={urlFor(post.cover).width(2600).url()}
-        alt={post.title}
-        data-reveal
-      />
-    )}
+        {post.cover && (
+          <img
+            class="work__cover zoomable"
+            src={urlFor(post.cover).width(2000).url()}
+            data-full={urlFor(post.cover).width(2600).url()}
+            alt={post.title}
+            data-reveal
+          />
+        )}
 
-    {post.body && (
-      <div class="prose">
-        <PortableText value={post.body} components={{ type: { image: PortableImage } }} />
+        {post.body && (
+          <div class="prose" style="margin-bottom: clamp(3rem, 8vh, 6rem);">
+            <PortableText value={post.body} components={{ type: { image: PortableImage } }} />
+          </div>
+        )}
+
+        {post.gallery?.length > 0 && (
+          <div class="plates plates--gallery">
+            {post.gallery.map((img, i) => (
+              <figure class="gallery-item grid-12" data-reveal>
+                <div class="gallery-item__num label">影像 {String(i + 1).padStart(2, '0')} / {String(post.gallery.length).padStart(2, '0')}</div>
+                <div class="gallery-item__media">
+                  <img
+                    class="zoomable"
+                    src={urlFor(img).width(2000).url()}
+                    data-full={urlFor(img).width(2600).url()}
+                    alt={img.caption ?? ''}
+                    loading="lazy"
+                  />
+                  {img.caption && <figcaption class="gallery-caption">{img.caption}</figcaption>}
+                </div>
+              </figure>
+            ))}
+          </div>
+        )}
       </div>
-    )}
+    ) : (
+      /* --- 預設作品排版 --- */
+      <div class="artwork-layout">
+        <header class="work__header grid-12">
+          <span class="label" style="grid-column: 1 / -1">{labelName}</span>
+          <h1 class="display work__title">{post.title}</h1>
+          <div class="work__meta">
+            <span>{fmtDate(post.publishedAt)}</span>
+            {post.themes?.length > 0 &&
+              post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
+          </div>
+        </header>
 
-    {post.gallery?.length > 0 && (
-      <div class="plates">
-        {post.gallery.map((img) => (
-          <figure data-reveal>
-            <img
-              class="zoomable"
-              src={urlFor(img).width(2000).url()}
-              data-full={urlFor(img).width(2600).url()}
-              alt={img.caption ?? ''}
-              loading="lazy"
-            />
-            {img.caption && <figcaption>{img.caption}</figcaption>}
-          </figure>
-        ))}
+        {post.cover && (
+          <img
+            class="work__cover zoomable"
+            src={urlFor(post.cover).width(2000).url()}
+            data-full={urlFor(post.cover).width(2600).url()}
+            alt={post.title}
+            data-reveal
+          />
+        )}
+
+        {post.body && (
+          <div class="prose">
+            <PortableText value={post.body} components={{ type: { image: PortableImage } }} />
+          </div>
+        )}
+
+        {post.gallery?.length > 0 && (
+          <div class="plates">
+            {post.gallery.map((img) => (
+              <figure data-reveal>
+                <img
+                  class="zoomable"
+                  src={urlFor(img).width(2000).url()}
+                  data-full={urlFor(img).width(2600).url()}
+                  alt={img.caption ?? ''}
+                  loading="lazy"
+                />
+                {img.caption && <figcaption>{img.caption}</figcaption>}
+              </figure>
+            ))}
+          </div>
+        )}
       </div>
     )}
   </article>
 </Base>
+
+<style>
+  /* 散文專屬精緻排版 */
+  .essay-layout {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding-block: clamp(3rem, 8vh, 6rem);
+  }
+  .essay-header {
+    text-align: center;
+    margin-bottom: clamp(2.5rem, 6vh, 4rem);
+  }
+  .essay-label {
+    display: block;
+    margin-bottom: 0.8rem;
+  }
+  .essay-title {
+    font-size: clamp(1.8rem, 4.2vw, 2.6rem);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    margin-bottom: 1rem;
+    color: var(--ink);
+  }
+  .essay-meta {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-45);
+    display: flex;
+    justify-content: center;
+    gap: 1.2rem;
+  }
+  .essay-theme-link:hover {
+    color: var(--ink);
+  }
+  .essay-cover {
+    width: 100%;
+    margin-bottom: clamp(3rem, 8vh, 5rem);
+    border: 1px solid var(--ink-15);
+  }
+  
+  .prose--essay {
+    font-family: Georgia, 'Times New Roman', 'Noto Serif TC', PMingLiU, serif;
+    font-size: 1.12rem;
+    line-height: 1.85;
+    color: var(--ink-70);
+    letter-spacing: 0.01em;
+  }
+
+  /* 影像集專屬排版 */
+  .plates--gallery {
+    margin-top: clamp(2rem, 5vh, 4rem);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4rem, 12vh, 8rem);
+  }
+  .gallery-item {
+    column-gap: var(--col-gap);
+    row-gap: 1rem;
+  }
+  .gallery-item__num {
+    grid-column: 1 / -1;
+    color: var(--ink-45);
+    font-variant-numeric: tabular-nums;
+  }
+  .gallery-item__media {
+    grid-column: 1 / -1;
+  }
+  .gallery-caption {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-45);
+    line-height: 1.5;
+    max-width: var(--measure);
+  }
+
+  @media (min-width: 720px) {
+    .gallery-item__num {
+      grid-column: 1 / 4;
+      position: sticky;
+      top: 6rem;
+      align-self: start;
+      padding-top: 0.5rem;
+    }
+    .gallery-item__media {
+      grid-column: 4 / -1;
+    }
+  }
+</style>

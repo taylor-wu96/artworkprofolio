@@ -7,19 +7,24 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  activeSection?: 'works' | 'gallery' | 'writings' | 'themes' | 'about';
 }
 
 const {
   title = '光・門檻・衰敗 — 攝影檔案',
   description = '一個關於光、門檻與邊界、衰敗與生機並存的攝影檔案。',
   image,
+  activeSection,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = image ? new URL(image, Astro.site).toString() : undefined;
 const path = Astro.url.pathname;
-const isWorks = path === '/' || path.startsWith('/post');
-const isThemes = path.startsWith('/themes');
+const isWorks = activeSection ? activeSection === 'works' : (path === '/' || path.startsWith('/post'));
+const isGallery = activeSection ? activeSection === 'gallery' : path.startsWith('/gallery');
+const isWritings = activeSection ? activeSection === 'writings' : path.startsWith('/writings');
+const isThemes = activeSection ? activeSection === 'themes' : path.startsWith('/themes');
+const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/about');
 ---
 
 <!doctype html>
@@ -48,7 +53,10 @@ const isThemes = path.startsWith('/themes');
         <a class="brand" href="/">光・門檻・衰敗</a>
         <nav class="nav" aria-label="主導覽">
           <a href="/" aria-current={isWorks ? 'page' : undefined}>作品</a>
+          <a href="/gallery" aria-current={isGallery ? 'page' : undefined}>影像</a>
+          <a href="/writings" aria-current={isWritings ? 'page' : undefined}>散文</a>
           <a href="/themes" aria-current={isThemes ? 'page' : undefined}>主題</a>
+          <a href="/about" aria-current={isAbout ? 'page' : undefined}>關於</a>
         </nav>
       </div>
     </header>

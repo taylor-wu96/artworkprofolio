@@ -1,0 +1,217 @@
+---
+import Base from '../layouts/Base.astro';
+import { urlFor, safeFetch } from '../lib/sanity.js';
+import { ABOUT_QUERY } from '../lib/queries.js';
+import { PortableText } from 'astro-portabletext';
+
+const about = await safeFetch(ABOUT_QUERY, {}, null);
+
+// Group CV entries by category if data exists
+const cvGroups = about?.cv
+  ? about.cv.reduce((acc, entry) => {
+      const cat = entry.category || 'other';
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(entry);
+      return acc;
+    }, {})
+  : {};
+
+const cvCategoryTitles = {
+  solo: '個展 / Solo Exhibitions',
+  group: '聯展 / Group Exhibitions',
+  award: '獲獎與補助 / Awards & Grants',
+  publication: '出版 / Publications',
+  other: '其他經歷 / Other Experience',
+};
+---
+
+<Base title="關於作者 — 光・門檻・衰敗" activeSection="about">
+  <div class="container">
+    <header class="section-head grid-12">
+      <span class="label section-head__label">介紹 / About</span>
+      <h1 class="display section-head__title">關於作者</h1>
+    </header>
+
+    {about ? (
+      <div class="about-grid grid-12">
+        <div class="about-aside" data-reveal>
+          {about.photo && (
+            <img
+              class="about-photo zoomable"
+              src={urlFor(about.photo).width(1000).url()}
+              data-full={urlFor(about.photo).width(2000).url()}
+              alt={about.photo.alt || about.name}
+            />
+          )}
+          <div class="about-contact">
+            <h3 class="about-section-title label">聯絡與社群 / Contact</h3>
+            <ul class="contact-list">
+              {about.contact?.map((c) => (
+                <li>
+                  <span class="contact-label">{c.label}</span>
+                  <a href={c.url} class="contact-link" target="_blank" rel="noopener noreferrer">
+                    {c.url.startsWith('mailto:') ? c.url.replace('mailto:', '') : c.url.replace('https://', '')}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div class="about-content" data-reveal>
+          <h2 class="about-name">{about.name}</h2>
+          {about.bio && (
+            <div class="prose about-bio">
+              <PortableText value={about.bio} />
+            </div>
+          )}
+
+          {about.cv && about.cv.length > 0 && (
+            <div class="about-cv">
+              <h3 class="about-section-title label" style="margin-bottom: 2rem;">個人經歷 / Curriculum Vitae</h3>
+              {Object.entries(cvCategoryTitles).map(([key, title]) => {
+                const group = cvGroups[key];
+                if (!group || group.length === 0) return null;
+                return (
+                  <div class="cv-category">
+                    <h4 class="cv-category-title">{title}</h4>
+                    <ol class="cv-list">
+                      {group.map((entry) => (
+                        <li class="cv-item">
+                          <span class="cv-year">{entry.year}</span>
+                          <span class="cv-text">{entry.title}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    ) : (
+      <div class="empty">
+        <p>作者資料尚未建立。</p>
+        <p>請至 Sanity Studio 新增一個「關於作者 (about)」文件，填寫姓名、照片、個人簡介與 CV，此頁面便會自動呈現。</p>
+      </div>
+    )}
+  </div>
+</Base>
+
+<style>
+  .about-grid {
+    padding-block: clamp(2.5rem, 6vh, 5rem);
+    row-gap: 3rem;
+  }
+  .about-aside {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .about-photo {
+    width: 100%;
+    max-width: 500px;
+    border: 1px solid var(--ink-15);
+    background-color: var(--ink-15);
+  }
+  .about-content {
+    grid-column: 1 / -1;
+  }
+  .about-name {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.01em;
+  }
+  .about-bio {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    margin-bottom: clamp(3rem, 7vh, 5rem);
+    color: var(--ink-70);
+  }
+  
+  .about-section-title {
+    display: block;
+    border-bottom: 1px solid var(--ink-15);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+
+  .contact-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .contact-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .contact-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-45);
+    text-transform: uppercase;
+  }
+  .contact-link {
+    font-size: 0.9rem;
+    word-break: break-all;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.4s ease;
+    align-self: start;
+  }
+  .contact-link:hover {
+    border-color: var(--ink);
+  }
+
+  .cv-category {
+    margin-bottom: 2.5rem;
+  }
+  .cv-category-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.04em;
+  }
+  .cv-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .cv-item {
+    display: grid;
+    grid-template-columns: 4rem 1fr;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .cv-year {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-45);
+  }
+  .cv-text {
+    color: var(--ink-70);
+  }
+
+  @media (min-width: 720px) {
+    .about-aside {
+      grid-column: 1 / 5;
+      position: sticky;
+      top: 6rem;
+      align-self: start;
+    }
+    .about-content {
+      grid-column: 5 / -1;
+      padding-left: clamp(1rem, 3vw, 3rem);
+    }
+  }
+</style>
