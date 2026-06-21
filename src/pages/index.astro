@@ -1,0 +1,64 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero3D from '../components/Hero3D.jsx';
+import { urlFor, isSanityConfigured, safeFetch } from '../lib/sanity.js';
+import { POSTS_LIST } from '../lib/queries.js';
+
+const posts = await safeFetch(POSTS_LIST);
+
+const fmtDate = (d) =>
+  d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+---
+
+<Base>
+  <section class="hero">
+    <Hero3D client:only="react" />
+    <div class="hero__overlay">
+      <div class="container">
+        <h1 class="hero__title">光・門檻・衰敗</h1>
+        <p class="hero__subtitle">
+          光如何落下、邊界如何被跨越、衰敗與生機如何在同一格底片裡共存。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <h2 class="section-title">作品</h2>
+
+    {posts.length > 0 ? (
+      <ul class="grid" style="list-style:none;padding:0;margin:0;">
+        {posts.map((p) => (
+          <li>
+            <a class="card" href={`/post/${p.slug}`}>
+              {p.cover && (
+                <img
+                  src={urlFor(p.cover).width(800).height(600).fit('crop').url()}
+                  alt={p.title}
+                  loading="lazy"
+                />
+              )}
+              <div class="card__body">
+                <h3 class="card__title">{p.title}</h3>
+                <p class="card__meta">{fmtDate(p.publishedAt)}</p>
+                {p.themes?.length > 0 && (
+                  <ul class="tags" style="margin-top:.5rem;">
+                    {p.themes.map((t) => (
+                      <li class="tag">{t.title}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <div class="empty">
+        {isSanityConfigured
+          ? '後台尚無已發佈的作品。到 Sanity Studio 新增第一篇 post 吧。'
+          : '尚未接上 Sanity。填好 .env 的 SANITY_PROJECT_ID 後，這裡會自動顯示你的作品。'}
+      </div>
+    )}
+  </div>
+</Base>

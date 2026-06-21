@@ -1,0 +1,68 @@
+---
+import Base from '../../layouts/Base.astro';
+import { urlFor, safeFetch } from '../../lib/sanity.js';
+import { POST_SLUGS, POST_BY_SLUG } from '../../lib/queries.js';
+import { toHTML } from '@portabletext/to-html';
+
+export async function getStaticPaths() {
+  const slugs = await safeFetch(POST_SLUGS);
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const post = await safeFetch(POST_BY_SLUG, { slug }, null);
+
+if (!post) {
+  return Astro.redirect('/404');
+}
+
+const fmtDate = (d) =>
+  d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+// 把 Portable Text 內文轉成 HTML，並讓內嵌影像走 Sanity 影像 CDN。
+const bodyHtml = post.body
+  ? toHTML(post.body, {
+      components: {
+        types: {
+          image: ({ value }) =>
+            value?.asset
+              ? `<img src="${urlFor(value).width(1600).url()}" alt="${value.alt ?? ''}" loading="lazy" />`
+              : '',
+        },
+      },
+    })
+  : '';
+---
+
+<Base title={`${post.title} — 光・門檻・衰敗`} image={post.cover ? urlFor(post.cover).width(1200).url() : undefined}>
+  <article class="article container">
+    {post.cover && (
+      <img class="cover" src={urlFor(post.cover).width(1600).height(900).fit('crop').url()} alt={post.title} />
+    )}
+    <h1>{post.title}</h1>
+    <p class="meta">
+      {fmtDate(post.publishedAt)}
+      {post.themes?.length > 0 && (
+        <>
+          {' · '}
+          {post.themes.map((t, i) => (
+            <>{i > 0 ? '、' : ''}<a href={`/themes/${t.slug}`}>{t.title}</a></>
+          ))}
+        </>
+      )}
+    </p>
+
+    {bodyHtml && <div class="prose" set:html={bodyHtml} />}
+
+    {post.gallery?.length > 0 && (
+      <div class="gallery">
+        {post.gallery.map((img) => (
+          <figure>
+            <img src={urlFor(img).width(800).url()} alt={img.caption ?? ''} loading="lazy" />
+            {img.caption && <figcaption>{img.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    )}
+  </article>
+</Base>

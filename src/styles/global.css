@@ -1,0 +1,234 @@
+:root {
+  /* 主題色：暗底、冷光、邊界感。呼應「光 / 門檻與邊界 / 衰敗與生機」。 */
+  --bg: #0a0a0c;
+  --bg-elev: #131318;
+  --fg: #ececf0;
+  --fg-muted: #9a9aa6;
+  --line: #26262e;
+  --accent: #e8d9b0;      /* 微暖的光 */
+  --accent-dim: #7a715a;
+  --max-w: 72rem;
+  --radius: 4px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue',
+    'PingFang TC', 'Noto Sans TC', sans-serif;
+  line-height: 1.7;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  color: var(--accent);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.container {
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+/* 頁首 / 頁尾 */
+.site-header {
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  background: color-mix(in oklab, var(--bg) 80%, transparent);
+}
+.site-header .container {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 1rem;
+}
+.brand {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-size: 1.05rem;
+}
+.nav {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+}
+.site-footer {
+  border-top: 1px solid var(--line);
+  margin-top: 4rem;
+  padding-block: 2rem;
+  color: var(--fg-muted);
+  font-size: 0.85rem;
+}
+
+/* hero */
+.hero {
+  position: relative;
+  height: 70vh;
+  min-height: 420px;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 2rem 1.5rem;
+  pointer-events: none;
+  background: linear-gradient(to top, color-mix(in oklab, var(--bg) 70%, transparent), transparent 55%);
+}
+.hero__title {
+  font-size: clamp(2rem, 6vw, 4rem);
+  line-height: 1.05;
+  margin: 0;
+  font-weight: 600;
+}
+.hero__subtitle {
+  color: var(--fg-muted);
+  margin: 0.5rem 0 0;
+  max-width: 38ch;
+}
+
+/* 主題標籤 */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.tag {
+  font-size: 0.75rem;
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+}
+
+/* 影像網格 */
+.section-title {
+  font-size: 1.4rem;
+  margin: 3rem 0 1.25rem;
+  font-weight: 600;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+.card {
+  display: block;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-dim);
+}
+.card img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  width: 100%;
+  filter: saturate(0.95);
+}
+.card__body {
+  padding: 0.85rem 1rem 1.1rem;
+}
+.card__title {
+  font-size: 1.05rem;
+  margin: 0 0 0.35rem;
+}
+.card__meta {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+/* 文章內頁 */
+.article {
+  max-width: 46rem;
+  margin-inline: auto;
+  padding-block: 2.5rem;
+}
+.article h1 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+}
+.article .meta {
+  color: var(--fg-muted);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+.prose {
+  font-size: 1.05rem;
+}
+.prose img {
+  border-radius: var(--radius);
+  margin-block: 1.5rem;
+}
+.prose h2 {
+  margin-top: 2.5rem;
+}
+.cover {
+  width: 100%;
+  border-radius: var(--radius);
+  margin-bottom: 2rem;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+/* 影像集 */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin-block: 2rem;
+}
+.gallery figure {
+  margin: 0;
+}
+.gallery figcaption {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  margin-top: 0.3rem;
+}
+
+/* 空狀態提示（骨架階段沒有內容時） */
+.empty {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 2rem;
+  color: var(--fg-muted);
+  text-align: center;
+}

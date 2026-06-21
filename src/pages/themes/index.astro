@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import { isSanityConfigured, safeFetch } from '../../lib/sanity.js';
+import { THEMES_LIST } from '../../lib/queries.js';
+
+const themes = await safeFetch(THEMES_LIST);
+---
+
+<Base title="主題 — 光・門檻・衰敗">
+  <div class="container">
+    <h2 class="section-title">主題</h2>
+
+    {themes.length > 0 ? (
+      <ul class="grid" style="list-style:none;padding:0;margin:0;">
+        {themes.map((t) => (
+          <li>
+            <a class="card" href={`/themes/${t.slug}`}>
+              <div class="card__body">
+                <h3 class="card__title">{t.title}</h3>
+                {t.description && <p class="card__meta">{t.description}</p>}
+                <p class="card__meta" style="margin-top:.5rem;">{t.count ?? 0} 件作品</p>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <div class="empty">
+        {isSanityConfigured
+          ? '後台尚無主題。到 Sanity Studio 新增 theme（例：光、門檻與邊界、衰敗與生機）。'
+          : '尚未接上 Sanity。接好後台後，這裡會列出你的主題分類。'}
+      </div>
+    )}
+  </div>
+</Base>

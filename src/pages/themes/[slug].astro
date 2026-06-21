@@ -1,0 +1,47 @@
+---
+import Base from '../../layouts/Base.astro';
+import { urlFor, safeFetch } from '../../lib/sanity.js';
+import { THEME_SLUGS, THEME_BY_SLUG } from '../../lib/queries.js';
+
+export async function getStaticPaths() {
+  const slugs = await safeFetch(THEME_SLUGS);
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const theme = await safeFetch(THEME_BY_SLUG, { slug }, null);
+
+if (!theme) {
+  return Astro.redirect('/404');
+}
+
+const fmtDate = (d) =>
+  d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+---
+
+<Base title={`${theme.title} — 主題`}>
+  <div class="container">
+    <h2 class="section-title">{theme.title}</h2>
+    {theme.description && <p style="color:var(--fg-muted);max-width:46ch;">{theme.description}</p>}
+
+    {theme.posts?.length > 0 ? (
+      <ul class="grid" style="list-style:none;padding:0;margin:1.5rem 0 0;">
+        {theme.posts.map((p) => (
+          <li>
+            <a class="card" href={`/post/${p.slug}`}>
+              {p.cover && (
+                <img src={urlFor(p.cover).width(800).height(600).fit('crop').url()} alt={p.title} loading="lazy" />
+              )}
+              <div class="card__body">
+                <h3 class="card__title">{p.title}</h3>
+                <p class="card__meta">{fmtDate(p.publishedAt)}</p>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <div class="empty">此主題尚無作品。</div>
+    )}
+  </div>
+</Base>
