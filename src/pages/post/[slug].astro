@@ -183,21 +183,24 @@ const readingMinutes = (() => {
     margin: 0 auto;
     padding-block: clamp(3rem, 8vh, 6rem);
   }
+  /* 報導者式編輯標頭：靠左、與內文同軸，下緣髮絲分隔。 */
   .essay-header {
-    text-align: center;
-    margin-bottom: clamp(2.5rem, 6vh, 4rem);
+    text-align: left;
+    margin-bottom: clamp(2.5rem, 7vh, 4.5rem);
+    padding-bottom: clamp(1.5rem, 4vh, 2.4rem);
+    border-bottom: 1px solid var(--line);
   }
   .essay-label {
     display: block;
-    margin-bottom: 0.8rem;
+    margin-bottom: 1rem;
   }
   .essay-title {
-    font-size: clamp(1.8rem, 4.2vw, 2.6rem);
-    font-weight: 500;
-    line-height: 1.2;
+    font-size: clamp(1.9rem, 4.6vw, 2.8rem);
+    font-weight: var(--fw-semibold); /* 亮房閱讀：報導式半粗標題 */
+    line-height: 1.25;
     letter-spacing: -0.015em;
-    margin-bottom: 1rem;
-    color: var(--ink);
+    margin-bottom: 1.2rem;
+    color: var(--text);
   }
   .essay-meta {
     font-size: 0.78rem;
@@ -206,7 +209,7 @@ const readingMinutes = (() => {
     color: var(--text-dim);
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 1.2rem;
   }
   .essay-theme-link {
@@ -230,8 +233,9 @@ const readingMinutes = (() => {
     color: var(--text-muted);
     letter-spacing: 0.01em;
   }
-  /* 導言（lead）：開場段落略大、實墨、行高更鬆，承擔開場重量。 */
-  .prose--essay > p:first-of-type {
+  /* 導言（lead）：開場段落略大、實墨、行高更鬆，承擔開場重量。
+     用 :global——段落由 PortableText 子元件輸出，不帶本檔的 scope 屬性。 */
+  :global(.prose--essay > p:first-of-type) {
     font-size: 1.28rem;
     line-height: 1.8;
     color: var(--text);
@@ -261,7 +265,7 @@ const readingMinutes = (() => {
     margin-top: 1rem;
     font-size: 0.8rem;
     letter-spacing: 0.04em;
-    color: var(--ink-45);
+    color: var(--text-dim);
     line-height: 1.5;
     max-width: var(--measure);
   }

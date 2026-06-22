@@ -71,6 +71,18 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease: ease;
 
+  /* ---- 地基 ④：字重階梯（取代「全部 500」的平階層）------------------
+     依房間混用：標題字重由 --display-weight 驅動——
+     暗房＝展覽輕量(400，大字加寬字距的圖錄標籤感)；
+     亮房＝報導半粗(600，長文裡清晰可掃描的段落頭)。 */
+  --fw-regular: 400; /* 內文、暗房大標 */
+  --fw-medium: 500; /* 介面標籤、導覽、meta */
+  --fw-semibold: 600; /* 亮房標題與段落頭 */
+  --display-weight: var(--fw-semibold); /* 亮房預設；暗房重映為輕量 */
+
+  /* ---- 圓角：刻意接近 0（建築／印刷氣質，非網頁 App）---------------- */
+  --radius: 0px;
+
   /* ---- 語意表面 token（預設＝亮房；暗房由 html[data-room] 重映）------- */
   --surface: var(--paper);
   --text: var(--ink);
@@ -95,6 +107,8 @@ html[data-room='dark'] {
   --line: var(--hairline-dark);
   --accent: var(--life-dark);
   --header-bg: color-mix(in oklab, var(--gallery) 82%, transparent);
+  /* 暗房展覽：大標走輕量，靠尺寸與字距撐起存在感。 */
+  --display-weight: var(--fw-regular);
 }
 
 *,
@@ -132,7 +146,7 @@ a {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 1px;
+  border-radius: var(--radius);
 }
 
 img {
@@ -163,7 +177,7 @@ ol {
 .display {
   font-size: var(--display);
   line-height: 1.02;
-  font-weight: 500;
+  font-weight: var(--display-weight); /* 依房間：暗房輕量 / 亮房半粗 */
   letter-spacing: -0.015em;
 }
 
@@ -262,7 +276,7 @@ ol {
 }
 .hero__title {
   font-size: var(--hero-title);
-  font-weight: 500;
+  font-weight: var(--fw-regular); /* hero 恆為暗房展覽：輕量大字 */
   letter-spacing: -0.01em;
   line-height: 1.04;
   mix-blend-mode: difference; /* 讓字隨光場明暗自適應，仍只用紙/墨 */
@@ -363,7 +377,7 @@ ol {
 .entry__title {
   margin-top: 1rem;
   font-size: clamp(1.3rem, 3.2vw, 2rem);
-  font-weight: 500;
+  font-weight: var(--fw-regular); /* 暗房圖錄條目：展覽輕量 */
   letter-spacing: -0.01em;
   transition: color var(--dur) var(--ease);
 }
@@ -475,7 +489,7 @@ ol {
 .prose h2,
 .prose h3 {
   font-family: var(--font-ui);
-  font-weight: 500;
+  font-weight: var(--fw-semibold); /* 段落頭半粗：長文裡清晰可掃描 */
   color: var(--text);
   letter-spacing: -0.005em;
 }

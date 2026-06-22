@@ -5,6 +5,15 @@ import { urlFor } from '../lib/sanity.js';
 const { node } = Astro.props;
 const src = node?.asset ? urlFor(node).width(1600).url() : null;
 const full = node?.asset ? urlFor(node).width(2000).url() : null;
+const caption = node?.caption ?? null;
 ---
 
-{src && <img class="zoomable" src={src} data-full={full} alt={node.alt ?? ''} loading="lazy" />}
+{src &&
+  (caption ? (
+    <figure>
+      <img class="zoomable" src={src} data-full={full} alt={node.alt ?? caption} loading="lazy" />
+      <figcaption>{caption}</figcaption>
+    </figure>
+  ) : (
+    <img class="zoomable" src={src} data-full={full} alt={node.alt ?? ''} loading="lazy" />
+  ))}

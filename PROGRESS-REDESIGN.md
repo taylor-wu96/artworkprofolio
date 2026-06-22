@@ -79,5 +79,53 @@
 
 ---
 
+## 階段 C — v2 成熟化（系統化地基＋兩房落實＋綠收束＋閱讀室＋3D 樂章）
+
+> 依據：DESIGN.md v2。Review 後使用者拍板三方向（暗房圖錄／點雲＋捲動／綠收束），全數實作並驗證。
+
+### C1. 系統化地基（`global.css`）
+- [x] C1-1 間距 token（8px 模數 t-shirt：`--space-3xs … --space-5xl`）
+- [x] C1-2 字級 token（1.25 大三度：`--step--2 … --step-3` ＋ `--display/--hero-title/--read-size`）
+- [x] C1-3 動態 token（`--dur-fast/--dur/--dur-slow`、`--ease-out/--ease`）
+- [x] C1-4 暗房平行墨階（`--g-ink-70/45/20`、`--hairline-dark`）
+- [x] C1-5 語意表面 token（`--surface/--text/--text-muted/--text-dim/--line/--accent/--header-bg`），亮房為預設
+
+### C2. 兩房落實（語意 token 重映）
+- [x] C2-1 `html[data-room="dark"]` 重映語意 token；`Base.astro` 加 `room` prop
+- [x] C2-2 元件全面改用語意 token（header/nav/footer/section-head/archive/entry/work/prose/plates/empty/selection/Newsletter）
+- [x] C2-3 暗房套頁：首頁、`gallery/index`、`themes/index`、`themes/[slug]`、`post/[slug]`（artwork/gallery）
+- [x] C2-4 亮房套頁：`about`、`writings/index`、`post/[slug]`（essay）
+- 驗證：首頁/圖錄/作品內頁 `--surface=#0c0c0b`（影像如投影牆發光）；about/essay `=#f4f4f2`（截圖）
+
+### C3. 綠收束（DESIGN §8 白名單）
+- [x] C3-1 內文連結退回墨色＋hover 細底線（`.prose a`、essay/contact/theme hover 去綠）
+- [x] C3-2 新增 `:focus-visible` 地衣綠聚焦環
+- [x] C3-3 閱讀進度條綠填充（亮房長文，`#4f5e44`）
+- [x] C3-4 檔案索引「最新 / Latest」標記用綠（首頁最新一件，`#93a47f` 暗底）
+
+### C4. 閱讀室編輯工具箱（essay，對標報導者）
+- [x] C4-1 文章頭部加閱讀時間（中文 ~350 字/分估算）
+- [x] C4-2 導言（lead）：首段 1.28rem 實墨、行高 1.8（用 `:global` 穿透 PortableText scope）
+- [x] C4-3 抽言（pull quote）：`.prose blockquote` 大宋體＋墨色短左線
+- [x] C4-4 圖說：`PortableImage` 有 caption 時輸出 `figure/figcaption`；`.prose figcaption` 無襯線小字
+- [x] C4-5 章節記號：`.prose hr` 置中短髮絲
+- [x] C4-6 閱讀進度條：`Base.astro` 注入 `.read-progress`＋rAF 節流腳本，僅 `[data-read-progress]` 文章啟用
+- 驗證：essay 內文 19px/行高 1.85、導言 21.76px、進度條隨捲動填充（截圖）
+
+### C5. 3D 第二樂章（`Hero3D.jsx`）
+- [x] C5-1 捲出 hero 時光場下沉/後退加深；白光場較快稀釋（`1 - s·1.15`）
+- [x] C5-2 綠光淡得最慢（`1 - s·0.55`），最後消融進圖錄共用的黑——衰敗中的生機延續入暗房
+- 備註：採「時間性消融＋暗房共用黑」達成連續性；fixed 背景殘光留待後續（見 B5）。
+
+### C6. 建置與驗證
+- [x] C6-1 `npm run build` 通過、15 頁、無警告
+- [x] C6-2 dev 視覺驗證：暗房圖錄（首頁/主題/作品內頁）、亮房閱讀（essay）、綠克制、行動裝置（截圖）
+- [x] C6-3 無 console error；房間 token 重映、最新綠標、閱讀時間、進度條、導言皆驗證
+
+> **階段 C 全數完成並驗證。** 待續：閱讀室旁註/側欄註腳（C4 進階）、3D fixed 背景殘光（B5）。
+
+---
+
 ## 變更紀錄
 - 2026-06-21：建立重構進度檔，開始階段 A。
+- 2026-06-21：階段 A/B 完成。Review 後定 DESIGN v2，完成階段 C（系統化＋兩房＋綠收束＋閱讀室＋3D 樂章）。

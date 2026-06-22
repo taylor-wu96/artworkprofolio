@@ -88,9 +88,9 @@ const fmtDate = (d) =>
   }
   .essay-entry__title {
     font-size: clamp(1.2rem, 3vw, 1.8rem);
-    font-weight: 500;
+    font-weight: var(--fw-semibold); /* 亮房閱讀：報導式半粗 */
     letter-spacing: -0.010em;
-    transition: color 0.6s ease;
+    transition: color var(--dur) var(--ease);
   }
   .essay-entry__link {
     font-size: 0.78rem;

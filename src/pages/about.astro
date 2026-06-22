@@ -121,7 +121,7 @@ const cvCategoryTitles = {
   }
   .about-name {
     font-size: clamp(1.8rem, 4vw, 2.8rem);
-    font-weight: 500;
+    font-weight: var(--fw-semibold); /* 亮房閱讀：報導式半粗 */
     margin-bottom: 1.5rem;
     letter-spacing: -0.01em;
   }
@@ -163,12 +163,12 @@ const cvCategoryTitles = {
     font-size: 0.9rem;
     word-break: break-all;
     border-bottom: 1px solid transparent;
-    transition: border-color 0.4s ease;
+    transition: border-color var(--dur-fast) var(--ease);
     align-self: start;
   }
+  /* 綠已退出介面 hover（DESIGN §8）：聯絡連結用墨色細線。 */
   .contact-link:hover {
-    color: var(--life);
-    border-color: var(--life);
+    border-color: currentColor;
   }
 
   .cv-category {

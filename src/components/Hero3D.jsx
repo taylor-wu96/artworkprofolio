@@ -76,12 +76,14 @@ function LightField({ scroll, prefersReduced }) {
     cur.current.x += (target.current.x - cur.current.x) * d * 1.6;
     cur.current.y += (target.current.y - cur.current.y) * d * 1.6;
 
-    // 滾動驅動：往下捲時光場緩慢沉降、後退、淡出（揭示而非表演）。
+    // 樂章二（捲出 hero）：光場不表演式消失，而是沉降、後退、稀釋——
+    // 消融進圖錄共用的同一片黑。白光場較快退場；綠光（唯一還活著的）淡得最慢，
+    // 最後一個離開視野，把「衰敗中的生機」帶進暗房。
     const s = scroll.current; // 0..1（hero 視窗內的進度）
 
     if (group.current) {
-      group.current.position.y = -s * 0.9; // 隨捲動下沉
-      group.current.position.z = -s * 1.2; // 後退
+      group.current.position.y = -s * 1.1; // 下沉（加深，像落入暗房地面）
+      group.current.position.z = -s * 1.4; // 後退（加深）
     }
 
     if (points.current) {
@@ -90,7 +92,7 @@ function LightField({ scroll, prefersReduced }) {
       points.current.rotation.y = autoY + cur.current.y;
       points.current.rotation.x = autoX + cur.current.x;
       const breath = prefersReduced ? 1 : 1 + Math.sin(t * 0.18) * 0.045; // ~35s 呼吸
-      points.current.scale.setScalar(breath * (1 - s * 0.12));
+      points.current.scale.setScalar(breath * (1 - s * 0.14));
     }
 
     if (material.current) {
@@ -98,13 +100,13 @@ function LightField({ scroll, prefersReduced }) {
       tmp.copy(warm).lerp(cool, k);
       material.current.color.copy(tmp);
       const base = prefersReduced ? 0.72 : 0.72 + Math.sin(t * 0.18) * 0.06;
-      material.current.opacity = base * (1 - s * 0.85); // 捲動淡出
+      material.current.opacity = base * Math.max(0, 1 - s * 1.15); // 白光較快稀釋
     }
 
     if (greenMat.current) {
-      // 綠光獨立、更慢的脈動——像還在呼吸的生命。
+      // 綠光獨立、更慢的脈動——像還在呼吸的生命；淡得最慢，最後消融。
       const pulse = prefersReduced ? 0.85 : 0.6 + (Math.sin(t * 0.12) + 1) * 0.22;
-      greenMat.current.opacity = pulse * (1 - s * 0.85);
+      greenMat.current.opacity = pulse * Math.max(0, 1 - s * 0.55); // 綠光續存最久
     }
   });
 
