@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { safeFetch } from '../../lib/sanity.js';
+import { urlFor, safeFetch } from '../../lib/sanity.js';
 import { THEMES_LIST } from '../../lib/queries.js';
 
 const themes = await safeFetch(THEMES_LIST);
@@ -22,7 +22,15 @@ const themes = await safeFetch(THEMES_LIST);
               <span class="entry__num">{t.count ?? 0} 件</span>
             </div>
             <a class="entry__plate" href={`/themes/${t.slug}`}>
-              <h2 class="entry__title" style="margin-top:0">{t.title}</h2>
+              {t.cover && (
+                <img
+                  class="entry__img"
+                  src={urlFor(t.cover).width(1600).url()}
+                  alt={t.title}
+                  loading={i < 2 ? 'eager' : 'lazy'}
+                />
+              )}
+              <h2 class="entry__title" style={t.cover ? undefined : 'margin-top:0'}>{t.title}</h2>
               {t.description && (
                 <p class="hero__sub" style="color:var(--text-dim);margin-top:0.6rem;max-width:46ch">
                   {t.description}

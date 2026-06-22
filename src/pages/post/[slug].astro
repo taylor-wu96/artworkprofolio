@@ -27,7 +27,18 @@ const activeSection = category === 'gallery' ? 'gallery' : (category === 'essay'
 const labelName = category === 'gallery' ? '影像 / Gallery' : (category === 'essay' ? '創作 / Essay' : '作品 / Work');
 // 房間：散文＝亮房（閱讀），作品/影像＝暗房（圖錄）。見 DESIGN §1。
 const room = category === 'essay' ? 'light' : 'dark';
-const sig = archiveSignature(slug);
+const sig = archiveSignature(slug, post.capture);
+
+// 真實拍攝資料（半真化）：有填才顯示，與生成簽名並存。
+const cap = post.capture ?? {};
+const captureMeta = [cap.location, cap.year, cap.gear, cap.film].filter(Boolean);
+
+// 動線量詞與關聯資料
+const unit = category === 'essay' ? '篇' : category === 'gallery' ? '組' : '件';
+const navLabel = category === 'essay' ? '繼續閱讀 / More' : '檔案動線 / Archive';
+const kindLabel = (c) => (c === 'essay' ? '散文' : c === 'gallery' ? '影像集' : '作品');
+// 固定比例縮圖（4:3，Sanity 裁切——保證一致比例、壓低 payload）。
+const thumb = (img) => urlFor(img).width(640).height(480).fit('crop').url();
 
 // 閱讀時間估算（中文 ~350 字/分），僅用於散文頭部。
 const readingMinutes = (() => {
@@ -95,6 +106,11 @@ const readingMinutes = (() => {
             <span class="data-strip__sig">{sig.code}</span>
             <span>CH.{sig.channel}</span>
           </p>
+          {captureMeta.length > 0 && (
+            <p class="work__capture">
+              {captureMeta.map((m) => <span>{m}</span>)}
+            </p>
+          )}
         </header>
 
         {post.cover && (
@@ -149,6 +165,11 @@ const readingMinutes = (() => {
             <span class="data-strip__sig">{sig.code}</span>
             <span>CH.{sig.channel}</span>
           </p>
+          {captureMeta.length > 0 && (
+            <p class="work__capture">
+              {captureMeta.map((m) => <span>{m}</span>)}
+            </p>
+          )}
         </header>
 
         {post.cover && (
@@ -184,6 +205,51 @@ const readingMinutes = (() => {
           </div>
         )}
       </div>
+    )}
+
+    {(post.related?.length > 0 || post.prev || post.next) && (
+      <nav class={`post-nav ${category === 'essay' ? 'post-nav--essay' : ''}`} aria-label="檔案動線">
+        <span class="label post-nav__label">{navLabel}</span>
+
+        {post.related?.length > 0 && (
+          <ul class="post-nav__related">
+            {post.related.map((r) => (
+              <li class="post-nav__item">
+                <a href={`/post/${r.slug}`}>
+                  <span class="post-nav__thumb">
+                    {r.cover && <img src={thumb(r.cover)} alt={r.title} loading="lazy" />}
+                  </span>
+                  <span class="post-nav__rinfo">
+                    <span class="post-nav__rtitle">{r.title}</span>
+                    <span class="post-nav__rkind">
+                      {kindLabel(r.category)}{r.themes?.[0] ? ` · ${r.themes[0].title}` : ''}
+                    </span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {(post.prev || post.next) && (
+          <div class="post-nav__adjacent">
+            {post.prev ? (
+              <a class="post-nav__step" href={`/post/${post.prev.slug}`}>
+                <span class="post-nav__dir"><span class="post-nav__arrow">←</span> 上一{unit}</span>
+                <span class="post-nav__name">{post.prev.title}</span>
+              </a>
+            ) : (
+              <span class="post-nav__step post-nav__step--empty" aria-hidden="true"></span>
+            )}
+            {post.next && (
+              <a class="post-nav__step post-nav__step--next" href={`/post/${post.next.slug}`}>
+                <span class="post-nav__dir">下一{unit} <span class="post-nav__arrow">→</span></span>
+                <span class="post-nav__name">{post.next.title}</span>
+              </a>
+            )}
+          </div>
+        )}
+      </nav>
     )}
   </article>
 </Base>
@@ -298,6 +364,192 @@ const readingMinutes = (() => {
     }
     .gallery-item__media {
       grid-column: 4 / -1;
+    }
+  }
+
+  /* 真實拍攝資料（半真化）：編輯說明行，中點分隔。 */
+  .work__capture {
+    grid-column: 1 / -1;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    font-size: var(--step--2);
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+  }
+  .work__capture span {
+    position: relative;
+  }
+  .work__capture span + span::before {
+    content: '·';
+    position: absolute;
+    left: -0.7rem;
+    color: var(--text-dim);
+  }
+
+  /* ---- 檔案動線：related + 上下篇（語意 token → 隨房間自動換色）-------- */
+  .post-nav {
+    margin-top: clamp(4rem, 12vh, 8rem);
+    padding-top: clamp(1.6rem, 4vh, 2.4rem);
+    border-top: 1px solid var(--line);
+  }
+  .post-nav--essay {
+    max-width: var(--measure);
+    margin-inline: auto;
+  }
+  .post-nav__label {
+    display: block;
+    margin-bottom: clamp(1.4rem, 3vh, 2rem);
+    color: var(--text-dim);
+  }
+
+  /* related —— 預設＝閱讀（亮房）的編輯式清單：小固定縮圖＋標題，文字優先。 */
+  .post-nav__related {
+    list-style: none;
+    margin: 0 0 clamp(2.4rem, 6vh, 3.6rem);
+    padding: 0;
+  }
+  .post-nav__item a {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 1.3rem;
+    align-items: center;
+    padding: 0.9rem 0;
+    border-top: 1px solid var(--line);
+  }
+  .post-nav__related li:last-child a {
+    border-bottom: 1px solid var(--line);
+  }
+  .post-nav__thumb {
+    display: block;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    background: color-mix(in oklab, var(--text) 6%, transparent);
+  }
+  .post-nav__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .post-nav__rinfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+  .post-nav__rtitle {
+    font-size: var(--step-0);
+    color: var(--text);
+    transition: color var(--dur) var(--ease);
+  }
+  .post-nav__rkind {
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .post-nav__item a:hover .post-nav__rtitle {
+    color: var(--accent);
+  }
+  .post-nav__item a:hover .post-nav__thumb img {
+    opacity: 0.82;
+    transform: scale(1.03);
+  }
+
+  /* 上下篇 —— 兩半骨架，綠色方向訊號（可前進的活路）。 */
+  .post-nav__adjacent {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .post-nav__step,
+  .post-nav__step--empty {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.3rem 1.4rem 0.4rem 0;
+    border-top: 1px solid var(--line);
+    transition: border-color var(--dur) var(--ease);
+  }
+  .post-nav__step--next {
+    text-align: right;
+    align-items: flex-end;
+    padding: 1.3rem 0 0.4rem 1.4rem;
+  }
+  .post-nav__dir {
+    font-size: var(--step--2);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  /* 綠＝可前進的活路（DESIGN §8 互動訊號）：箭頭恆綠、hover 收攏。 */
+  .post-nav__arrow {
+    display: inline-block;
+    color: var(--accent);
+    transition: transform var(--dur) var(--ease);
+  }
+  .post-nav__name {
+    font-size: var(--step-1);
+    line-height: 1.3;
+    color: var(--text-muted);
+    transition: color var(--dur) var(--ease);
+  }
+  .post-nav__step:hover {
+    border-color: var(--accent);
+  }
+  .post-nav__step:hover .post-nav__name {
+    color: var(--text);
+  }
+  .post-nav__step:not(.post-nav__step--next):hover .post-nav__arrow {
+    transform: translateX(-0.25rem);
+  }
+  .post-nav__step--next:hover .post-nav__arrow {
+    transform: translateX(0.25rem);
+  }
+
+  /* 暗房（圖錄）：related 改縮圖網格——展牆語境，視覺優先。 */
+  .post-nav:not(.post-nav--essay) .post-nav__related {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(1rem, 2.5vw, 1.6rem);
+  }
+  .post-nav:not(.post-nav--essay) .post-nav__item a {
+    display: block;
+    gap: 0;
+    padding: 0;
+    border: 0;
+  }
+  .post-nav:not(.post-nav--essay) .post-nav__related li:last-child a {
+    border: 0;
+  }
+  .post-nav:not(.post-nav--essay) .post-nav__thumb {
+    aspect-ratio: 4 / 3;
+  }
+  .post-nav:not(.post-nav--essay) .post-nav__rinfo {
+    margin-top: 0.7rem;
+  }
+  .post-nav:not(.post-nav--essay) .post-nav__rtitle {
+    font-size: var(--step--1);
+    font-weight: var(--fw-regular);
+  }
+
+  @media (min-width: 720px) {
+    .post-nav:not(.post-nav--essay) .post-nav__related {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  @media (max-width: 520px) {
+    .post-nav__adjacent {
+      grid-template-columns: 1fr;
+    }
+    .post-nav__step--next {
+      text-align: left;
+      align-items: flex-start;
+      padding: 1.3rem 0 0.4rem 0;
+    }
+    .post-nav__step--empty {
+      display: none;
     }
   }
 </style>

@@ -348,3 +348,9 @@ hover 作品（`.entry__plate / .work__cover / .gallery-item__media / .plates fi
 
 **未盡（v3.1 候選）**：細掃描線／網格（Ikeda）、生成式 per-work 視覺簽名（Reas）、
 頁面轉場做成光的揭示（Turrell）、Rozendaal 式全螢幕互動著陸。
+
+**2026-06-23 決策・簽名半真化（路線 A）**：`signature.js` 不再純生成。
+`post` 新增選填 `capture`（地點／`geopoint` 座標／年份／器材／底片）；**有真資料用真的、
+缺則 fallback 到現有決定性生成**，真假共用同一等寬視覺語言。理由：一台「觀看光的精密儀器」
+不該展示假精度——機器要真的在觀看，但允許尚未回填的作品以生成值佔位。落地見
+[PROGRESS 階段 E](PROGRESS-REDESIGN.md)。

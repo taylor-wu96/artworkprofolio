@@ -353,13 +353,25 @@ ol {
   letter-spacing: 0.14em;
   color: var(--text-dim);
 }
-/* 檔案索引「最新」標記＝一處生命跡象：地衣綠（白名單准用）。 */
-.entry__latest {
+/* 檔案索引「最新／進行中」標記＝生命跡象：地衣綠（DESIGN §8 白名單准用）。 */
+.entry__latest,
+.entry__wip {
   font-variant-numeric: tabular-nums;
   font-size: var(--step--2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent);
+}
+/* 進行中＝還在呼吸的作品：綠標極慢脈動（呼應 3D 那一粒綠光）。 */
+.entry__wip {
+  animation: wip-breathe 3.6s var(--ease) infinite;
+}
+@keyframes wip-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .entry__wip { animation: none; }
 }
 .entry__themes {
   display: flex;

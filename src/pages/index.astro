@@ -14,6 +14,10 @@ const fmtDate = (d) =>
 // 依年份分組，呈現時間性的檔案瀏覽。
 let lastYear = null;
 const total = posts.length;
+// 「最新」標記跟著真正最新的日期走（列表已先依精選置頂，i===0 未必最新）。
+const newestSlug = [...posts].sort(
+  (a, b) => new Date(b.publishedAt ?? 0) - new Date(a.publishedAt ?? 0),
+)[0]?.slug;
 ---
 
 <Base activeSection="works" room="dark">
@@ -41,7 +45,7 @@ const total = posts.length;
           const showYear = y !== lastYear;
           lastYear = y;
           const num = String(total - i).padStart(2, '0');
-          const sig = archiveSignature(p.slug);
+          const sig = archiveSignature(p.slug, p.capture);
           return (
             <>
               {showYear && y && (
@@ -52,7 +56,8 @@ const total = posts.length;
               <li class="entry grid-12" data-reveal>
                 <div class="entry__meta">
                   <span class="entry__num">作品 {num} / {String(total).padStart(2, '0')}</span>
-                  {i === 0 && <span class="entry__latest">最新 / Latest</span>}
+                  {p.status === 'wip' && <span class="entry__wip">進行中 / WIP</span>}
+                  {p.slug === newestSlug && <span class="entry__latest">最新 / Latest</span>}
                   {p.themes?.length > 0 && (
                     <span class="entry__themes">
                       {p.themes.map((t) => <span>{t.title}</span>)}

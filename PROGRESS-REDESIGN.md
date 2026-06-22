@@ -33,7 +33,7 @@
 ### A4. 全域與選取/狀態
 - [x] A4-1 `::selection` 維持墨/紙（足夠克制，未改）
 - [x] A4-2 nav `aria-current` 用地衣綠（驗證：rgb(79,94,68)）；hover 維持墨
-- [ ] A4-3 檔案索引「最新／進行中」標記用地衣綠 — 延後（待有「最新」語意資料）
+- [x] A4-3 檔案索引「最新／進行中」標記用地衣綠 — **階段 E 解決**（`post.status` 提供語意，wip 綠標落地）
 
 ### A5. 套頁與驗證
 - [x] A5-1 套用閱讀頁：`post/[slug].astro`（essay）、`about.astro`（bio 1.85 + 綠連結）
@@ -156,6 +156,54 @@
 
 ---
 
+## 階段 E — 內在一致性（資料層半真化）
+
+> 依據：2026-06-23 PM roadmap 討論。拍板：**簽名半真化（路線 A）** ＋ **先動資料層**。
+> 目標：讓「觀看的機器」名實相符——有真資料就用真的、缺則 fallback 生成；
+> 同時解掉延後的 A4-3（「進行中／最新」綠標需語意資料），並補上下篇／related 動線。
+> 不拆 `post`（category 單型維持）；新增欄位皆**選填**，不破壞既有內容。
+
+### E1. Schema 擴充（`../studio-artwork-portfolio/schemaTypes`）
+- [x] E1-1 `post.status`：草稿 `draft` / 進行中 `wip` / 完成 `done`（radio，initialValue `done`）— 供 A4-3 綠標
+- [x] E1-2 `post.featured`：boolean，首頁／索引置頂用
+- [x] E1-3 `post.capture`（object collapsible，選填真實 metadata，餵半真簽名）：
+  - `location`、`coordinates`（`geopoint`）、`year`、`gear`、`film`
+- [x] E1-4 `theme.cover`（image, hotspot）＋ `theme.order`（number，排序權重）
+- [x] E1-5 部署 schema（workaround：`manifest extract` + `schema deploy --no-extract-manifest`，exit 0；`_.schemas.default` 已更新驗證）
+
+### E2. `lib/signature.js` 半真化（DESIGN §13 路線 A）
+- [x] E2-1 `archiveSignature(seed, capture)`：有 `coordinates` → 真座標 Ikeda 格式；無 → fallback FNV/LCG
+- [x] E2-2 `CH.頻道`：有真 `year` 由 `year:slug` 決定；缺則純生成。`code` 維持機器抽象編碼（恆生成）
+- [x] E2-3 回傳 `coordReal` 旗標（內部來源標記，本階段未顯示，留給 Colophon）
+
+### E3. GROQ 查詢補欄位（`lib/queries.js`）
+- [x] E3-1 列表共用 `LIST_FIELDS` 加 `status`/`featured`/`capture`；`LIST_ORDER` 精選置頂；列表排除 `draft`
+- [x] E3-2 `POST_BY_SLUG` 加 `status`/`capture`/`_id`
+- [x] E3-3 related 內嵌進 `POST_BY_SLUG`（同主題、排除自身、`[0...4]`）—— 單次 fetch
+- [x] E3-4 上一件／下一件內嵌進 `POST_BY_SLUG`（同分類、publishedAt 相鄰）
+
+### E4. A4-3 綠標落地（DESIGN §8 合法綠，解延後懸案）
+- [x] E4-1 首頁／影像集：`status == 'wip'` 顯綠「進行中 / WIP」；「最新」改跟真正最新日期走（精選置頂後 i≠0）
+- [x] E4-2 `.entry__wip` 用 `--accent`、tabular-nums、慢呼吸脈動（reduced-motion 停）
+- [~] E4-3 wip `__sig` 訊號 —— 暫不做（綠呼吸標記已足夠，避免同視口綠過量）
+
+### E5. related ／ 上下篇（軸 1 補完整度，吃既有美學）
+- [x] E5-1 `.post-nav` 上下篇：兩半骨架（grid 1fr 1fr，行動單欄）、量詞依分類、綠色方向箭頭（hover 滑出＋綠線收攏）、無 next 時留空維持對稱
+- [x] E5-2 related **依房間分流**：暗房＝縮圖網格（桌機 4／行動 2 欄）；亮房＝編輯式清單（5.5rem 固定 3:2 Sanity 裁切縮圖＋標題＋分類·主題），文字優先、不做照片牆
+- [x] E5-3 essay（亮房）走 `.post-nav--essay`：「繼續閱讀 / More」、置中 measure 寬
+- 備註：縮圖改 `urlFor().width().height().fit('crop')` 由 Sanity 裁切，保證固定比例＋壓低 payload（修掉原本 CSS object-fit 溢出）。
+
+### E6. 建置與驗證
+- [x] E6-1 `npm run build` 通過、15 頁、無新警告
+- [x] E6-2 dev 驗證：fallback 生成簽名（−68.97°…）、最新標記、暗房動線（corridor→鏽與苔 related 2 件＋下一件）、亮房動線（uncompletedDreams light room）
+- [x] E6-3 無 console error；schema 部署成功
+
+> **階段 E 全數完成並驗證**（2026-06-23）。真實 metadata 待作者回填，回填後簽名自動半真化。
+> **待續（後續階段）**：階段 F（光揭示房間轉場＋克制音景＋旁註）、階段 G（series/collection＋Colophon＋Reas per-work 簽名＋侵蝕曲面）。
+
+---
+
 ## 變更紀錄
 - 2026-06-21：建立重構進度檔，開始階段 A。
 - 2026-06-21：階段 A/B 完成。Review 後定 DESIGN v2，完成階段 C（系統化＋兩房＋綠收束＋閱讀室＋3D 樂章）。
+- 2026-06-23：PM roadmap 討論定四軸；拍板簽名半真化（路線 A）＋先動資料層。完成階段 E（schema status/featured/capture＋theme cover/order、半真簽名、related/上下篇、wip 綠標、A4-3 解決）。

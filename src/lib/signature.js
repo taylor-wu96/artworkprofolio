@@ -1,6 +1,7 @@
-// 觀看的機器：每件作品的決定性「檔案座標／簽名」——由 slug 種子生成。
-// 不是真 EXIF，而是 Ikeda 式「資料即美學」：穩定、可重現的識別碼，
-// 讓每件作品在圖錄裡有一組屬於自己的、像座標一樣的編碼。
+// 觀看的機器：每件作品的「檔案座標／簽名」。
+// 半真化（DESIGN §13 路線 A）：有真拍攝資料就用真的、缺則由 slug 種子生成
+// 決定性的 fallback。真假共用同一等寬視覺語言——機器要真的在觀看，
+// 但允許尚未回填的作品以生成值佔位。
 
 // FNV-1a 雜湊：字串 → 32-bit 種子
 function hashSeed(str = '') {
@@ -24,19 +25,34 @@ function rng(seed) {
 const HEX = '0123456789ABCDEF';
 
 /**
- * 由種子（建議用 slug）產生一組決定性的檔案簽名。
- * @returns {{coord: string, code: string, channel: string}}
+ * 由種子（slug）＋ 選填的真實拍攝資料產生一組檔案簽名。
+ * @param {string} seed 通常是 slug。
+ * @param {{coordinates?: {lat?: number, lng?: number}, year?: string}} [capture]
+ * @returns {{coord: string, code: string, channel: string, coordReal: boolean}}
  */
-export function archiveSignature(seed = '') {
+export function archiveSignature(seed = '', capture = null) {
   const r = rng(hashSeed(String(seed)));
-  const lat = r() * 180 - 90;
-  const lon = r() * 360 - 180;
+  const genLat = r() * 180 - 90;
+  const genLon = r() * 360 - 180;
   const hex = Array.from({ length: 6 }, () => HEX[Math.floor(r() * 16)]).join('');
-  const channel = String(Math.floor(r() * 9999)).padStart(4, '0');
+  const genChannel = String(Math.floor(r() * 9999)).padStart(4, '0');
   const fmt = (n, d) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(d)}`;
+
+  // 半真：有真座標就用真的，否則用生成的。
+  const lat = capture?.coordinates?.lat;
+  const lon = capture?.coordinates?.lng;
+  const coordReal = typeof lat === 'number' && typeof lon === 'number';
+
+  // 頻道：有真年份時由年份＋slug 決定（仍是等寬的抽象頻道，但與真資料綁定）；
+  // 缺則維持純生成。code（0x 編碼）為機器內部抽象編碼，恆為生成。
+  const channel = capture?.year
+    ? String(hashSeed(`${capture.year}:${seed}`) % 10000).padStart(4, '0')
+    : genChannel;
+
   return {
-    coord: `${fmt(lat, 4)}° ${fmt(lon, 4)}°`,
+    coord: coordReal ? `${fmt(lat, 4)}° ${fmt(lon, 4)}°` : `${fmt(genLat, 4)}° ${fmt(genLon, 4)}°`,
     code: `0x${hex}`,
     channel,
+    coordReal,
   };
 }

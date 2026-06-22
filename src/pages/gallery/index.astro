@@ -22,11 +22,12 @@ const fmtDate = (d) =>
       <ol class="archive">
         {galleries.map((p, i) => {
           const num = String(total - i).padStart(2, '0');
-          const sig = archiveSignature(p.slug);
+          const sig = archiveSignature(p.slug, p.capture);
           return (
             <li class="entry grid-12" data-reveal>
               <div class="entry__meta">
                 <span class="entry__num">藝廊 {num} / {String(total).padStart(2, '0')}</span>
+                {p.status === 'wip' && <span class="entry__wip">進行中 / WIP</span>}
                 <span class="entry__num">{fmtDate(p.publishedAt)}</span>
                 {p.themes?.length > 0 && (
                   <span class="entry__themes">
