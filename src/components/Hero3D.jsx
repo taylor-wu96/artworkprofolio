@@ -42,15 +42,16 @@ function LightField({ scroll, prefersReduced }) {
   const points = useRef();
   const material = useRef();
   const greenMat = useRef();
+  const hazeMat = useRef(); // Janssens 式綠霧：一層極淡的彩色感知霧
   const sprite = useMemo(() => softSprite(), []);
 
   const count = useMemo(
     () => (typeof window !== 'undefined' && window.innerWidth < 768 ? 4000 : 8000),
     []
   );
-  // 一粒綠光：灰白光海中極少數的生機。
+  // 綠光：灰白光海中的生機（v2.2 增量——綠不再那麼稀少，但仍是少數）。
   const greenCount = useMemo(
-    () => (typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 18),
+    () => (typeof window !== 'undefined' && window.innerWidth < 768 ? 24 : 44),
     []
   );
 
@@ -108,10 +109,30 @@ function LightField({ scroll, prefersReduced }) {
       const pulse = prefersReduced ? 0.85 : 0.6 + (Math.sin(t * 0.12) + 1) * 0.22;
       greenMat.current.opacity = pulse * Math.max(0, 1 - s * 0.55); // 綠光續存最久
     }
+
+    if (hazeMat.current) {
+      // 綠霧：極淡、極慢呼吸的感知霧（Janssens 彩色霧）；隨滾動淡出。
+      const h = prefersReduced ? 0.05 : 0.04 + (Math.sin(t * 0.05) + 1) * 0.022;
+      hazeMat.current.opacity = h * Math.max(0, 1 - s * 0.9);
+    }
   });
 
   return (
     <group ref={group}>
+      {/* 綠霧：一層極淡的彩色感知霧，墊在光場之後（Janssens）。 */}
+      <mesh position={[0, -0.1, -0.6]} scale={[8, 5.5, 1]}>
+        <planeGeometry args={[1, 1]} />
+        <meshBasicMaterial
+          ref={hazeMat}
+          map={sprite}
+          color="#6f8a5a"
+          transparent
+          opacity={0.05}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+
       <points ref={points}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
@@ -134,8 +155,8 @@ function LightField({ scroll, prefersReduced }) {
         </bufferGeometry>
         <pointsMaterial
           ref={greenMat}
-          color="#93a47f"
-          size={0.085}
+          color="#9fb487"
+          size={0.1}
           sizeAttenuation
           map={sprite}
           transparent

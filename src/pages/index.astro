@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import Hero3D from '../components/Hero3D.jsx';
 import { urlFor, safeFetch } from '../lib/sanity.js';
 import { ARTWORKS_LIST } from '../lib/queries.js';
+import { archiveSignature } from '../lib/signature.js';
 
 const posts = await safeFetch(ARTWORKS_LIST);
 
@@ -40,6 +41,7 @@ const total = posts.length;
           const showYear = y !== lastYear;
           lastYear = y;
           const num = String(total - i).padStart(2, '0');
+          const sig = archiveSignature(p.slug);
           return (
             <>
               {showYear && y && (
@@ -57,6 +59,11 @@ const total = posts.length;
                     </span>
                   )}
                   <span class="entry__num">{fmtDate(p.publishedAt)}</span>
+                  <span class="data-strip">
+                    <span>{sig.coord}</span>
+                    <span class="data-strip__sig">{sig.code}</span>
+                    <span>CH.{sig.channel}</span>
+                  </span>
                 </div>
                 <a class="entry__plate" href={`/post/${p.slug}`}>
                   {p.cover ? (

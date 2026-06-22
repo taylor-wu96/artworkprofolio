@@ -126,6 +126,36 @@
 
 ---
 
+## 階段 D — v2.2 / v3 藝術融合（觀看的機器）
+
+> 依據：DESIGN.md §8（綠 tier 2）、§13（四層融合）。
+
+### D1. v2.2 收斂與綠調升
+- [x] D1-1 標題尺度收斂（display 4.6→3rem、hero 3.4→2.7rem、prose h2 1.4→1.2、essay/entry 標題下修）
+- [x] D1-2 綠 tier 2：內文連結綠下緣＋hover 轉綠、nav/meta/圖錄 hover 轉綠、3D 綠光 18→44（行動 10→24）
+
+### D2. 資料精度層（Ikeda・Anadol・Reas）
+- [x] D2-1 `lib/signature.js`：FNV-1a+LCG，由 slug 種子產生決定性座標/編碼/頻道
+- [x] D2-2 `--font-mono` token、`.data-strip`（綠 `__sig`）
+- [x] D2-3 套用：首頁圖錄、影像索引、作品內頁頭部
+- 驗證：`−83.6697° −119.5627° 0x3E6B70 CH.0773` 等寬呈現、編碼為綠（截圖）
+
+### D3. 機器視覺準星（Steyerl・Lozano-Hemmer・Paglen ＋ net-art）
+- [x] D3-1 `Base.astro` 準星腳本：暗房專屬、游標跟隨（rAF lerp）、hover 作品框選鎖定、隨捲動追蹤
+- [x] D3-2 觸控／reduced-motion 不啟用；隨房間切換建立/清理；`.reticle` 綠色四角括弧
+- 驗證：lock 展開至 638×687 框住作品、free 26px 跟隨（eval+截圖）
+
+### D4. 綠霧（Turrell・Eliasson・Janssens）
+- [x] D4-1 `Hero3D.jsx`：additive 綠霧 plane、極慢呼吸、隨捲動淡出
+
+### D5. 文件與驗證
+- [x] D5-1 DESIGN.md §8 tier 2、§13「觀看的機器」四層；PROGRESS 階段 D
+- [x] D5-2 `npm run build` 15 頁通過、無 console error
+
+> 待續（v3.1）：掃描線/網格、生成式 per-work 簽名、光的轉場、Rozendaal 式互動著陸。
+
+---
+
 ## 變更紀錄
 - 2026-06-21：建立重構進度檔，開始階段 A。
 - 2026-06-21：階段 A/B 完成。Review 後定 DESIGN v2，完成階段 C（系統化＋兩房＋綠收束＋閱讀室＋3D 樂章）。

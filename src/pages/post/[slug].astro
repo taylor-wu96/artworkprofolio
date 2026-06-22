@@ -4,6 +4,7 @@ import { urlFor, safeFetch } from '../../lib/sanity.js';
 import { POST_SLUGS, POST_BY_SLUG } from '../../lib/queries.js';
 import { PortableText } from 'astro-portabletext';
 import PortableImage from '../../components/PortableImage.astro';
+import { archiveSignature } from '../../lib/signature.js';
 
 export async function getStaticPaths() {
   const slugs = await safeFetch(POST_SLUGS);
@@ -26,6 +27,7 @@ const activeSection = category === 'gallery' ? 'gallery' : (category === 'essay'
 const labelName = category === 'gallery' ? '影像 / Gallery' : (category === 'essay' ? '創作 / Essay' : '作品 / Work');
 // 房間：散文＝亮房（閱讀），作品/影像＝暗房（圖錄）。見 DESIGN §1。
 const room = category === 'essay' ? 'light' : 'dark';
+const sig = archiveSignature(slug);
 
 // 閱讀時間估算（中文 ~350 字/分），僅用於散文頭部。
 const readingMinutes = (() => {
@@ -88,6 +90,11 @@ const readingMinutes = (() => {
             {post.themes?.length > 0 &&
               post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
           </div>
+          <p class="data-strip work__data">
+            <span>{sig.coord}</span>
+            <span class="data-strip__sig">{sig.code}</span>
+            <span>CH.{sig.channel}</span>
+          </p>
         </header>
 
         {post.cover && (
@@ -137,6 +144,11 @@ const readingMinutes = (() => {
             {post.themes?.length > 0 &&
               post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
           </div>
+          <p class="data-strip work__data">
+            <span>{sig.coord}</span>
+            <span class="data-strip__sig">{sig.code}</span>
+            <span>CH.{sig.channel}</span>
+          </p>
         </header>
 
         {post.cover && (
@@ -177,6 +189,12 @@ const readingMinutes = (() => {
 </Base>
 
 <style>
+  /* 作品頭部資料條（Ikeda 式檔案座標）*/
+  .work__data {
+    grid-column: 1 / -1;
+    margin-top: 0.9rem;
+  }
+
   /* 散文專屬精緻排版 */
   .essay-layout {
     max-width: var(--measure);
@@ -195,7 +213,7 @@ const readingMinutes = (() => {
     margin-bottom: 1rem;
   }
   .essay-title {
-    font-size: clamp(1.9rem, 4.6vw, 2.8rem);
+    font-size: clamp(1.6rem, 3.2vw, 2.2rem); /* v2.2 收斂 */
     font-weight: var(--fw-semibold); /* 亮房閱讀：報導式半粗標題 */
     line-height: 1.25;
     letter-spacing: -0.015em;

@@ -36,6 +36,9 @@
     'Noto Sans TC', system-ui, sans-serif;
   --font-read: 'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', Georgia,
     'Times New Roman', serif;
+  /* 資料精度層（Ikeda）：等寬字承載座標／編碼／時間戳。 */
+  --font-mono: 'SF Mono', 'JetBrains Mono', 'Roboto Mono', ui-monospace,
+    'Menlo', 'Consolas', monospace;
 
   /* ---- 地基 ①：間距（8px 模數・t-shirt 命名）------------------------- */
   --space-3xs: 4px;
@@ -60,8 +63,8 @@
   --step-1: 1.25rem;
   --step-2: 1.5625rem;
   --step-3: 1.953rem;
-  --display: clamp(2.1rem, 6vw, 4.6rem);
-  --hero-title: clamp(1.9rem, 5vw, 3.4rem);
+  --display: clamp(1.7rem, 3.6vw, 3rem); /* v2.2 收斂：max 4.6→3rem */
+  --hero-title: clamp(1.6rem, 3.4vw, 2.7rem); /* v2.2 收斂：max 3.4→2.7rem */
   --read-size: 1.12rem; /* ≈19px，亮房長文基準 */
 
   /* ---- 地基 ③：動態（duration / easing）----------------------------- */
@@ -247,7 +250,7 @@ ol {
 }
 .nav a:hover {
   color: var(--text);
-  border-color: var(--text);
+  border-color: var(--accent); /* hover 預示「當前」的綠 */
 }
 /* 當前所在＝唯一的生命跡象：地衣綠標記。 */
 .nav a[aria-current='page'] {
@@ -376,13 +379,14 @@ ol {
 }
 .entry__title {
   margin-top: 1rem;
-  font-size: clamp(1.3rem, 3.2vw, 2rem);
+  font-size: clamp(1.2rem, 2.6vw, 1.7rem); /* v2.2 收斂 */
   font-weight: var(--fw-regular); /* 暗房圖錄條目：展覽輕量 */
   letter-spacing: -0.01em;
   transition: color var(--dur) var(--ease);
 }
+/* 圖錄條目 hover＝被觸碰的生機訊號：標題轉地衣綠。 */
 .entry__plate:hover .entry__title {
-  color: var(--text-dim);
+  color: var(--accent);
 }
 .entry__placeholder {
   width: 100%;
@@ -439,7 +443,7 @@ ol {
   color: var(--text-dim);
 }
 .work__meta a:hover {
-  color: var(--text);
+  color: var(--accent);
 }
 @media (min-width: 720px) {
   .work__title {
@@ -494,21 +498,24 @@ ol {
   letter-spacing: -0.005em;
 }
 .prose h2 {
-  font-size: 1.4rem;
-  margin-top: 2.6rem;
+  font-size: 1.2rem;
+  margin-top: 2.4rem;
 }
 .prose h3 {
-  font-size: 1.15rem;
-  margin-top: 2rem;
+  font-size: 1.05rem;
+  margin-top: 1.9rem;
 }
-/* 內文連結＝墨色、無底線，hover 才顯下緣細線（綠已退出內文，見 DESIGN §8）。 */
+/* 內文連結＝墨色字＋地衣綠下緣細線；hover 整體轉綠（v2.2：綠回到內文，
+   作為「可被觸碰」的生機訊號，見 DESIGN §8 tier 2）。 */
 .prose a {
   color: var(--text);
-  border-bottom: 1px solid var(--text-dim);
-  transition: border-color var(--dur-fast) var(--ease);
+  border-bottom: 1px solid var(--accent);
+  transition: color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
 }
 .prose a:hover {
-  border-color: var(--text);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 /* 抽言（pull quote）：大宋體、墨色短左線，左右留白。 */
 .prose blockquote {
@@ -570,6 +577,107 @@ ol {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-dim);
+}
+
+/* ======================================================================
+   觀看的機器（v3）：資料精度層（Ikeda）＋ 機器視覺準星（凝視/監視）
+   ====================================================================== */
+
+/* 資料條：等寬字承載決定性檔案座標/編碼；綠＝資料訊號。 */
+.data-strip {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
+  color: var(--text-dim);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+.data-strip__sig {
+  color: var(--accent); /* 綠：被讀取的活訊號 */
+}
+
+/* 機器視覺準星：暗房專屬，跟隨游標、hover 作品時框選鎖定。
+   由 Base 腳本依 data-room / 觸控 / reduced-motion 決定是否啟用。 */
+html[data-room='dark']
+  :is(.entry__plate, .work__cover, .gallery-item__media, .plates figure) {
+  cursor: crosshair;
+}
+.reticle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  z-index: 60;
+  pointer-events: none;
+  transform: translate3d(-200px, -200px, 0);
+  color: var(--life-dark);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease), width 0.22s var(--ease-out),
+    height 0.22s var(--ease-out);
+  will-change: transform, width, height;
+}
+.reticle[data-active] {
+  opacity: 0.92;
+}
+.reticle[data-lock] {
+  transition: opacity var(--dur-fast) var(--ease), width 0.22s var(--ease-out),
+    height 0.22s var(--ease-out), transform 0.22s var(--ease-out);
+}
+.reticle__c {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 1px solid currentColor;
+}
+.reticle__c.tl {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+.reticle__c.tr {
+  top: 0;
+  right: 0;
+  border-left: 0;
+  border-bottom: 0;
+}
+.reticle__c.bl {
+  bottom: 0;
+  left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+.reticle__c.br {
+  bottom: 0;
+  right: 0;
+  border-left: 0;
+  border-top: 0;
+}
+.reticle__x,
+.reticle__y {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: currentColor;
+  opacity: 0.7;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.reticle__x {
+  width: 1px;
+  height: 6px;
+  transform: translate(-50%, -50%);
+}
+.reticle__y {
+  width: 6px;
+  height: 1px;
+  transform: translate(-50%, -50%);
+}
+.reticle[data-lock] .reticle__x,
+.reticle[data-lock] .reticle__y {
+  opacity: 0;
 }
 
 /* ---- 慢速、克制的入場揭示 ------------------------------------------ */
