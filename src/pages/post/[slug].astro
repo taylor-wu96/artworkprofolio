@@ -4,6 +4,7 @@ import { urlFor, safeFetch } from '../../lib/sanity.js';
 import { POST_SLUGS, POST_BY_SLUG } from '../../lib/queries.js';
 import { PortableText } from 'astro-portabletext';
 import PortableImage from '../../components/PortableImage.astro';
+import Plate from '../../components/Plate.astro';
 import { archiveSignature } from '../../lib/signature.js';
 
 export async function getStaticPaths() {
@@ -76,10 +77,13 @@ const readingMinutes = (() => {
         </header>
 
         {post.cover && (
-          <img
-            class="essay-cover zoomable"
-            src={urlFor(post.cover).width(1600).url()}
-            data-full={urlFor(post.cover).width(2400).url()}
+          <Plate
+            image={post.cover}
+            class="essay-cover"
+            width={1600}
+            full={2400}
+            zoomable
+            sizes="(min-width: 720px) 40rem, 100vw"
             alt={post.title}
           />
         )}
@@ -114,12 +118,15 @@ const readingMinutes = (() => {
         </header>
 
         {post.cover && (
-          <img
-            class="work__cover zoomable"
-            src={urlFor(post.cover).width(2000).url()}
-            data-full={urlFor(post.cover).width(2600).url()}
+          <Plate
+            image={post.cover}
+            class="work__cover"
+            width={2000}
+            full={2600}
+            zoomable
+            reveal
+            sizes="100vw"
             alt={post.title}
-            data-reveal
           />
         )}
 
@@ -135,10 +142,12 @@ const readingMinutes = (() => {
               <figure class="gallery-item grid-12" data-reveal>
                 <div class="gallery-item__num label">影像 {String(i + 1).padStart(2, '0')} / {String(post.gallery.length).padStart(2, '0')}</div>
                 <div class="gallery-item__media">
-                  <img
-                    class="zoomable"
-                    src={urlFor(img).width(2000).url()}
-                    data-full={urlFor(img).width(2600).url()}
+                  <Plate
+                    image={img}
+                    width={2000}
+                    full={2600}
+                    zoomable
+                    sizes="(min-width: 720px) 66vw, 100vw"
                     alt={img.caption ?? ''}
                     loading="lazy"
                   />
@@ -173,12 +182,15 @@ const readingMinutes = (() => {
         </header>
 
         {post.cover && (
-          <img
-            class="work__cover zoomable"
-            src={urlFor(post.cover).width(2000).url()}
-            data-full={urlFor(post.cover).width(2600).url()}
+          <Plate
+            image={post.cover}
+            class="work__cover"
+            width={2000}
+            full={2600}
+            zoomable
+            reveal
+            sizes="100vw"
             alt={post.title}
-            data-reveal
           />
         )}
 
@@ -192,10 +204,12 @@ const readingMinutes = (() => {
           <div class="plates">
             {post.gallery.map((img) => (
               <figure data-reveal>
-                <img
-                  class="zoomable"
-                  src={urlFor(img).width(2000).url()}
-                  data-full={urlFor(img).width(2600).url()}
+                <Plate
+                  image={img}
+                  width={2000}
+                  full={2600}
+                  zoomable
+                  sizes="100vw"
                   alt={img.caption ?? ''}
                   loading="lazy"
                 />
@@ -304,7 +318,8 @@ const readingMinutes = (() => {
   .essay-theme-link:hover {
     border-color: currentColor;
   }
-  .essay-cover {
+  /* essay-cover 套在 Plate 外層 .plate（子元件，不帶本檔 scope）→ 用 :global。 */
+  :global(.essay-cover) {
     width: 100%;
     margin-bottom: clamp(3rem, 8vh, 5rem);
     border: 1px solid var(--line);

@@ -1,11 +1,15 @@
 // 集中管理 GROQ 查詢，頁面引用即可。
 
+// 影像投影：展開 asset 取 lqip（模糊預載底）＋ dimensions（寬高比，杜絕版面跳動）。
+// 外層 ... 保留 hotspot/crop/_type，asset->{_id,...} 讓 urlFor 仍能組網址。
+const IMG = `{ ..., asset->{ _id, metadata { lqip, dimensions } } }`;
+
 // 列表共用欄位（含 status / featured / capture：半真簽名與「進行中」綠標需要）。
 const LIST_FIELDS = `
   title,
   "slug": slug.current,
   publishedAt,
-  cover,
+  cover ${IMG},
   category,
   status,
   featured,
@@ -46,13 +50,13 @@ export const POST_BY_SLUG = `
     title,
     "slug": slug.current,
     publishedAt,
-    cover,
+    cover ${IMG},
     category,
     status,
     featured,
     capture,
     body,
-    gallery,
+    gallery[] ${IMG},
     "themes": themes[]->{title, "slug": slug.current},
     "themeRefs": themes[]._ref,
     // 上一件 / 下一件（同分類，依日期相鄰）

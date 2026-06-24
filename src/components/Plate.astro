@@ -1,0 +1,66 @@
+---
+// 共用影像板（Plate）：暗房「顯影」式載入。
+// 由 Sanity 的 lqip 模糊底起手，影像載入完成後由模糊轉銳利（darkroom develop）；
+// dimensions 提供寬高比，先撐出版位、杜絕 CLS；srcset/sizes 響應式省流量。
+// 影像永不裁切（DESIGN §5）：只限寬，保留原始比例。
+import { urlFor } from '../lib/sanity.js';
+
+const {
+  image,
+  width = 1600, // 預設渲染寬
+  sizes = '100vw',
+  alt = '',
+  loading = 'lazy',
+  class: className = '', // 套用在外層 .plate（承載尺寸/欄位定位）
+  zoomable = false, // 點擊放大（lightbox 會讀 data-full）
+  full = 2400, // 放大檢視寬
+  reveal = false, // 是否掛 data-reveal（入場揭示）
+} = Astro.props;
+
+const ok = !!image?.asset;
+
+const meta = ok ? image.asset.metadata ?? {} : {};
+const dim = meta.dimensions; // { width, height, aspectRatio }
+const lqip = meta.lqip; // base64 模糊小圖
+
+// 候選寬度：不放大超過原圖。
+const CANDIDATES = [640, 960, 1280, 1600, 2000, 2560];
+const maxW = dim?.width ?? width;
+let src, srcset, dataFull, style, imgClass;
+
+if (ok) {
+  const widths = CANDIDATES.filter((w) => w <= maxW);
+  if (widths[widths.length - 1] !== Math.min(width, maxW)) widths.push(Math.min(width, maxW));
+
+  src = urlFor(image).width(Math.min(width, maxW)).url();
+  srcset = widths.map((w) => `${urlFor(image).width(w).url()} ${w}w`).join(', ');
+  dataFull = zoomable ? urlFor(image).width(Math.min(full, maxW)).url() : undefined;
+
+  // 外層樣式：lqip 當背景模糊底；aspect-ratio 先撐版位。
+  style = [
+    lqip ? `--lqip:url("${lqip}")` : null,
+    dim?.aspectRatio ? `aspect-ratio:${dim.aspectRatio}` : null,
+  ].filter(Boolean).join(';');
+
+  imgClass = ['plate__img', zoomable ? 'zoomable' : '', className && `${className}__img`]
+    .filter(Boolean)
+    .join(' ');
+}
+---
+
+{ok && (
+  <span class:list={['plate', className]} style={style} data-reveal={reveal ? '' : undefined}>
+    <img
+      class={imgClass}
+      src={src}
+      srcset={srcset}
+      sizes={sizes}
+      alt={alt}
+      loading={loading}
+      decoding="async"
+      width={dim?.width}
+      height={dim?.height}
+      data-full={dataFull}
+    />
+  </span>
+)}

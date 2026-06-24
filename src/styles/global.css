@@ -258,6 +258,89 @@ ol {
   border-color: var(--accent);
 }
 
+/* nav ＋ 聲音開關靠右成組（brand 維持靠左）。 */
+.site-header__right {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(1rem, 3vw, 2.4rem);
+}
+
+/* ---- 聲音開關（暗房專屬・F2）---------------------------------------- */
+.sound-toggle {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: color var(--dur-fast) var(--ease);
+}
+.sound-toggle:hover {
+  color: var(--text);
+}
+.sound-toggle__label {
+  font-size: var(--step--2);
+  letter-spacing: 0.14em;
+}
+.sound-toggle__waves {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+  transform: translateY(1px);
+}
+.sound-toggle__waves i {
+  width: 2px;
+  height: 3px;
+  background: currentColor;
+  transition: height var(--dur) var(--ease), background var(--dur-fast) var(--ease);
+}
+/* 啟用＝機器活著的訊號：綠（DESIGN §8 合法綠＝狀態）＋三條波呼吸。 */
+.sound-toggle[data-on] {
+  color: var(--accent);
+}
+.sound-toggle[data-on] .sound-toggle__waves i {
+  background: var(--accent);
+}
+.sound-toggle[data-on] .sound-toggle__waves i:nth-child(1) {
+  animation: sound-wave 1.4s var(--ease) infinite;
+}
+.sound-toggle[data-on] .sound-toggle__waves i:nth-child(2) {
+  height: 9px;
+  animation: sound-wave 1.4s var(--ease) infinite 0.2s;
+}
+.sound-toggle[data-on] .sound-toggle__waves i:nth-child(3) {
+  animation: sound-wave 1.4s var(--ease) infinite 0.4s;
+}
+@keyframes sound-wave {
+  0%, 100% { height: 3px; }
+  50% { height: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sound-toggle[data-on] .sound-toggle__waves i {
+    animation: none;
+    height: 7px;
+  }
+}
+
+/* ---- 光揭示房間轉場層（Turrell・F1）-------------------------------- */
+#room-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  background: var(--gallery);
+  transition: opacity var(--dur) var(--ease);
+}
+/* 亮房目標：光從中心徑向亮起（Turrell 的「光場」）。 */
+#room-veil.is-light {
+  background: radial-gradient(circle at 50% 44%, #ffffff 0%, var(--paper) 58%);
+}
+
 /* ---- HERO：全螢幕藝術品 ---------------------------------------------- */
 .hero {
   position: relative;
@@ -692,6 +775,32 @@ html[data-room='dark']
   opacity: 0;
 }
 
+/* ---- 影像板「顯影」：lqip 模糊底 → 載入後轉銳利（暗房 develop）------ */
+.plate {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  /* lqip 當背景：影像未到位前先有一層模糊低彩底（aspect-ratio 已撐好版位）。 */
+  background-color: var(--g-ink-20);
+  background-image: var(--lqip, none);
+  background-size: cover;
+  background-position: center;
+}
+.plate__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* 顯影：未載入時透明，載入完成 crossfade 顯現於模糊底之上。 */
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+.plate__img.is-loaded {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .plate__img { transition: none; }
+}
+
 /* ---- 慢速、克制的入場揭示 ------------------------------------------ */
 [data-reveal] {
   opacity: 0;
@@ -705,46 +814,174 @@ html[data-room='dark']
   transform: none;
 }
 
-/* ---- 影像放大檢視（無陰影、極簡介面；自成暗場 overlay）------------- */
-.lightbox {
+/* ---- 放映模式（Projection）：滿版暗場・序列翻閱・顯影 --------------- */
+.pjx {
   position: fixed;
   inset: 0;
   z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(1rem, 4vw, 3rem);
-  background: color-mix(in oklab, #0c0c0b 96%, black);
-  cursor: zoom-out;
+  display: grid;
+  grid-template-rows: 1fr auto; /* 影像舞台 / 底部簽名標籤 */
+  background: color-mix(in oklab, #0c0c0b 97%, black);
   /* 關閉時：不可見、不攔截點擊 */
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.8s ease, visibility 0s linear 0.8s;
+  transition: opacity var(--dur) var(--ease), visibility 0s linear var(--dur);
 }
-.lightbox[data-open] {
+.pjx[data-open] {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transition: opacity 0.8s ease;
+  transition: opacity var(--dur) var(--ease);
 }
-.lightbox__img {
-  max-width: 94vw;
-  max-height: 92vh;
+.pjx__stage {
+  grid-row: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  min-height: 0; /* 讓影像在 grid 內可收縮 */
+  overflow: hidden;
+}
+.pjx__frame {
+  position: relative;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+}
+/* 機器擷取：四角綠括弧，每格落定時 snap-in（凝視/監視母題，呼應全站準星）。 */
+.pjx__c {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+.pjx__c.tl { top: -9px; left: -9px; border-right: 0; border-bottom: 0; }
+.pjx__c.tr { top: -9px; right: -9px; border-left: 0; border-bottom: 0; }
+.pjx__c.bl { bottom: -9px; left: -9px; border-right: 0; border-top: 0; }
+.pjx__c.br { bottom: -9px; right: -9px; border-left: 0; border-top: 0; }
+.pjx__frame.is-acquiring .pjx__c {
+  animation: pjx-acquire var(--dur) var(--ease-out);
+}
+@keyframes pjx-acquire {
+  0% { opacity: 0; transform: scale(1.6); }
+  35% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1); }
+}
+.pjx.is-zoomed .pjx__c { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .pjx__frame.is-acquiring .pjx__c { animation: none; }
+}
+.pjx__img {
+  max-width: 92vw;
+  max-height: 80vh;
   width: auto;
-  height: auto; /* 放大檢視同樣不裁切 */
+  height: auto; /* 放映同樣不裁切 */
+  cursor: zoom-in;
+  /* 顯影：高解析載入前先模糊；切換時隨之溶接。 */
+  transition: filter var(--dur-slow) var(--ease-out), opacity var(--dur) var(--ease);
 }
-.lightbox__close {
+.pjx__img.is-developing {
+  filter: blur(12px);
+  opacity: 0.92;
+}
+.pjx.is-zoomed .pjx__img {
+  max-width: none;
+  max-height: none;
+  cursor: zoom-out;
+  transition: none; /* 平移要即時跟手 */
+}
+
+/* 翻頁：左右大熱區，克制的綠 hover（互動生機）。 */
+.pjx__nav {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: clamp(3.5rem, 14vw, 9rem);
+  display: flex;
+  align-items: center;
+  border: none;
+  background: none;
+  color: var(--g-ink-45);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}
+.pjx__nav:hover {
+  color: var(--accent);
+}
+.pjx__prev {
+  left: 0;
+  justify-content: flex-start;
+  padding-left: clamp(1rem, 3vw, 2rem);
+}
+.pjx__next {
+  right: 0;
+  justify-content: flex-end;
+  padding-right: clamp(1rem, 3vw, 2rem);
+}
+.pjx[data-single] .pjx__nav {
+  display: none;
+}
+
+.pjx__close {
   position: absolute;
   top: clamp(0.8rem, 3vh, 1.6rem);
   right: clamp(1rem, 4vw, 2rem);
+  z-index: 3;
   background: none;
   border: none;
-  color: #ececea;
-  font-size: 1.6rem;
-  line-height: 1;
+  color: var(--g-ink-70);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
   cursor: pointer;
-  letter-spacing: 0.1em;
+  transition: color var(--dur-fast) var(--ease);
+}
+.pjx__close:hover {
+  color: var(--accent);
+}
+
+/* 底部標籤：編號（mono）＋ 機器簽名 ＋ 圖說（Davison 編號 × Ikeda 資料）。 */
+.pjx__chrome {
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: clamp(0.8rem, 3vw, 2rem);
+  padding: clamp(0.9rem, 3vh, 1.4rem) clamp(1.2rem, 4vw, 2.4rem) clamp(1.4rem, 4vh, 2.2rem);
+  border-top: 1px solid var(--hairline-dark);
+}
+.pjx__count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.16em;
+  color: var(--g-ink-70);
+  font-size: var(--step--2);
+}
+.pjx__count:empty {
+  display: none;
+}
+.pjx__sig:empty {
+  display: none;
+}
+.pjx__caption {
+  color: var(--g-ink-45);
+  font-size: var(--step--2);
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pjx__img {
+    transition: none;
+  }
 }
 
 img.zoomable {

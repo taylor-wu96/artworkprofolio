@@ -203,7 +203,67 @@
 
 ---
 
+## 階段 F — 感官完成度（光轉場 ＋ 克制音景）
+
+> 依據：DESIGN §13 v3.1 候選（光的揭示轉場）＋ roadmap 軸 4（音效）。
+> 原則：聲音＝綠的聽覺對等物——稀少、是「機器還活著」的訊號；暗房有聲、亮房（閱讀）靜默。
+> 預設關閉、絕不自動播放、尊重使用者偏好（localStorage）。
+
+### F1. 光揭示房間轉場（Turrell）
+- [x] F1-1 `#room-veil` 全屏覆蓋層；`astro:before-swap` 偵測房間切換 → 以目標房間表面色瞬間覆蓋
+- [x] F1-2 `astro:after-swap` 揭示：覆蓋層 `--dur` 淡出；亮房目標加徑向 bloom（`#room-veil.is-light` 徑向 gradient）
+- [x] F1-3 `prefers-reduced-motion`：跳過覆蓋，維持乾淨瞬切；同房間導覽不觸發
+
+### F2. 克制音景（WebAudio，無音檔・程序生成）
+- [x] F2-1 暗房底噪：低頻失諧振盪堆疊（55/55.4/82.5/110.3Hz）＋lowpass＋極慢 LFO 呼吸；極低增益（~0.05）
+- [x] F2-2 房間感知：暗房淡入、亮房（閱讀）淡至 0——閱讀靜默
+- [x] F2-3 準星鎖定音：reticle lock 時短促對焦 blip（解耦——監聽 `reticle:lock` 事件；放映翻頁亦派發）
+- [x] F2-4 聲音開關：暗房 header 專屬按鈕；預設關、`aria-pressed`、綠＝啟用（合法綠）
+- [x] F2-5 自動播放政策：預設不播；若曾啟用，於首次使用者手勢 resume；持久化 localStorage
+
+### F3. 旁註 / 側欄註腳（C4 進階）—— 待設計決策
+- [~] F3 暫緩：需先決定型式（側欄 margin note vs inline 展開）與 schema 註解型別；F1/F2 後單獨一輪。
+
+### F4. 建置與驗證
+- [x] F4-1 `npm run build` 通過、15 頁、無新警告
+- [x] F4-2 dev 驗證：暗↔亮轉場光揭示、底噪暗房淡入/亮房靜默、準星音、開關持久化、reduced-motion
+
+> **階段 F（F1/F2/F4）完成並驗證**（2026-06-24）。F3 旁註仍暫緩。
+
+---
+
+## 階段 G — 影像觀覽（顯影地基 ＋ 放映模式）
+
+> 依據：2026-06-24 PM roadmap 軸 3（影像/沈浸）。參考 Gagosian/Crewdson（滿版單格）、
+> Porodina（翻頁序列）、Jack Davison（編號）。原則：沈浸來自**滿版黑＋顯影＋序列**，
+> 不靠華麗特效——克制即美學。攝影站核心體驗補成熟。
+
+### G1. 顯影地基（P1・修真實效能 ＋ 暗房隱喻）
+- [x] G1-1 GROQ 影像投影 `IMG` 片段：`cover` / `gallery[]` 展開 `asset->{_id, metadata{lqip, dimensions}}`
+- [x] G1-2 共用 `Plate.astro`：lqip 模糊底 → 載入後 crossfade 顯影；收斂原本 5 處重複的 `<img>` 標記
+- [x] G1-3 `width/height`（杜絕 CLS）＋ `srcset/sizes`（響應式、不放大超過原圖）＋ `decoding=async`
+- [x] G1-4 `.plate/.plate__img` 顯影 CSS（`--dur-slow` crossfade，reduced-motion 停）；`develop()` 腳本含已快取 `complete` 情況、撐過 view transition
+- [x] G1-5 套用：首頁、影像集、作品內頁（work cover / essay cover / gallery 組圖）；移除頁面未用的 `urlFor`
+- 驗證：HTML 確認 `--lqip` base64 底、`aspect-ratio`、`width/height`、`srcset`（1024 圖只到 1024w）；預覽顯影正常、零 CLS、無 console error
+
+### G2. 放映模式（P2・觀看儀器）
+- [x] G2-1 `Lightbox.astro` 重寫為 `.pjx` 滿版暗場：序列＝整頁 `img.zoomable`（DOM 序）
+- [x] G2-2 翻頁：鍵盤 ←/→、左右邊熱區、觸控左右滑；循環不卡死
+- [x] G2-3 底部標籤：計數 `NN / TT`（mono tabular）＋ 機器簽名（複製當頁 `.work__data`，綠 code 保留）＋ 逐圖圖說
+- [x] G2-4 顯影轉場：先放已快取縮圖（模糊遮蔽切換）→ 背景載入 `data-full` 後轉銳利
+- [x] G2-5 四角綠括弧「擷取」動畫：每格落定 snap-in（凝視母題；自成一格、不耦合全站準星，避開 z-index 戰爭）
+- [x] G2-6 點圖放大 2×＋游標平移看細節；點暗場/Esc 關閉；body 捲動鎖定；單圖頁 `data-single` 隱藏翻頁與計數
+- [x] G2-7 快門音：每格落定派發 `reticle:lock`（音景模組響 blip）
+- [x] G2-8 健壯性：開啟判定改綁同步的 `aria-hidden`（非 rAF 後才上的 `data-open`）——開啟即可操作，不受繪製時機影響
+- 驗證：`npm run build` 15 頁通過、無新警告；預覽翻頁/鍵盤/縮放/關閉/計數/簽名/圖說/顯影全正常、綠 code rgb(147,164,127)、零 console error
+
+> **階段 G 全數完成並驗證**（2026-06-24）。
+> **待續**：階段 H（series/collection 序列 ＋ 真 EXIF/GPS 簽名），把放映的「序列」接上資料層。
+
+---
+
 ## 變更紀錄
 - 2026-06-21：建立重構進度檔，開始階段 A。
 - 2026-06-21：階段 A/B 完成。Review 後定 DESIGN v2，完成階段 C（系統化＋兩房＋綠收束＋閱讀室＋3D 樂章）。
 - 2026-06-23：PM roadmap 討論定四軸；拍板簽名半真化（路線 A）＋先動資料層。完成階段 E（schema status/featured/capture＋theme cover/order、半真簽名、related/上下篇、wip 綠標、A4-3 解決）。
+- 2026-06-24：完成並結案階段 F（光揭示轉場 F1／克制音景 F2，先前已實作未提交）。PM roadmap 軸 3 落地：階段 G（顯影地基 Plate＋放映模式 Projection），參考 Crewdson/Porodina/Davison。

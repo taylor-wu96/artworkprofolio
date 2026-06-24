@@ -60,12 +60,16 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
     <ClientRouter />
   </head>
   <body>
+    <!-- 光揭示轉場層（Turrell）：房間切換時以目標房間表面色覆蓋再淡出。 -->
+    <div id="room-veil" aria-hidden="true"></div>
+
     <!-- 閱讀進度條：僅在標記 [data-read-progress] 的長文頁顯示綠填充。 -->
     <div class="read-progress" aria-hidden="true"><span></span></div>
 
     <header class="site-header">
       <div class="container site-header__inner">
         <a class="brand" href="/">光・門檻・衰敗</a>
+        <div class="site-header__right">
         <nav class="nav" aria-label="主導覽">
           <a href="/" aria-current={isWorks ? 'page' : undefined}>作品</a>
           <a href="/gallery" aria-current={isGallery ? 'page' : undefined}>影像</a>
@@ -73,6 +77,21 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
           <a href="/themes" aria-current={isThemes ? 'page' : undefined}>主題</a>
           <a href="/about" aria-current={isAbout ? 'page' : undefined}>關於</a>
         </nav>
+        {room === 'dark' && (
+          <button
+            class="sound-toggle"
+            type="button"
+            aria-pressed="false"
+            aria-label="切換環境聲音"
+            title="環境聲音"
+          >
+            <span class="sound-toggle__waves" aria-hidden="true">
+              <i></i><i></i><i></i>
+            </span>
+            <span class="sound-toggle__label">聲</span>
+          </button>
+        )}
+        </div>
       </div>
     </header>
 
@@ -115,6 +134,25 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
       }
       observe();
       document.addEventListener('astro:after-swap', observe);
+    </script>
+
+    <script>
+      // 顯影：影像板載入完成才從模糊底浮現（含已快取的 complete 情況）。
+      function develop() {
+        document
+          .querySelectorAll<HTMLImageElement>('img.plate__img:not(.is-loaded)')
+          .forEach((img) => {
+            if (img.complete && img.naturalWidth) {
+              img.classList.add('is-loaded');
+            } else {
+              const done = () => img.classList.add('is-loaded');
+              img.addEventListener('load', done, { once: true });
+              img.addEventListener('error', done, { once: true });
+            }
+          });
+      }
+      develop();
+      document.addEventListener('astro:page-load', develop);
     </script>
 
     <script>
@@ -216,9 +254,11 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
           (e) => {
             if (!el || !isDark()) return;
             const t = (e.target as Element)?.closest?.(SEL);
-            if (t) {
+            if (t && t !== lockEl) {
               lockEl = t;
               el.setAttribute('data-lock', '');
+              // 解耦：音景模組監聽此事件，鎖定瞬間發對焦音。
+              document.dispatchEvent(new CustomEvent('reticle:lock'));
             }
           },
           { passive: true }
@@ -257,6 +297,187 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
         }
         sync();
         document.addEventListener('astro:page-load', sync);
+      })();
+    </script>
+
+    <script>
+      // 光揭示房間轉場（Turrell）：暗↔亮切換時，以目標房間表面色覆蓋再淡出。
+      (function () {
+        const veil = document.getElementById('room-veil');
+        if (!veil) return;
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const SURFACE = { dark: '#0c0c0b', light: '#f4f4f2' };
+        let pending: 'dark' | 'light' | null = null;
+
+        document.addEventListener('astro:before-swap', (e: any) => {
+          if (reduce) return;
+          const from = document.documentElement.getAttribute('data-room') || 'light';
+          const to = e.newDocument?.documentElement?.getAttribute('data-room') || 'light';
+          if (from === to) return;
+          pending = to as 'dark' | 'light';
+          veil.style.background = SURFACE[pending] || SURFACE.light;
+          veil.classList.toggle('is-light', pending === 'light');
+          // 瞬間覆蓋（無過渡），把 DOM 交換藏在純色場後。
+          veil.style.transition = 'none';
+          veil.style.opacity = '1';
+          // 強制 reflow 讓 opacity:1 立即生效，再恢復過渡供之後淡出。
+          void veil.offsetWidth;
+          veil.style.transition = '';
+        });
+
+        document.addEventListener('astro:after-swap', () => {
+          if (!pending) return;
+          pending = null;
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              veil.classList.add('is-revealing');
+              veil.style.opacity = '0';
+            });
+          });
+        });
+
+        veil.addEventListener('transitionend', () => {
+          veil.classList.remove('is-revealing', 'is-light');
+        });
+      })();
+    </script>
+
+    <script>
+      // 克制音景（WebAudio・程序生成，無音檔）：暗房環境底噪＋準星鎖定音。
+      // 聲音＝綠的聽覺對等物：稀少、是「機器還活著」的訊號。預設關、絕不自動播放。
+      (function () {
+        const KEY = 'sound-on';
+        let ctx: AudioContext | null = null;
+        let master: GainNode;
+        let started = false;
+        let enabled = false;
+        try {
+          enabled = localStorage.getItem(KEY) === '1';
+        } catch (_) {}
+
+        const isDark = () =>
+          document.documentElement.getAttribute('data-room') === 'dark';
+
+        function build() {
+          const AC =
+            (window as any).AudioContext || (window as any).webkitAudioContext;
+          ctx = new AC();
+          master = ctx.createGain();
+          master.gain.value = 0; // 起手靜默，依房間淡入
+          master.connect(ctx.destination);
+
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 300;
+          filter.Q.value = 0.6;
+          filter.connect(master);
+
+          const bed = ctx.createGain();
+          bed.gain.value = 0.5;
+          bed.connect(filter);
+
+          // 低頻失諧堆疊＝美術館空間嗡鳴（Eliasson／Turrell room tone）
+          const freqs = [55, 55.4, 82.5, 110.3];
+          freqs.forEach((f, i) => {
+            const o = ctx!.createOscillator();
+            o.type = i % 2 ? 'sine' : 'triangle';
+            o.frequency.value = f;
+            const g = ctx!.createGain();
+            g.gain.value = i === 0 ? 0.22 : 0.1;
+            o.connect(g);
+            g.connect(bed);
+            o.start();
+          });
+
+          // 極慢 LFO 掃 filter＝呼吸（~20s 週期）
+          const lfo = ctx.createOscillator();
+          lfo.frequency.value = 0.05;
+          const lfoGain = ctx.createGain();
+          lfoGain.gain.value = 110;
+          lfo.connect(lfoGain);
+          lfoGain.connect(filter.frequency);
+          lfo.start();
+
+          started = true;
+        }
+
+        function ramp() {
+          if (!ctx) return;
+          const t = ctx.currentTime;
+          const tgt = enabled && isDark() ? 0.05 : 0; // 極輕；閱讀房靜默
+          master.gain.cancelScheduledValues(t);
+          master.gain.setTargetAtTime(tgt, t, 1.2); // 慢淡
+        }
+
+        function reflect() {
+          document.querySelectorAll('.sound-toggle').forEach((b) => {
+            b.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+            (b as HTMLElement).toggleAttribute('data-on', enabled);
+          });
+        }
+
+        function enable() {
+          enabled = true;
+          try {
+            localStorage.setItem(KEY, '1');
+          } catch (_) {}
+          if (!started) build();
+          if (ctx && ctx.state === 'suspended') ctx.resume();
+          ramp();
+          reflect();
+        }
+        function disable() {
+          enabled = false;
+          try {
+            localStorage.setItem(KEY, '0');
+          } catch (_) {}
+          ramp();
+          reflect();
+        }
+
+        // 委派點擊（撐過 view transition swap）
+        document.addEventListener('click', (e) => {
+          const btn = (e.target as Element)?.closest?.('.sound-toggle');
+          if (!btn) return;
+          e.preventDefault();
+          enabled ? disable() : enable();
+        });
+
+        // 準星鎖定音：對焦/快門式短 blip（唯一互動音效）
+        document.addEventListener('reticle:lock', () => {
+          if (!enabled || !ctx || ctx.state !== 'running') return;
+          const t = ctx.currentTime;
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(820, t);
+          o.frequency.exponentialRampToValueAtTime(1280, t + 0.04);
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.05, t + 0.006);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+          o.connect(g);
+          g.connect(master);
+          o.start(t);
+          o.stop(t + 0.18);
+        });
+
+        // 房間切換：底噪暗房淡入／亮房淡出
+        document.addEventListener('astro:page-load', () => {
+          reflect();
+          ramp();
+        });
+
+        // 自動播放政策：預設不播；若曾啟用，待首次手勢再 resume。
+        if (enabled) {
+          const kick = () => {
+            enable();
+            window.removeEventListener('pointerdown', kick);
+            window.removeEventListener('keydown', kick);
+          };
+          window.addEventListener('pointerdown', kick, { once: true });
+          window.addEventListener('keydown', kick, { once: true });
+        }
+        reflect();
       })();
     </script>
   </body>

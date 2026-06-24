@@ -1,58 +1,213 @@
 ---
-// 無相依的影像 lightbox。任何帶 class="zoomable" 的 <img> 點擊即放大。
-// 用 document 層級事件委派，能在 View Transitions 導覽後持續作用。
-// 關閉時用 visibility/pointer-events 收起，避免覆蓋層攔截全站點擊。
+// 放映模式（Projection）：把單張放大升級成「滿版暗場・序列翻閱・顯影」的觀看儀器。
+// 參考 Crewdson（滿版敬畏）／Porodina（翻頁序列）／Davison（編號），縫進本站既有
+// 的暗房・準星・簽名語言。任何 img.zoomable 點擊即進入；←/→ 翻過整頁的影像序列。
+// 無相依、document 層級委派，撐過 View Transitions 導覽。
 ---
 
-<div id="lightbox" class="lightbox" aria-hidden="true">
-  <button class="lightbox__close" type="button" aria-label="關閉">關閉 ×</button>
-  <img class="lightbox__img" alt="" />
+<div id="projection" class="pjx" aria-hidden="true" role="dialog" aria-modal="true" aria-label="影像放映">
+  <button class="pjx__close" type="button" aria-label="關閉放映">關閉 ×</button>
+
+  <button class="pjx__nav pjx__prev" type="button" aria-label="上一張">←</button>
+  <button class="pjx__nav pjx__next" type="button" aria-label="下一張">→</button>
+
+  <div class="pjx__stage">
+    <figure class="pjx__frame">
+      <img class="pjx__img" alt="" />
+      <!-- 機器擷取：每格落定時四角括弧框選（自成一格，不耦合全站準星）。 -->
+      <b class="pjx__c tl" aria-hidden="true"></b><b class="pjx__c tr" aria-hidden="true"></b>
+      <b class="pjx__c bl" aria-hidden="true"></b><b class="pjx__c br" aria-hidden="true"></b>
+    </figure>
+  </div>
+
+  <div class="pjx__chrome">
+    <span class="pjx__count" aria-live="polite"></span>
+    <span class="pjx__sig data-strip"></span>
+    <span class="pjx__caption"></span>
+  </div>
 </div>
 
 <script>
-  function box() {
-    return document.getElementById('lightbox');
+  function el<T extends Element = HTMLElement>(sel: string) {
+    return document.querySelector(sel) as T | null;
   }
 
-  function openBox(src: string, alt: string) {
-    const el = box();
-    const img = el?.querySelector('.lightbox__img') as HTMLImageElement | null;
-    if (!el || !img) return;
-    img.src = src;
-    img.alt = alt;
-    el.setAttribute('aria-hidden', 'false');
-    requestAnimationFrame(() => el.setAttribute('data-open', ''));
-  }
+  if (!(window as any).__projectionBound) {
+    (window as any).__projectionBound = true;
 
-  function closeBox() {
-    const el = box();
-    const img = el?.querySelector('.lightbox__img') as HTMLImageElement | null;
-    if (!el || !img) return;
-    el.removeAttribute('data-open');
-    el.setAttribute('aria-hidden', 'true');
-    setTimeout(() => {
-      if (!el.hasAttribute('data-open')) img.src = '';
-    }, 800);
-  }
+    const box = () => el('#projection') as HTMLElement | null;
+    const img = () => el('.pjx__img') as HTMLImageElement | null;
 
-  if (!(window as any).__lightboxBound) {
-    (window as any).__lightboxBound = true;
+    let items: HTMLImageElement[] = []; // 當前序列（整頁的 img.zoomable）
+    let current = -1;
+    let zoomed = false;
 
+    const fmt = (n: number) => String(n).padStart(2, '0');
+
+    function captionOf(node: HTMLImageElement) {
+      const cap = node.closest('figure')?.querySelector('figcaption')?.textContent?.trim();
+      return cap || node.getAttribute('alt') || '';
+    }
+
+    function setZoom(on: boolean) {
+      const b = box();
+      if (!b) return;
+      zoomed = on;
+      b.classList.toggle('is-zoomed', on);
+      if (!on) {
+        const im = img();
+        if (im) im.style.transform = '';
+      }
+    }
+
+    // 顯影：先放已快取的縮圖（模糊遮蔽切換），背景載入高解析後轉銳利。
+    function develop(node: HTMLImageElement) {
+      const im = img();
+      if (!im) return;
+      const thumb = node.currentSrc || node.src;
+      const full = node.dataset.full || thumb;
+      im.classList.add('is-developing');
+      im.src = thumb;
+      im.alt = node.getAttribute('alt') || '';
+      if (full && full !== thumb) {
+        const pre = new Image();
+        pre.onload = () => {
+          im.src = full;
+          requestAnimationFrame(() => im.classList.remove('is-developing'));
+        };
+        pre.onerror = () => im.classList.remove('is-developing');
+        pre.src = full;
+      } else {
+        requestAnimationFrame(() => im.classList.remove('is-developing'));
+      }
+    }
+
+    function render() {
+      const b = box();
+      const node = items[current];
+      if (!b || !node) return;
+      setZoom(false);
+      develop(node);
+
+      // 機器擷取這一格：四角括弧重新框選（重啟動畫）。
+      const frame = el('.pjx__frame') as HTMLElement | null;
+      if (frame) {
+        frame.classList.remove('is-acquiring');
+        void frame.offsetWidth; // 強制 reflow 以重啟動畫
+        frame.classList.add('is-acquiring');
+      }
+
+      const count = el('.pjx__count');
+      if (count) count.textContent = items.length > 1 ? `${fmt(current + 1)} / ${fmt(items.length)}` : '';
+
+      const cap = el('.pjx__caption');
+      if (cap) cap.textContent = captionOf(node);
+
+      // 簽名標籤：複製當頁的機器簽名資料條（保留綠色 code）。閱讀頁無則留空。
+      const sig = el('.pjx__sig') as HTMLElement | null;
+      const pageSig = el('.work__data, .data-strip:not(.pjx__sig)') as HTMLElement | null;
+      if (sig) sig.innerHTML = pageSig ? pageSig.innerHTML : '';
+
+      // 機器擷取了這一格：派發鎖定事件（音景模組響快門 blip）。
+      document.dispatchEvent(new CustomEvent('reticle:lock'));
+    }
+
+    function go(delta: number) {
+      if (items.length < 2) return;
+      current = (current + delta + items.length) % items.length; // 循環
+      render();
+    }
+
+    function open(node: HTMLImageElement) {
+      const b = box();
+      if (!b) return;
+      // 序列＝整頁的 zoomable 影像（DOM 順序）；找出點擊者的索引。
+      items = Array.from(document.querySelectorAll<HTMLImageElement>('img.zoomable'));
+      current = Math.max(0, items.indexOf(node));
+      b.toggleAttribute('data-single', items.length < 2);
+      render();
+      b.setAttribute('aria-hidden', 'false');
+      document.documentElement.style.overflow = 'hidden';
+      requestAnimationFrame(() => b.setAttribute('data-open', ''));
+    }
+
+    function close() {
+      const b = box();
+      if (!b) return;
+      setZoom(false);
+      b.removeAttribute('data-open');
+      b.setAttribute('aria-hidden', 'true');
+      document.documentElement.style.overflow = '';
+      const im = img();
+      setTimeout(() => {
+        if (!b.hasAttribute('data-open') && im) im.src = '';
+      }, 600);
+    }
+
+    // 用 aria-hidden 判定開啟（同步設定）；data-open 僅供 CSS 淡入過渡（rAF 後才上，
+    // 可能被背景分頁節流）。鍵盤/縮放因此不受繪製時機影響、開啟即可用。
+    const isOpen = () => box()?.getAttribute('aria-hidden') === 'false';
+
+    // 開啟：點任何 zoomable 影像
     document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const zoomable = target.closest('img.zoomable') as HTMLImageElement | null;
-      if (zoomable) {
+      const t = e.target as HTMLElement;
+      const zoomable = t.closest('img.zoomable') as HTMLImageElement | null;
+      if (zoomable && !isOpen()) {
         e.preventDefault();
-        openBox(zoomable.dataset.full || zoomable.currentSrc || zoomable.src, zoomable.alt);
+        open(zoomable);
         return;
       }
-      if (target.closest('#lightbox')) closeBox();
+      if (!isOpen()) return;
+
+      if (t.closest('.pjx__close')) return close();
+      if (t.closest('.pjx__prev')) return go(-1);
+      if (t.closest('.pjx__next')) return go(1);
+      // 點影像＝切換放大檢視；點暗場（非影像/非控制）＝關閉。
+      if (t.closest('.pjx__img')) {
+        e.stopPropagation();
+        setZoom(!zoomed);
+        return;
+      }
+      if (t.closest('.pjx')) close();
     });
 
+    // 放大時：游標移動平移影像（看細節）。
+    document.addEventListener('pointermove', (e) => {
+      if (!isOpen() || !zoomed) return;
+      const im = img();
+      if (!im) return;
+      const rx = e.clientX / window.innerWidth - 0.5;
+      const ry = e.clientY / window.innerHeight - 0.5;
+      im.style.transform = `scale(2) translate(${-rx * 42}%, ${-ry * 42}%)`;
+    });
+
+    // 鍵盤：Esc 關、←/→ 翻頁
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && box()?.hasAttribute('data-open')) closeBox();
+      if (!isOpen()) return;
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft') go(-1);
+      else if (e.key === 'ArrowRight') go(1);
     });
 
-    document.addEventListener('astro:after-swap', () => box()?.removeAttribute('data-open'));
+    // 觸控左右滑翻頁
+    let touchX = 0;
+    document.addEventListener('touchstart', (e) => {
+      if (isOpen()) touchX = e.changedTouches[0].clientX;
+    }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      if (!isOpen() || zoomed) return;
+      const dx = e.changedTouches[0].clientX - touchX;
+      if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    // View Transitions 導覽後收起
+    document.addEventListener('astro:after-swap', () => {
+      const b = box();
+      if (b) {
+        b.removeAttribute('data-open');
+        b.setAttribute('aria-hidden', 'true');
+      }
+      document.documentElement.style.overflow = '';
+    });
   }
 </script>

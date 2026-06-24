@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { urlFor, safeFetch } from '../../lib/sanity.js';
+import Plate from '../../components/Plate.astro';
+import { safeFetch } from '../../lib/sanity.js';
 import { GALLERIES_LIST } from '../../lib/queries.js';
 import { archiveSignature } from '../../lib/signature.js';
 
@@ -42,9 +43,11 @@ const fmtDate = (d) =>
               </div>
               <a class="entry__plate" href={`/post/${p.slug}`}>
                 {p.cover ? (
-                  <img
+                  <Plate
+                    image={p.cover}
                     class="entry__img"
-                    src={urlFor(p.cover).width(1600).url()}
+                    width={1600}
+                    sizes="(min-width: 720px) min(56rem, 60vw), 100vw"
                     alt={p.title}
                     loading={i < 2 ? 'eager' : 'lazy'}
                   />
