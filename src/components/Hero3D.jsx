@@ -22,6 +22,16 @@ function softSprite() {
   return tex;
 }
 
+// 低頻疊加偽噪聲（FBM 風）：給侵蝕曲面有機、不規則的起伏，免外部依賴。
+function erode(x, y, t) {
+  return (
+    Math.sin(x * 1.3 + t) * 0.5 +
+    Math.sin(y * 1.7 - t * 0.7) * 0.32 +
+    Math.sin((x + y) * 0.9 + t * 0.4) * 0.22 +
+    Math.sin((x - y) * 2.1 - t * 0.5) * 0.12
+  );
+}
+
 // 黃金角螺旋分布在略壓扁的球殼上 → 帶厚度的柔光體積。
 function shellPositions(count, radius = 1.55, spread = 0.7) {
   const arr = new Float32Array(count * 3);
@@ -43,7 +53,16 @@ function LightField({ scroll, prefersReduced }) {
   const material = useRef();
   const greenMat = useRef();
   const hazeMat = useRef(); // Janssens 式綠霧：一層極淡的彩色感知霧
+  const surfGeo = useRef(); // 侵蝕曲面幾何（頂點位移）
+  const surfMat = useRef(); // 侵蝕曲面材質（淡細線網格）
+  const surfDone = useRef(false); // reduced-motion：只位移一次（靜態侵蝕）
   const sprite = useMemo(() => softSprite(), []);
+
+  // 侵蝕曲面分段數：行動裝置降載。
+  const surfSeg = useMemo(
+    () => (typeof window !== 'undefined' && window.innerWidth < 768 ? [28, 20] : [48, 34]),
+    []
+  );
 
   const count = useMemo(
     () => (typeof window !== 'undefined' && window.innerWidth < 768 ? 4000 : 8000),
@@ -115,6 +134,23 @@ function LightField({ scroll, prefersReduced }) {
       const h = prefersReduced ? 0.05 : 0.04 + (Math.sin(t * 0.05) + 1) * 0.022;
       hazeMat.current.opacity = h * Math.max(0, 1 - s * 0.9);
     }
+
+    // 侵蝕曲面（衰敗）：緩慢起伏的細線地面，光雲漂浮其上。獨立元素承載衰敗，
+    // 不動已核可的光雲原貌（PROGRESS B5-2）。reduced-motion：只位移一次、相位凍結。
+    if (surfGeo.current && (!prefersReduced || !surfDone.current)) {
+      const pos = surfGeo.current.attributes.position;
+      const te = prefersReduced ? 4 : t * 0.18; // 極慢侵蝕演化
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        pos.setZ(i, erode(x * 0.6, y * 0.6, te) * 0.3);
+      }
+      pos.needsUpdate = true;
+      surfDone.current = true;
+    }
+    if (surfMat.current) {
+      surfMat.current.opacity = 0.1 * Math.max(0, 1 - s); // 隨滾動消融進暗房
+    }
   });
 
   return (
@@ -130,6 +166,20 @@ function LightField({ scroll, prefersReduced }) {
           opacity={0.05}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+
+      {/* 侵蝕曲面：傾斜的細線網格地面，頂點噪聲位移＝緩慢衰敗。灰階、極淡，
+          邊緣沒入場景霧（黑）。承載「衰敗」，與光雲（生機/沉思）分離。 */}
+      <mesh rotation={[-Math.PI * 0.46, 0, 0]} position={[0, -1.15, -0.2]}>
+        <planeGeometry ref={surfGeo} args={[9, 7, surfSeg[0], surfSeg[1]]} />
+        <meshBasicMaterial
+          ref={surfMat}
+          color="#6b6b66"
+          wireframe
+          transparent
+          opacity={0.1}
+          depthWrite={false}
         />
       </mesh>
 
