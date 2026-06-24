@@ -24,13 +24,23 @@ function rng(seed) {
 
 const HEX = '0123456789ABCDEF';
 
+// EXIF DateTimeOriginal（如 "2023:05:14 18:30:00"）→ 年份字串。
+function exifYear(meta) {
+  const dto = meta?.exif?.DateTimeOriginal;
+  if (!dto) return null;
+  const m = String(dto).match(/(\d{4})/);
+  return m ? m[1] : null;
+}
+
 /**
  * 由種子（slug）＋ 選填的真實拍攝資料產生一組檔案簽名。
+ * 優先序（半真化・階段 H）：手填 capture ＞ 封面 EXIF/GPS ＞ slug 生成。
  * @param {string} seed 通常是 slug。
  * @param {{coordinates?: {lat?: number, lng?: number}, year?: string}} [capture]
- * @returns {{coord: string, code: string, channel: string, coordReal: boolean}}
+ * @param {{location?: {lat?: number, lng?: number}, exif?: object}} [assetMeta] 封面 asset.metadata
+ * @returns {{coord: string, code: string, channel: string, coordReal: boolean, year: ?string}}
  */
-export function archiveSignature(seed = '', capture = null) {
+export function archiveSignature(seed = '', capture = null, assetMeta = null) {
   const r = rng(hashSeed(String(seed)));
   const genLat = r() * 180 - 90;
   const genLon = r() * 360 - 180;
@@ -38,15 +48,25 @@ export function archiveSignature(seed = '', capture = null) {
   const genChannel = String(Math.floor(r() * 9999)).padStart(4, '0');
   const fmt = (n, d) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(d)}`;
 
-  // 半真：有真座標就用真的，否則用生成的。
-  const lat = capture?.coordinates?.lat;
-  const lon = capture?.coordinates?.lng;
+  // 座標：手填 ＞ 封面 GPS（EXIF）＞ 生成。
+  const gps = assetMeta?.location;
+  const lat =
+    typeof capture?.coordinates?.lat === 'number' ? capture.coordinates.lat
+    : typeof gps?.lat === 'number' ? gps.lat
+    : undefined;
+  const lon =
+    typeof capture?.coordinates?.lng === 'number' ? capture.coordinates.lng
+    : typeof gps?.lng === 'number' ? gps.lng
+    : undefined;
   const coordReal = typeof lat === 'number' && typeof lon === 'number';
 
-  // 頻道：有真年份時由年份＋slug 決定（仍是等寬的抽象頻道，但與真資料綁定）；
+  // 年份：手填 ＞ EXIF 拍攝日 ＞ 無（頻道純生成）。
+  const year = capture?.year || exifYear(assetMeta) || null;
+
+  // 頻道：有真年份時由年份＋slug 決定（等寬抽象頻道，但與真資料綁定）；
   // 缺則維持純生成。code（0x 編碼）為機器內部抽象編碼，恆為生成。
-  const channel = capture?.year
-    ? String(hashSeed(`${capture.year}:${seed}`) % 10000).padStart(4, '0')
+  const channel = year
+    ? String(hashSeed(`${year}:${seed}`) % 10000).padStart(4, '0')
     : genChannel;
 
   return {
@@ -54,5 +74,6 @@ export function archiveSignature(seed = '', capture = null) {
     code: `0x${hex}`,
     channel,
     coordReal,
+    year,
   };
 }

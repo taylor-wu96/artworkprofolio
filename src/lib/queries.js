@@ -1,8 +1,20 @@
 // 集中管理 GROQ 查詢，頁面引用即可。
 
-// 影像投影：展開 asset 取 lqip（模糊預載底）＋ dimensions（寬高比，杜絕版面跳動）。
+// 影像投影：展開 asset 取 lqip（模糊預載底）＋ dimensions（寬高比，杜絕版面跳動）
+// ＋ exif/location（真 EXIF/GPS，餵半真簽名，階段 H）。
 // 外層 ... 保留 hotspot/crop/_type，asset->{_id,...} 讓 urlFor 仍能組網址。
-const IMG = `{ ..., asset->{ _id, metadata { lqip, dimensions } } }`;
+const IMG = `{
+  ...,
+  asset->{
+    _id,
+    metadata {
+      lqip,
+      dimensions,
+      location,
+      exif { ISO, FNumber, ExposureTime, FocalLength, DateTimeOriginal, LensModel }
+    }
+  }
+}`;
 
 // 列表共用欄位（含 status / featured / capture：半真簽名與「進行中」綠標需要）。
 const LIST_FIELDS = `
@@ -59,6 +71,12 @@ export const POST_BY_SLUG = `
     gallery[] ${IMG},
     "themes": themes[]->{title, "slug": slug.current},
     "themeRefs": themes[]._ref,
+    // 所屬系列（反查）＋序列 slug，供作品內頁顯示「系列 · 第 N / M」與序列動線。
+    "series": *[_type == "series" && references(^._id)][0]{
+      title,
+      "slug": slug.current,
+      "order": works[]->{ "slug": slug.current }
+    },
     // 上一件 / 下一件（同分類，依日期相鄰）
     "prev": *[_type == "post" && defined(slug.current) && status != "draft" && category == ^.category && publishedAt < ^.publishedAt] | order(publishedAt desc)[0]{
       title, "slug": slug.current, cover, category
@@ -106,6 +124,39 @@ export const THEME_BY_SLUG = `
 
 export const THEME_SLUGS = `
   *[_type == "theme" && defined(slug.current)].slug.current
+`;
+
+// ---- 系列 / 組曲（策展序列）-------------------------------------------
+export const SERIES_LIST = `
+  *[_type == "series" && defined(slug.current)] | order(coalesce(order, 9999) asc, title asc){
+    title,
+    "slug": slug.current,
+    description,
+    cover ${IMG},
+    "count": count(works[@->status != "draft"])
+  }
+`;
+
+export const SERIES_BY_SLUG = `
+  *[_type == "series" && slug.current == $slug][0]{
+    title,
+    "slug": slug.current,
+    description,
+    cover ${IMG},
+    // 作品序列：保留作者拖曳的順序，排除草稿。
+    "works": works[@->status != "draft"]->{
+      title,
+      "slug": slug.current,
+      category,
+      publishedAt,
+      capture,
+      cover ${IMG}
+    }
+  }
+`;
+
+export const SERIES_SLUGS = `
+  *[_type == "series" && defined(slug.current)].slug.current
 `;
 
 export const ABOUT_QUERY = `

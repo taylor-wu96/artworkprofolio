@@ -23,7 +23,7 @@ const fmtDate = (d) =>
       <ol class="archive">
         {galleries.map((p, i) => {
           const num = String(total - i).padStart(2, '0');
-          const sig = archiveSignature(p.slug, p.capture);
+          const sig = archiveSignature(p.slug, p.capture, p.cover?.asset?.metadata);
           return (
             <li class="entry grid-12" data-reveal>
               <div class="entry__meta">

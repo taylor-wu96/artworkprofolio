@@ -46,7 +46,7 @@ const newestSlug = [...posts].sort(
           const showYear = y !== lastYear;
           lastYear = y;
           const num = String(total - i).padStart(2, '0');
-          const sig = archiveSignature(p.slug, p.capture);
+          const sig = archiveSignature(p.slug, p.capture, p.cover?.asset?.metadata);
           return (
             <>
               {showYear && y && (

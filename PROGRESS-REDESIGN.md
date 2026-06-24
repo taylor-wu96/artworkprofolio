@@ -262,8 +262,39 @@
 
 ---
 
+## 階段 H — 序列與真實 metadata（series ＋ 真 EXIF/GPS）
+
+> 依據：2026-06-24 PM roadmap P3。把放映模式（階段 G）的「序列」接上資料層，
+> 並讓「觀看的機器」從半真走向真——有 EXIF/GPS 就用真的。
+
+### H1. 系列 / 組曲 schema（`../studio-artwork-portfolio`）
+- [x] H1-1 `series.ts`：title／slug／description／cover／**works[]（拖曳排序的 post 參照）**／order
+- [x] H1-2 註冊進 `schemaTypes/index.ts`
+- 設計：series＝策展順序（有序、一對多動線），與 theme（語意標籤、無序、多對多）區隔
+- [ ] H1-3 部署 schema —— **待使用者執行**（agent 無權限做正式後端部署）。
+  manifest 已 extract（exit 0）；待跑 `npx sanity schema deploy --no-extract-manifest`
+
+### H2. 系列查詢與頁面（`lib/queries.js`、`pages/series/`）
+- [x] H2-1 `SERIES_LIST`／`SERIES_BY_SLUG`（保留拖曳順序、排除草稿）／`SERIES_SLUGS`
+- [x] H2-2 `POST_BY_SLUG` 反查所屬系列＋序列 slug（供「系列 · 第 N / M」）
+- [x] H2-3 `/series/index.astro`（暗房索引，Plate 顯影封面）＋ `/series/[slug].astro`（編號序列動線，綠編號）
+- [x] H2-4 Base 導覽加「系列」＋ `activeSection: 'series'`；作品內頁標頭顯示所屬系列與位置
+- 驗證：build 16 頁通過、無警告；`/series` 空狀態與 nav active 正常；post 頁 seriesInfo 為 null 時不崩
+
+### H3. 真 EXIF/GPS 簽名（`signature.js`、schema、`IMG`）
+- [x] H3-1 post `cover` 影像 `options.metadata` 加 `exif`+`location`（保留 lqip）
+- [x] H3-2 `IMG` GROQ 片段補 `metadata.location` ＋ `exif{ISO,FNumber,ExposureTime,FocalLength,DateTimeOriginal,LensModel}`
+- [x] H3-3 `archiveSignature(seed, capture, assetMeta)` 優先序：**手填 capture ＞ 封面 EXIF/GPS ＞ slug 生成**；回傳解析後 `year`
+- [x] H3-4 首頁／影像集／作品內頁傳入 `cover.asset.metadata`
+- 驗證：node 三情境確認（生成／EXIF 真座標 2023／手填覆寫）；現有無 EXIF 圖維持生成值、`code` 恆定（向後相容）
+
+> **階段 H 完成（H1-3 schema 部署待使用者）**（2026-06-24）。真 EXIF 圖回填後簽名自動轉真。
+
+---
+
 ## 變更紀錄
 - 2026-06-21：建立重構進度檔，開始階段 A。
 - 2026-06-21：階段 A/B 完成。Review 後定 DESIGN v2，完成階段 C（系統化＋兩房＋綠收束＋閱讀室＋3D 樂章）。
 - 2026-06-23：PM roadmap 討論定四軸；拍板簽名半真化（路線 A）＋先動資料層。完成階段 E（schema status/featured/capture＋theme cover/order、半真簽名、related/上下篇、wip 綠標、A4-3 解決）。
 - 2026-06-24：完成並結案階段 F（光揭示轉場 F1／克制音景 F2，先前已實作未提交）。PM roadmap 軸 3 落地：階段 G（顯影地基 Plate＋放映模式 Projection），參考 Crewdson/Porodina/Davison。
+- 2026-06-24：階段 H（series 序列 schema＋頁面＋導覽；真 EXIF/GPS 簽名半真化升級）。schema 部署待使用者執行。

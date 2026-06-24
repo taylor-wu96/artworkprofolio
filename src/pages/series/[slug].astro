@@ -1,0 +1,128 @@
+---
+import Base from '../../layouts/Base.astro';
+import Plate from '../../components/Plate.astro';
+import { safeFetch } from '../../lib/sanity.js';
+import { SERIES_SLUGS, SERIES_BY_SLUG } from '../../lib/queries.js';
+import { archiveSignature } from '../../lib/signature.js';
+
+export async function getStaticPaths() {
+  const slugs = await safeFetch(SERIES_SLUGS);
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const series = await safeFetch(SERIES_BY_SLUG, { slug }, null);
+
+if (!series) {
+  return Astro.redirect('/404');
+}
+
+const works = series.works ?? [];
+const total = works.length;
+const fmtYear = (d) => (d ? new Date(d).getFullYear() : '');
+---
+
+<Base title={`${series.title} — 系列`} activeSection="series" room="dark">
+  <div class="container">
+    <header class="section-head grid-12">
+      <span class="label section-head__label">組曲 / Series</span>
+      <h1 class="display section-head__title">{series.title}</h1>
+      {series.description && <p class="series__lead">{series.description}</p>}
+      <span class="label series__count">{total} 件・序列動線</span>
+    </header>
+
+    {total > 0 ? (
+      <ol class="series-seq">
+        {works.map((w, i) => {
+          const sig = archiveSignature(w.slug, w.capture, w.cover?.asset?.metadata);
+          return (
+            <li class="series-seq__item grid-12" data-reveal>
+              <div class="series-seq__meta">
+                <span class="series-seq__num">{String(i + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}</span>
+                <span class="entry__num">{fmtYear(w.publishedAt)}</span>
+                <span class="data-strip">
+                  <span>{sig.coord}</span>
+                  <span class="data-strip__sig">{sig.code}</span>
+                  <span>CH.{sig.channel}</span>
+                </span>
+              </div>
+              <a class="entry__plate" href={`/post/${w.slug}`}>
+                {w.cover ? (
+                  <Plate
+                    image={w.cover}
+                    class="entry__img"
+                    width={1600}
+                    sizes="(min-width: 720px) min(56rem, 60vw), 100vw"
+                    alt={w.title}
+                    loading={i < 2 ? 'eager' : 'lazy'}
+                  />
+                ) : (
+                  <div class="entry__placeholder">無影像 / NO IMAGE</div>
+                )}
+                <h2 class="entry__title">{w.title}</h2>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    ) : (
+      <p class="empty">
+        這個系列還沒有編入作品。到 Sanity Studio 的 series → 作品序列拖入作品。
+      </p>
+    )}
+  </div>
+</Base>
+
+<style>
+  .series__lead {
+    grid-column: 1 / -1;
+    margin-top: 1rem;
+    max-width: 52ch;
+    font-size: var(--step-0);
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+  .series__count {
+    grid-column: 1 / -1;
+    margin-top: 1rem;
+    color: var(--text-dim);
+  }
+  /* 序列＝編號動線（呼應放映模式的翻閱）。沿用暗房 entry 骨架。 */
+  .series-seq {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .series-seq__item {
+    padding-block: clamp(2.2rem, 6vh, 4.5rem);
+  }
+  .series-seq__meta {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 1.2rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+    margin-bottom: 1.2rem;
+  }
+  .series-seq__num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.16em;
+    font-size: var(--step--1);
+    color: var(--accent); /* 序列編號＝動線訊號（合法綠） */
+  }
+  @media (min-width: 720px) {
+    .series-seq__meta {
+      grid-column: 1 / 4;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 0;
+      position: sticky;
+      top: 5rem;
+      align-self: start;
+    }
+    .series-seq__item .entry__plate {
+      grid-column: 4 / -1;
+    }
+  }
+</style>

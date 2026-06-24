@@ -28,7 +28,20 @@ const activeSection = category === 'gallery' ? 'gallery' : (category === 'essay'
 const labelName = category === 'gallery' ? '影像 / Gallery' : (category === 'essay' ? '創作 / Essay' : '作品 / Work');
 // 房間：散文＝亮房（閱讀），作品/影像＝暗房（圖錄）。見 DESIGN §1。
 const room = category === 'essay' ? 'light' : 'dark';
-const sig = archiveSignature(slug, post.capture);
+const sig = archiveSignature(slug, post.capture, post.cover?.asset?.metadata);
+
+// 所屬系列 ＋ 在序列中的位置（第 N / M）。
+const seriesInfo = (() => {
+  if (!post.series?.slug) return null;
+  const order = (post.series.order ?? []).map((o) => o.slug);
+  const idx = order.indexOf(post.slug ?? slug);
+  return {
+    title: post.series.title,
+    slug: post.series.slug,
+    pos: idx >= 0 ? idx + 1 : null,
+    total: order.length,
+  };
+})();
 
 // 真實拍攝資料（半真化）：有填才顯示，與生成簽名並存。
 const cap = post.capture ?? {};
@@ -73,6 +86,11 @@ const readingMinutes = (() => {
             {readingMinutes && <span>約 {readingMinutes} 分鐘</span>}
             {post.themes?.length > 0 &&
               post.themes.map((t) => <a href={`/themes/${t.slug}`} class="essay-theme-link">{t.title}</a>)}
+            {seriesInfo && (
+              <a href={`/series/${seriesInfo.slug}`} class="essay-theme-link">
+                系列 · {seriesInfo.title}{seriesInfo.pos ? ` ${seriesInfo.pos}/${seriesInfo.total}` : ''}
+              </a>
+            )}
           </div>
         </header>
 
@@ -104,6 +122,11 @@ const readingMinutes = (() => {
             <span>{fmtDate(post.publishedAt)}</span>
             {post.themes?.length > 0 &&
               post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
+            {seriesInfo && (
+              <a href={`/series/${seriesInfo.slug}`}>
+                系列 · {seriesInfo.title}{seriesInfo.pos ? ` ${seriesInfo.pos}/${seriesInfo.total}` : ''}
+              </a>
+            )}
           </div>
           <p class="data-strip work__data">
             <span>{sig.coord}</span>
@@ -168,6 +191,11 @@ const readingMinutes = (() => {
             <span>{fmtDate(post.publishedAt)}</span>
             {post.themes?.length > 0 &&
               post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
+            {seriesInfo && (
+              <a href={`/series/${seriesInfo.slug}`}>
+                系列 · {seriesInfo.title}{seriesInfo.pos ? ` ${seriesInfo.pos}/${seriesInfo.total}` : ''}
+              </a>
+            )}
           </div>
           <p class="data-strip work__data">
             <span>{sig.coord}</span>

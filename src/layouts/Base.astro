@@ -8,7 +8,7 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
-  activeSection?: 'works' | 'gallery' | 'writings' | 'themes' | 'about';
+  activeSection?: 'works' | 'gallery' | 'series' | 'writings' | 'themes' | 'about';
   // 兩個房間：暗房（圖錄・作品・3D）／亮房（閱讀，預設）。見 DESIGN §1。
   room?: 'light' | 'dark';
 }
@@ -26,6 +26,7 @@ const ogImage = image ? new URL(image, Astro.site).toString() : undefined;
 const path = Astro.url.pathname;
 const isWorks = activeSection ? activeSection === 'works' : (path === '/' || path.startsWith('/post'));
 const isGallery = activeSection ? activeSection === 'gallery' : path.startsWith('/gallery');
+const isSeries = activeSection ? activeSection === 'series' : path.startsWith('/series');
 const isWritings = activeSection ? activeSection === 'writings' : path.startsWith('/writings');
 const isThemes = activeSection ? activeSection === 'themes' : path.startsWith('/themes');
 const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/about');
@@ -73,6 +74,7 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
         <nav class="nav" aria-label="主導覽">
           <a href="/" aria-current={isWorks ? 'page' : undefined}>作品</a>
           <a href="/gallery" aria-current={isGallery ? 'page' : undefined}>影像</a>
+          <a href="/series" aria-current={isSeries ? 'page' : undefined}>系列</a>
           <a href="/writings" aria-current={isWritings ? 'page' : undefined}>散文</a>
           <a href="/themes" aria-current={isThemes ? 'page' : undefined}>主題</a>
           <a href="/about" aria-current={isAbout ? 'page' : undefined}>關於</a>

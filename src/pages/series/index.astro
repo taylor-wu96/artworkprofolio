@@ -1,0 +1,55 @@
+---
+import Base from '../../layouts/Base.astro';
+import Plate from '../../components/Plate.astro';
+import { safeFetch } from '../../lib/sanity.js';
+import { SERIES_LIST } from '../../lib/queries.js';
+
+const series = await safeFetch(SERIES_LIST);
+const total = series.length;
+---
+
+<Base title="系列 — 光・門檻・衰敗" activeSection="series" room="dark">
+  <div class="container">
+    <header class="section-head grid-12">
+      <span class="label section-head__label">組曲 / Series</span>
+      <h1 class="display section-head__title">系列</h1>
+    </header>
+
+    {total > 0 ? (
+      <ol class="archive">
+        {series.map((s, i) => (
+          <li class="entry grid-12" data-reveal>
+            <div class="entry__meta">
+              <span class="entry__num">系列 {String(i + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}</span>
+              <span class="entry__num">{s.count ?? 0} 件序列</span>
+            </div>
+            <a class="entry__plate" href={`/series/${s.slug}`}>
+              {s.cover ? (
+                <Plate
+                  image={s.cover}
+                  class="entry__img"
+                  width={1600}
+                  sizes="(min-width: 720px) min(56rem, 60vw), 100vw"
+                  alt={s.title}
+                  loading={i < 2 ? 'eager' : 'lazy'}
+                />
+              ) : (
+                <div class="entry__placeholder">無封面 / NO COVER</div>
+              )}
+              <h2 class="entry__title" style={s.cover ? undefined : 'margin-top:0'}>{s.title}</h2>
+              {s.description && (
+                <p class="hero__sub" style="color:var(--text-dim);margin-top:0.6rem;max-width:46ch">
+                  {s.description}
+                </p>
+              )}
+            </a>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <p class="empty">
+        尚無系列。到 Sanity Studio 新增 series，拖曳作品排成一條動線——那就是觀者翻閱的順序。
+      </p>
+    )}
+  </div>
+</Base>
