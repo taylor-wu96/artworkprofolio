@@ -65,8 +65,7 @@
   .pjx--light .pjx__sig { display: none; }
   .pjx--light .pjx__close,
   .pjx--light .pjx__count,
-  .pjx--light .pjx__caption,
-  .pjx--light .pjx__step { color: var(--ink-70); }
+  .pjx--light .pjx__caption { color: var(--ink-70); }
   .pjx--light .pjx__nav { color: var(--ink-45); }
   .pjx--light .pjx__chrome { border-top-color: var(--ink-15); }
   .pjx[data-open] {
@@ -199,30 +198,8 @@
     color: var(--accent);
   }
 
-  /* 底部 chrome 翻頁鈕：觸控專屬、≥44px。fine 用邊緣熱區故隱藏；單圖亦隱藏。 */
-  .pjx__steps {
-    display: none;
-    margin-left: auto;
-    align-self: center;
-    gap: 0.4rem;
-  }
-  @media (pointer: coarse) {
-    .pjx:not([data-single]) .pjx__steps { display: inline-flex; }
-  }
-  .pjx__step {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 44px;
-    min-height: 44px;
-    background: none;
-    border: 1px solid var(--hairline-dark);
-    color: var(--g-ink-70);
-    font-size: 1.1rem;
-    cursor: pointer;
-  }
-
-  /* 底部標籤：編號（mono）＋ 機器簽名 ＋ 圖說（Davison 編號 × Ikeda 資料）。 */
+  /* 底部標籤：編號（mono）＋ 機器簽名 ＋ 圖說（Davison 編號 × Ikeda 資料）。
+     翻頁：fine＝左右邊緣熱區；coarse＝水平 swipe（§15）。不放重複的明確翻頁鈕。 */
   .pjx__chrome {
     grid-row: 2;
     display: flex;

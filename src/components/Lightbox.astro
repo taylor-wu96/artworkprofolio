@@ -24,11 +24,6 @@
     <span class="pjx__count" aria-live="polite"></span>
     <span class="pjx__sig data-strip"></span>
     <span class="pjx__caption"></span>
-    <!-- 觸控專屬：明確翻頁鈕（≥44px）。邊緣熱區在 coarse 隱藏（與影像重疊易誤觸）。 -->
-    <span class="pjx__steps">
-      <button class="pjx__step pjx__step--prev" type="button" aria-label="上一張">←</button>
-      <button class="pjx__step pjx__step--next" type="button" aria-label="下一張">→</button>
-    </span>
   </div>
 </div>
 
@@ -211,10 +206,10 @@
       }
       if (!isOpen()) return;
 
-      // 控制鈕：邊緣熱區（fine）與底部 chrome 翻頁鈕（coarse）皆在此處理。
+      // 控制鈕：close ＋ 左右邊緣熱區（fine）。coarse 翻頁交給水平 swipe（§15）。
       if (t.closest('.pjx__close')) return close();
-      if (t.closest('.pjx__prev') || t.closest('.pjx__step--prev')) return go(-1);
-      if (t.closest('.pjx__next') || t.closest('.pjx__step--next')) return go(1);
+      if (t.closest('.pjx__prev')) return go(-1);
+      if (t.closest('.pjx__next')) return go(1);
 
       // 觸控（coarse）：zoom／關閉一律不靠 click——交給 touchend 的 tap 消歧與
       // 向下拖曳關閉（§15）。避免「點暗場即關」「點影像即縮放」在拇指下誤觸。
