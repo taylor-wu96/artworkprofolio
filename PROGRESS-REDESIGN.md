@@ -405,6 +405,43 @@
 
 ---
 
+## 階段 N — 展演分化（PM roadmap 軸 1：每頁體驗對齊資料格式）
+
+> 依據：2026-06-25 PM roadmap。拍板起點＝階段 N（軸 4「遷徙的那一粒綠」留待階段 O）。
+> 原則：不加頁，讓既有四頁各自找到「只屬於它資料形狀」的展演語言。
+> 同步更新 DESIGN（§14 響應式骨架、§15 影像觸控契約、v4 決策）。
+
+### N1. about → CV 時間軸（資料本質就是時間）
+- [x] N1-1 `about.astro`：移除「依類別扁平分組清單」，改攤平成單一時間脊、依年份遞減；
+  類別降為每筆微標（`cvTimeline` + `yearOf` 解析開頭四位數年份排序）。
+- [x] N1-2 時間軸視覺：年份只在與上一筆不同時顯示一次（錨點）、節點＋髮絲縱脊、
+  **最新一筆＝綠活節點＋極慢呼吸**（DESIGN §8 合法綠／生命跡象，呼應 3D 那一粒綠光）；reduced-motion 停脈動。
+- 驗證：桌機＋手機（375）——4 筆 2023–2026 遞減、2026 綠節點 `rgb(79,94,68)=--life`、零溢出、無 console 錯誤。
+
+### N2. 影像集 → 印樣（contact sheet）
+- [x] N2-1 `gallery/index.astro`：由與首頁共用的 `.entry` 單欄，改為 `.contact-sheet` 統一 3:2 格——
+  「影像＝複數的一捲」對比「作品＝單一的一張」的分化。響應式階梯 **1 欄（直幅手機）／2 欄（≥560）／
+  3 欄（≥980）**：手機優先清晰、密排是平板/桌機的展演（DESIGN §14.2）。
+- [x] N2-2 每格＝Plate 約束成 3:2 cover（覆寫內聯 aspect-ratio，範圍鎖在印樣格內；裁切僅用於索引縮圖，
+  同 post-nav 慣例，主呈現不裁切在詳情頁成立）；膠捲編號「格 NN」(mono)、WIP 綠標、Ikeda 簽名條保留。
+- 驗證：1280 桌機 3 欄 349px、768 平板 2 欄、手機**單欄 295×197**（修：原 2 欄 139×93 照片太小、簽名擠成 3 行 →
+  單欄後簽名收成 2 行）皆零溢出；簽名碼／WIP 綠 `rgb(147,164,127)=--life-dark`；develop 顯影正常、無 console 錯誤。
+
+### N3. 作品 artwork → 單格敬畏（與影像集序列分化）
+- [x] N3-1 artwork 封面置中＋四周大留白（`max-width: min(100%, 62rem)`、margin auto、上下加大）＝
+  掛在暗牆上的單一印樣（Crewdson 滿版敬畏 × 美術館留白）；用 Astro `:global` 穿透 Plate 的 `.work__cover`。
+- [x] N3-2 陳述（`.artwork-statement`）置中於 measure；附圖改 `<section class="artwork-plates">`＋
+  髮絲標頭「其他視圖 / Other Views」、降格更小更安靜、**刻意不編號**（編號是影像集序列的語言）。
+- 驗證：1280 桌機封面 1054px 置中（cx=640）、陳述 680 置中、暗留白框住；手機 335 填滿、零溢出；
+  顯影完成（is-loaded、naturalW 1280）、無 console 錯誤；build 17 頁通過。附圖區塊條件渲染（現有測試內容無 gallery[] 故不顯，邏輯正確）。
+
+### N4. series → 放映原生 —— 待續（吃 H1-3 schema 部署）
+- [ ] N4 `/series/[slug]` 序列接上放映模式，成為真正的「序列觀看」動線；目前 series 內容為空（schema 待部署）。
+
+> **階段 N（N1/N2/N3）完成並雙端驗證**（2026-06-25）。N4 待續——需先部署 series schema（H1-3）。
+
+---
+
 ## 變更紀錄
 - 2026-06-21：建立重構進度檔，開始階段 A。
 - 2026-06-21：階段 A/B 完成。Review 後定 DESIGN v2，完成階段 C（系統化＋兩房＋綠收束＋閱讀室＋3D 樂章）。
@@ -414,3 +451,4 @@
 - 2026-06-25：PM roadmap 軸 2 落地：階段 I（global.css `@layer` 模組化＋Base.astro script 抽模組＋手機導覽缺陷修復），零視覺回歸、6 行為等價驗證。
 - 2026-06-25：PM roadmap 軸 1 核心落地：階段 J（互動作品執行時——引擎無關契約＋registry＋載入器＋Sketch 元件；Hero3D 收編進 runtime、首發原生 shader；WORKS_FEED 合流；sketch schema/頁面）。生命週期以實測驗證。schema 部署待使用者。
 - 2026-06-25：階段 K（旁註 sidenote 序列化器＋雙模式；放映 focus trap 無障礙；Reas per-work 生成式 glyph 簽名）。I/J/K 三階段全數實作並驗證；待使用者部署 sketch＋sidenote schema。
+- 2026-06-25：PM roadmap 重訂四軸並更新 DESIGN（§14 響應式骨架／§15 影像觸控契約／v4 決策）。軸 1 起步：階段 N（N1 about CV 時間軸＋N2 影像集印樣 contact sheet），雙端驗證。N3 作品敬畏式／N4 series 放映原生待續。

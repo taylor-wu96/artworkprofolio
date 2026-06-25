@@ -227,28 +227,33 @@ const readingMinutes = (() => {
         )}
 
         {post.body && (
-          <div class="prose">
+          <div class="prose artwork-statement">
             <PortableText value={post.body} components={{ type: { image: PortableImage }, mark: { sidenote: Sidenote } }} />
           </div>
         )}
 
         {post.gallery?.length > 0 && (
-          <div class="plates">
-            {post.gallery.map((img) => (
-              <figure data-reveal>
-                <Plate
-                  image={img}
-                  width={2000}
-                  full={2600}
-                  zoomable
-                  sizes="100vw"
-                  alt={img.caption ?? ''}
-                  loading="lazy"
-                />
-                {img.caption && <figcaption>{img.caption}</figcaption>}
-              </figure>
-            ))}
-          </div>
+          /* 附圖＝次要「其他視圖」，刻意不編號（編號是影像集序列的語言），
+             與單一主影像分化。見 DESIGN 軸 1。 */
+          <section class="artwork-plates">
+            <span class="label artwork-plates__label">其他視圖 / Other Views</span>
+            <div class="plates">
+              {post.gallery.map((img) => (
+                <figure data-reveal>
+                  <Plate
+                    image={img}
+                    width={2000}
+                    full={2600}
+                    zoomable
+                    sizes="100vw"
+                    alt={img.caption ?? ''}
+                    loading="lazy"
+                  />
+                  {img.caption && <figcaption>{img.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          </section>
         )}
       </div>
     )}
@@ -433,6 +438,41 @@ const readingMinutes = (() => {
     position: absolute;
     left: -0.7rem;
     color: var(--text-dim);
+  }
+
+  /* ---- 作品 artwork：單格敬畏（與影像集序列分化）---------------------
+     單一主影像置中、四周大留白＝掛在暗牆上的一張印樣（Crewdson 滿版敬畏 ×
+     美術館留白）；陳述置中於 measure；附圖降格為安靜的「其他視圖」、不編號。 */
+  .artwork-layout :global(.work__cover) {
+    display: block;
+    max-width: min(100%, 62rem);
+    margin-inline: auto;
+    margin-block: clamp(2.5rem, 8vh, 6rem) clamp(3rem, 10vh, 7rem);
+  }
+  /* 陳述置中——單一作品的旁白，落在影像正下方的中軸。 */
+  .artwork-statement {
+    margin-inline: auto;
+  }
+  /* 其他視圖：次要區塊，髮絲標頭分隔，刻意更安靜、更小。 */
+  .artwork-plates {
+    margin-top: clamp(3.5rem, 10vh, 7rem);
+  }
+  .artwork-plates__label {
+    display: block;
+    max-width: var(--measure);
+    margin-inline: auto;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--text-dim);
+  }
+  .artwork-plates .plates {
+    margin-top: clamp(2rem, 6vh, 4rem);
+    gap: clamp(2rem, 6vh, 4rem);
+  }
+  /* 附圖不撐滿——維持次要、留白多於主影像，視覺層級清楚低於 hero。 */
+  .artwork-plates .plates :global(.plate) {
+    max-width: min(100%, 48rem);
+    margin-inline: auto;
   }
 
   /* ---- 檔案動線：related + 上下篇（語意 token → 隨房間自動換色）-------- */

@@ -20,42 +20,46 @@ const fmtDate = (d) =>
     </header>
 
     {total > 0 ? (
-      <ol class="archive">
+      /* 影像集展演＝印樣（contact sheet）：統一 3:2 格、密排成捲。
+         與首頁「作品」單欄敬畏式分流——影像是複數的一捲，作品是單一的一張。 */
+      <ol class="contact-sheet">
         {galleries.map((p, i) => {
-          const num = String(total - i).padStart(2, '0');
+          const num = String(i + 1).padStart(2, '0');
           const sig = archiveSignature(p.slug, p.capture, p.cover?.asset?.metadata);
           return (
-            <li class="entry grid-12" data-reveal>
-              <div class="entry__meta">
-                <span class="entry__num">藝廊 {num} / {String(total).padStart(2, '0')}</span>
-                {p.status === 'wip' && <span class="entry__wip">進行中 / WIP</span>}
-                <span class="entry__num">{fmtDate(p.publishedAt)}</span>
-                {p.themes?.length > 0 && (
-                  <span class="entry__themes">
-                    {p.themes.map((t) => <span>{t.title}</span>)}
-                  </span>
+            <li class="cs-cell" data-reveal>
+              <a class="cs-frame" href={`/post/${p.slug}`}>
+                <span class="cs-frame__num">格 {num}</span>
+                {p.status === 'wip' && <span class="cs-frame__wip entry__wip">WIP</span>}
+                {p.cover ? (
+                  <Plate
+                    image={p.cover}
+                    class="cs-plate"
+                    width={900}
+                    sizes="(min-width: 980px) 30vw, (min-width: 560px) 45vw, 50vw"
+                    alt={p.title}
+                    loading={i < 4 ? 'eager' : 'lazy'}
+                  />
+                ) : (
+                  <div class="cs-frame__placeholder">無影像 / NO IMAGE</div>
                 )}
-                <span class="data-strip">
+              </a>
+              <div class="cs-cell__info">
+                <h3 class="cs-cell__title">{p.title}</h3>
+                <div class="cs-cell__meta">
+                  <span class="entry__num">{fmtDate(p.publishedAt)}</span>
+                  {p.themes?.length > 0 && (
+                    <span class="entry__themes">
+                      {p.themes.map((t) => <span>{t.title}</span>)}
+                    </span>
+                  )}
+                </div>
+                <span class="data-strip cs-cell__sig">
                   <span>{sig.coord}</span>
                   <span class="data-strip__sig">{sig.code}</span>
                   <span>CH.{sig.channel}</span>
                 </span>
               </div>
-              <a class="entry__plate" href={`/post/${p.slug}`}>
-                {p.cover ? (
-                  <Plate
-                    image={p.cover}
-                    class="entry__img"
-                    width={1600}
-                    sizes="(min-width: 720px) min(56rem, 60vw), 100vw"
-                    alt={p.title}
-                    loading={i < 2 ? 'eager' : 'lazy'}
-                  />
-                ) : (
-                  <div class="entry__placeholder">無影像 / NO IMAGE</div>
-                )}
-                <h3 class="entry__title">{p.title}</h3>
-              </a>
             </li>
           );
         })}
@@ -67,3 +71,116 @@ const fmtDate = (d) =>
     )}
   </div>
 </Base>
+
+<style>
+  /* ---- 印樣（contact sheet）：影像集專屬展演 ----------------------------
+     統一 3:2 格密排成「一捲」，每格＝一個影像集封面。與首頁作品流（單欄、
+     不裁切、敬畏式）刻意分化：影像是複數，故密、故規整如膠捲。
+     裁切僅用於索引格（同 post-nav 慣例）；主呈現的不裁切在詳情頁成立。 */
+  .contact-sheet {
+    list-style: none;
+    margin: 0;
+    padding-inline: 0; /* 清掉 <ol> 預設 padding-inline-start:40px，否則整欄右偏、左右不對稱 */
+    padding-block: clamp(1.5rem, 4vh, 3rem);
+    display: grid;
+    /* 直幅手機＝單欄：格放大到看得清、簽名收成 1–2 行（DESIGN §14.2）。
+       印樣的「密排」是平板/桌機的展演，手機優先清晰。 */
+    grid-template-columns: 1fr;
+    gap: clamp(1.8rem, 5vh, 2.6rem);
+  }
+  @media (min-width: 560px) {
+    .contact-sheet {
+      grid-template-columns: repeat(2, 1fr);
+      gap: clamp(1.4rem, 3vw, 2.6rem) clamp(1rem, 2.5vw, 2rem);
+    }
+  }
+  @media (min-width: 980px) {
+    .contact-sheet { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .cs-frame {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 2; /* 35mm 膠捲比例：印樣的母題 */
+    overflow: hidden;
+    background: var(--g-ink-20);
+    border: 1px solid var(--hairline-dark);
+  }
+  /* 把 Plate 的自然比例框約束成統一 3:2 cover——印樣需要規整的格。
+     覆寫 Plate 內聯的 aspect-ratio（故用 !important，範圍鎖在印樣格內）。 */
+  .cs-frame :global(.cs-plate) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto !important;
+    border: 0;
+  }
+  .cs-frame :global(.cs-plate__img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* 格號＝膠捲齒孔旁的編號（mono），落在左上角。 */
+  .cs-frame__num {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    padding: 0.3rem 0.55rem;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--step--2);
+    letter-spacing: 0.12em;
+    color: var(--g-ink-70);
+    background: color-mix(in oklab, var(--gallery) 70%, transparent);
+  }
+  .cs-frame__wip {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    padding: 0.3rem 0.55rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    background: color-mix(in oklab, var(--gallery) 70%, transparent);
+  }
+  .cs-frame__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .cs-cell__info {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .cs-cell__title {
+    font-size: var(--step-0);
+    font-weight: var(--fw-regular); /* 暗房展覽輕量 */
+    letter-spacing: -0.01em;
+    color: var(--text);
+    transition: color var(--dur) var(--ease);
+  }
+  .cs-cell:hover .cs-cell__title {
+    color: var(--accent); /* 被觸碰的生機（DESIGN §8 互動訊號） */
+  }
+  .cs-cell__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    align-items: baseline;
+  }
+  .cs-cell__sig {
+    font-size: var(--step--2);
+    opacity: 0.85;
+  }
+</style>

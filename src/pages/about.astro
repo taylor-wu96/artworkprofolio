@@ -6,23 +6,24 @@ import { PortableText } from 'astro-portabletext';
 
 const about = await safeFetch(ABOUT_QUERY, {}, null);
 
-// Group CV entries by category if data exists
-const cvGroups = about?.cv
-  ? about.cv.reduce((acc, entry) => {
-      const cat = entry.category || 'other';
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(entry);
-      return acc;
-    }, {})
-  : {};
-
+// CV 展演＝時間軸（資料本質就是時間）：不再依類別分組，改攤平成單一時間脊、
+// 依年份遞減排列；類別降為每筆的微標。見 DESIGN 軸 1（展演對齊資料格式）。
 const cvCategoryTitles = {
-  solo: '個展 / Solo Exhibitions',
-  group: '聯展 / Group Exhibitions',
-  award: '獲獎與補助 / Awards & Grants',
-  publication: '出版 / Publications',
-  other: '其他經歷 / Other Experience',
+  solo: '個展 / Solo',
+  group: '聯展 / Group',
+  award: '獲獎 / Award',
+  publication: '出版 / Publication',
+  other: '經歷 / Other',
 };
+
+// 解析開頭四位數年份用於排序（容忍「2023–2024」「2023 春」等寫法）。
+const yearOf = (y) => {
+  const m = String(y ?? '').match(/\d{4}/);
+  return m ? parseInt(m[0], 10) : -Infinity;
+};
+const cvTimeline = about?.cv
+  ? [...about.cv].sort((a, b) => yearOf(b.year) - yearOf(a.year))
+  : [];
 ---
 
 <Base title="關於作者 — 光・門檻・衰敗" activeSection="about">
@@ -66,26 +67,28 @@ const cvCategoryTitles = {
             </div>
           )}
 
-          {about.cv && about.cv.length > 0 && (
+          {cvTimeline.length > 0 && (
             <div class="about-cv">
               <h3 class="about-section-title label" style="margin-bottom: 2rem;">個人經歷 / Curriculum Vitae</h3>
-              {Object.entries(cvCategoryTitles).map(([key, title]) => {
-                const group = cvGroups[key];
-                if (!group || group.length === 0) return null;
-                return (
-                  <div class="cv-category">
-                    <h4 class="cv-category-title">{title}</h4>
-                    <ol class="cv-list">
-                      {group.map((entry) => (
-                        <li class="cv-item">
-                          <span class="cv-year">{entry.year}</span>
-                          <span class="cv-text">{entry.title}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                );
-              })}
+              <ol class="cv-timeline">
+                {cvTimeline.map((entry, i) => {
+                  // 年份只在「與上一筆不同」時顯示一次——時間脊的錨點。
+                  const prev = cvTimeline[i - 1];
+                  const showYear = !prev || yearOf(prev.year) !== yearOf(entry.year);
+                  return (
+                    <li class={`cv-event${i === 0 ? ' cv-event--latest' : ''}`}>
+                      <span class="cv-event__year">{showYear ? entry.year : ''}</span>
+                      <span class="cv-event__node" aria-hidden="true"></span>
+                      <div class="cv-event__body">
+                        <span class="cv-event__cat label">
+                          {cvCategoryTitles[entry.category || 'other']}
+                        </span>
+                        <span class="cv-event__title">{entry.title}</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
             </div>
           )}
         </div>
@@ -171,35 +174,82 @@ const cvCategoryTitles = {
     border-color: currentColor;
   }
 
-  .cv-category {
-    margin-bottom: 2.5rem;
-  }
-  .cv-category-title {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--ink);
-    margin-bottom: 0.8rem;
-    letter-spacing: 0.04em;
-  }
-  .cv-list {
+  /* ---- CV 時間軸：單一時間脊（年份錨點＋節點＋類別微標）---------------
+     資料本質就是時間，故攤平成一條垂直軸；最新一筆帶綠活節點＝still active
+     （DESIGN §8 合法綠：生命跡象／最新）。 */
+  .cv-timeline {
     list-style: none;
     padding: 0;
     margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
   }
-  .cv-item {
+  .cv-event {
+    position: relative;
     display: grid;
     grid-template-columns: 4rem 1fr;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    column-gap: 1.4rem;
+    /* 時間脊：節點所在的左欄與內容欄之間一道髮絲縱線。 */
+    padding-left: 0;
+    padding-bottom: 1.8rem;
   }
-  .cv-year {
+  .cv-event:last-child {
+    padding-bottom: 0;
+  }
+  .cv-event__year {
+    grid-column: 1;
     font-variant-numeric: tabular-nums;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-45);
+    padding-top: 0.1rem;
+  }
+  /* 節點＋縱脊：節點落在年份欄與內容欄的接縫上。 */
+  .cv-event__node {
+    position: absolute;
+    left: calc(4rem + 0.7rem - 2.5px);
+    top: 0.45rem;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--ink-45);
+  }
+  .cv-event::before {
+    content: '';
+    position: absolute;
+    left: calc(4rem + 0.7rem - 0.5px);
+    top: 0.45rem;
+    bottom: -0.45rem;
+    width: 1px;
+    background: var(--ink-15);
+  }
+  .cv-event:last-child::before {
+    display: none;
+  }
+  /* 最新一筆＝還活著：綠節點＋極慢呼吸（呼應 3D 那一粒綠光、wip 標記）。 */
+  .cv-event--latest .cv-event__node {
+    background: var(--life);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--life) 22%, transparent);
+    animation: cv-node-breathe 3.6s var(--ease) infinite;
+  }
+  @keyframes cv-node-breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cv-event--latest .cv-event__node { animation: none; }
+  }
+  .cv-event__body {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding-left: 0.6rem;
+  }
+  .cv-event__cat {
     color: var(--ink-45);
   }
-  .cv-text {
+  .cv-event__title {
+    font-size: 0.95rem;
+    line-height: 1.5;
     color: var(--ink-70);
   }
 
