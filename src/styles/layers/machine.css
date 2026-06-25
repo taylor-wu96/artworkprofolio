@@ -1,0 +1,160 @@
+/* ── 層：machine ─────────────────────────────────────────────────────────
+   觀看的機器（v3）：資料精度層（Ikeda）資料條 ＋ 機器視覺準星（凝視/監視）。
+   獨立成層，便於「觀看的機器」藝術脈絡持續迭代。見 DESIGN §13。 */
+@layer machine {
+  /* 資料條：等寬字承載決定性檔案座標/編碼；綠＝資料訊號。 */
+  .data-strip {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.03em;
+    color: var(--text-dim);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.85rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .data-strip__sig {
+    color: var(--accent); /* 綠：被讀取的活訊號 */
+  }
+
+  /* 生成式作品簽名（Reas）：每件作品決定性的視覺指紋。線條隨房間（currentColor）；
+     一粒節點走綠（--accent）＝唯一活著的訊號。純靜態。 */
+  .glyph {
+    display: block;
+    color: var(--text-dim);
+    overflow: visible;
+  }
+  .glyph__live {
+    fill: var(--accent);
+  }
+  /* 作品頭部簽名：與資料條同軸，置於右側成「機器銘牌」。 */
+  .work__glyph {
+    grid-column: 1 / -1;
+    margin-top: 0.6rem;
+  }
+
+  /* 機器視覺準星：暗房專屬，跟隨游標、hover 作品時框選鎖定。
+   由 Base 腳本依 data-room / 觸控 / reduced-motion 決定是否啟用。 */
+  html[data-room='dark']
+    :is(.entry__plate, .work__cover, .gallery-item__media, .plates figure) {
+    cursor: crosshair;
+  }
+  .reticle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 26px;
+    height: 26px;
+    z-index: 60;
+    pointer-events: none;
+    transform: translate3d(-200px, -200px, 0);
+    color: var(--life-dark);
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease), width 0.22s var(--ease-out),
+      height 0.22s var(--ease-out);
+    will-change: transform, width, height;
+  }
+  .reticle[data-active] {
+    opacity: 0.92;
+  }
+  .reticle[data-lock] {
+    transition: opacity var(--dur-fast) var(--ease), width 0.22s var(--ease-out),
+      height 0.22s var(--ease-out), transform 0.22s var(--ease-out);
+  }
+  .reticle__c {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border: 1px solid currentColor;
+  }
+  .reticle__c.tl {
+    top: 0;
+    left: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+  .reticle__c.tr {
+    top: 0;
+    right: 0;
+    border-left: 0;
+    border-bottom: 0;
+  }
+  .reticle__c.bl {
+    bottom: 0;
+    left: 0;
+    border-right: 0;
+    border-top: 0;
+  }
+  .reticle__c.br {
+    bottom: 0;
+    right: 0;
+    border-left: 0;
+    border-top: 0;
+  }
+  .reticle__x,
+  .reticle__y {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    background: currentColor;
+    opacity: 0.7;
+    transition: opacity var(--dur-fast) var(--ease);
+  }
+  .reticle__x {
+    width: 1px;
+    height: 6px;
+    transform: translate(-50%, -50%);
+  }
+  .reticle__y {
+    width: 6px;
+    height: 1px;
+    transform: translate(-50%, -50%);
+  }
+  .reticle[data-lock] .reticle__x,
+  .reticle[data-lock] .reticle__y {
+    opacity: 0;
+  }
+
+  /* ---- 互動作品掛載點（Works Runtime・階段 J）------------------------------
+     一台「觀看光的機器」展示活的、生成的影像作品——shader/R3F 等引擎共用此容器。 */
+  .sketch {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background-color: var(--gallery);
+    /* lqip 模糊底：掛載前先有暗場低彩底，避免空白閃爍。 */
+    background-image: var(--lqip, none);
+    background-size: cover;
+    background-position: center;
+  }
+  /* hero 變體：填滿 .hero（取代原 .hero__canvas 絕對定位的島）。 */
+  .sketch--hero {
+    position: absolute;
+    inset: 0;
+  }
+  /* 容器內的引擎畫布（shader canvas / R3F canvas）填滿。 */
+  .sketch > canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  /* 封面 fallback：掛載前/無 JS 時頂上；作品開始運轉後緩慢淡出（顯影語彙）。 */
+  .sketch__fallback {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 1;
+    transition: opacity var(--dur-slow) var(--ease-out);
+  }
+  .sketch[data-sketch-state='running'] .sketch__fallback,
+  .sketch[data-sketch-state='paused'] .sketch__fallback {
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sketch__fallback {
+      transition: none;
+    }
+  }
+}

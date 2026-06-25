@@ -1,12 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
-import Hero3D from '../components/Hero3D.jsx';
+import Sketch from '../components/Sketch.astro';
 import Plate from '../components/Plate.astro';
 import { safeFetch } from '../lib/sanity.js';
-import { ARTWORKS_LIST } from '../lib/queries.js';
+import { WORKS_FEED } from '../lib/queries.js';
 import { archiveSignature } from '../lib/signature.js';
 
-const posts = await safeFetch(ARTWORKS_LIST);
+// 作品流：攝影 post（artwork）＋ 互動 sketch 合流（階段 J）。
+const works = await safeFetch(WORKS_FEED);
 
 const year = (d) => (d ? new Date(d).getFullYear() : null);
 const fmtDate = (d) =>
@@ -14,16 +15,16 @@ const fmtDate = (d) =>
 
 // 依年份分組，呈現時間性的檔案瀏覽。
 let lastYear = null;
-const total = posts.length;
+const total = works.length;
 // 「最新」標記跟著真正最新的日期走（列表已先依精選置頂，i===0 未必最新）。
-const newestSlug = [...posts].sort(
+const newestSlug = [...works].sort(
   (a, b) => new Date(b.publishedAt ?? 0) - new Date(a.publishedAt ?? 0),
 )[0]?.slug;
 ---
 
 <Base activeSection="works" room="dark">
   <section class="hero">
-    <Hero3D client:only="react" />
+    <Sketch sketchId="light-field" variant="hero" />
     <span class="hero__index">攝影檔案 / Archive</span>
     <div class="hero__caption">
       <h1 class="hero__title">光・門檻・衰敗</h1>
@@ -41,12 +42,14 @@ const newestSlug = [...posts].sort(
 
     {total > 0 ? (
       <ol class="archive">
-        {posts.map((p, i) => {
+        {works.map((p, i) => {
           const y = year(p.publishedAt);
           const showYear = y !== lastYear;
           lastYear = y;
           const num = String(total - i).padStart(2, '0');
           const sig = archiveSignature(p.slug, p.capture, p.cover?.asset?.metadata);
+          const isSketch = p._type === 'sketch';
+          const href = isSketch ? `/sketch/${p.slug}` : `/post/${p.slug}`;
           return (
             <>
               {showYear && y && (
@@ -57,6 +60,7 @@ const newestSlug = [...posts].sort(
               <li class="entry grid-12" data-reveal>
                 <div class="entry__meta">
                   <span class="entry__num">作品 {num} / {String(total).padStart(2, '0')}</span>
+                  {isSketch && <span class="entry__num entry__live">互動 / LIVE</span>}
                   {p.status === 'wip' && <span class="entry__wip">進行中 / WIP</span>}
                   {p.slug === newestSlug && <span class="entry__latest">最新 / Latest</span>}
                   {p.themes?.length > 0 && (
@@ -69,9 +73,10 @@ const newestSlug = [...posts].sort(
                     <span>{sig.coord}</span>
                     <span class="data-strip__sig">{sig.code}</span>
                     <span>CH.{sig.channel}</span>
+                    {isSketch && p.engine && <span>▸{String(p.engine).toUpperCase()}</span>}
                   </span>
                 </div>
-                <a class="entry__plate" href={`/post/${p.slug}`}>
+                <a class="entry__plate" href={href}>
                   {p.cover ? (
                     <Plate
                       image={p.cover}
@@ -82,7 +87,7 @@ const newestSlug = [...posts].sort(
                       loading={i < 2 ? 'eager' : 'lazy'}
                     />
                   ) : (
-                    <div class="entry__placeholder">無影像 / NO IMAGE</div>
+                    <div class="entry__placeholder">{isSketch ? '互動作品 / INTERACTIVE' : '無影像 / NO IMAGE'}</div>
                   )}
                   <h3 class="entry__title">{p.title}</h3>
                 </a>

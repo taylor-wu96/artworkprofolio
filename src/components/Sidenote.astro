@@ -1,0 +1,14 @@
+---
+// 旁註序列化器（astro-portabletext mark・階段 K1）。
+// 報導者式 margin note：被標記的內文照常 inline；註解內容桌機浮於右側頁邊、
+// 行動裝置 inline 縮排展開。編號由 CSS counter 自動遞增（與圖錄編號語言一致）。
+// astro-portabletext 的 mark 註解資料在 node.markDef（與內建 link 的 node.markDef.href 同）。
+const { node } = Astro.props;
+const note = node?.markDef?.note ?? node?.note ?? '';
+---
+
+<span class="sidenote">
+  <slot />
+  <sup class="sidenote__mark" aria-hidden="true"></sup>
+  <small class="sidenote__body">{note}</small>
+</span>

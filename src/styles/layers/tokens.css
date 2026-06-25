@@ -1,0 +1,110 @@
+/* ── 層：tokens ──────────────────────────────────────────────────────────
+   原色、編輯雙體、三套地基 token（space/type/motion）、字重階梯、
+   語意表面 token（亮房預設）＋ 暗房重映。見 DESIGN §2–4。 */
+@layer tokens {
+  :root {
+    /* ---- 原色：亮房灰階（中性、肉眼近乎無暖）------------------------------ */
+    --paper: #f4f4f2;
+    --ink: #0e0e0d;
+    /* 墨濃度＝同色透明度層級，不算新色 */
+    --ink-70: color-mix(in oklab, var(--ink) 70%, var(--paper));
+    --ink-45: color-mix(in oklab, var(--ink) 45%, var(--paper));
+    --ink-15: color-mix(in oklab, var(--ink) 15%, var(--paper));
+
+    /* ---- 原色：暗房（圖錄・作品・3D）＋平行墨階 ------------------------- */
+    --gallery: #0c0c0b;
+    --gallery-ink: #ececea;
+    --g-ink-70: color-mix(in oklab, var(--gallery-ink) 70%, var(--gallery));
+    --g-ink-45: color-mix(in oklab, var(--gallery-ink) 45%, var(--gallery));
+    --g-ink-20: color-mix(in oklab, var(--gallery-ink) 20%, var(--gallery));
+    --hairline-dark: color-mix(in oklab, var(--gallery-ink) 14%, transparent);
+    --hero-bg: var(--gallery);
+
+    /* ---- 唯一重點色：地衣／氧化銅綠（低彩、帶灰、沉靜的生機）------------
+     用量嚴格克制（見 DESIGN §8 白名單）：只給狀態/當前/聚焦/進度/一粒綠光。 */
+    --life: #4f5e44; /* 亮底上 */
+    --life-dark: #93a47f; /* 暗底上 */
+
+    /* ---- 編輯雙體：介面無襯線 / 長文宋體 -------------------------------- */
+    --font-ui: 'Helvetica Neue', Helvetica, 'Inter', Arial, 'PingFang TC',
+      'Noto Sans TC', system-ui, sans-serif;
+    --font-read: 'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', Georgia,
+      'Times New Roman', serif;
+    /* 資料精度層（Ikeda）：等寬字承載座標／編碼／時間戳。 */
+    --font-mono: 'SF Mono', 'JetBrains Mono', 'Roboto Mono', ui-monospace,
+      'Menlo', 'Consolas', monospace;
+
+    /* ---- 地基 ①：間距（8px 模數・t-shirt 命名）------------------------- */
+    --space-3xs: 4px;
+    --space-2xs: 8px;
+    --space-xs: 12px;
+    --space-sm: 16px;
+    --space-md: 24px;
+    --space-lg: 32px;
+    --space-xl: 48px;
+    --space-2xl: 64px;
+    --space-3xl: 96px;
+    --space-4xl: 128px;
+    --space-5xl: 160px;
+    --margin: clamp(20px, 5vw, 90px);
+    --col-gap: clamp(16px, 2.2vw, 30px);
+    --measure: 40rem; /* 約 38–40 個中文字寬 */
+
+    /* ---- 地基 ②：字級（modular scale・1.25 大三度）-------------------- */
+    --step--2: 0.72rem; /* micro label */
+    --step--1: 0.82rem; /* small UI / caption */
+    --step-0: 1rem; /* UI 基準（17px root）*/
+    --step-1: 1.25rem;
+    --step-2: 1.5625rem;
+    --step-3: 1.953rem;
+    --display: clamp(1.7rem, 3.6vw, 3rem); /* v2.2 收斂：max 4.6→3rem */
+    --hero-title: clamp(1.6rem, 3.4vw, 2.7rem); /* v2.2 收斂：max 3.4→2.7rem */
+    --read-size: 1.12rem; /* ≈19px，亮房長文基準 */
+
+    /* ---- 地基 ③：動態（duration / easing）----------------------------- */
+    --dur-fast: 0.4s;
+    --dur: 0.6s;
+    --dur-slow: 1.5s;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease: ease;
+
+    /* ---- 地基 ④：字重階梯（取代「全部 500」的平階層）------------------
+     依房間混用：標題字重由 --display-weight 驅動——
+     暗房＝展覽輕量(400，大字加寬字距的圖錄標籤感)；
+     亮房＝報導半粗(600，長文裡清晰可掃描的段落頭)。 */
+    --fw-regular: 400; /* 內文、暗房大標 */
+    --fw-medium: 500; /* 介面標籤、導覽、meta */
+    --fw-semibold: 600; /* 亮房標題與段落頭 */
+    --display-weight: var(--fw-semibold); /* 亮房預設；暗房重映為輕量 */
+
+    /* ---- 圓角：刻意接近 0（建築／印刷氣質，非網頁 App）---------------- */
+    --radius: 0px;
+
+    /* ---- 語意表面 token（預設＝亮房；暗房由 html[data-room] 重映）------- */
+    --surface: var(--paper);
+    --text: var(--ink);
+    --text-muted: var(--ink-70);
+    --text-dim: var(--ink-45);
+    --line: var(--ink-15);
+    --accent: var(--life);
+    --header-bg: color-mix(in oklab, var(--paper) 88%, transparent);
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 暗房：重映語意 token（圖錄・作品・3D 共用同一片黑）。 */
+  html[data-room='dark'] {
+    --surface: var(--gallery);
+    --text: var(--gallery-ink);
+    --text-muted: var(--g-ink-70);
+    --text-dim: var(--g-ink-45);
+    --line: var(--hairline-dark);
+    --accent: var(--life-dark);
+    --header-bg: color-mix(in oklab, var(--gallery) 82%, transparent);
+    /* 暗房展覽：大標走輕量，靠尺寸與字距撐起存在感。 */
+    --display-weight: var(--fw-regular);
+  }
+}

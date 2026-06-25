@@ -41,6 +41,16 @@
     let items: HTMLImageElement[] = []; // 當前序列（整頁的 img.zoomable）
     let current = -1;
     let zoomed = false;
+    let lastFocus: HTMLElement | null = null; // 開啟前的焦點，關閉時還原（無障礙）
+
+    // 對話框內可聚焦元素（可見的控制鈕）——focus trap 用。
+    function focusables(): HTMLElement[] {
+      const b = box();
+      if (!b) return [];
+      return Array.from(b.querySelectorAll<HTMLElement>('button')).filter(
+        (n) => n.offsetParent !== null
+      );
+    }
 
     const fmt = (n: number) => String(n).padStart(2, '0');
 
@@ -121,6 +131,8 @@
     function open(node: HTMLImageElement) {
       const b = box();
       if (!b) return;
+      // 記住開啟前的焦點，關閉時還原（無障礙：不讓焦點掉到頁首）。
+      lastFocus = (document.activeElement as HTMLElement) ?? node;
       // 序列＝整頁的 zoomable 影像（DOM 順序）；找出點擊者的索引。
       items = Array.from(document.querySelectorAll<HTMLImageElement>('img.zoomable'));
       current = Math.max(0, items.indexOf(node));
@@ -128,7 +140,11 @@
       render();
       b.setAttribute('aria-hidden', 'false');
       document.documentElement.style.overflow = 'hidden';
-      requestAnimationFrame(() => b.setAttribute('data-open', ''));
+      requestAnimationFrame(() => {
+        b.setAttribute('data-open', '');
+        // 移焦進對話框（關閉鈕），讓鍵盤使用者立即可操作、且被 trap 困在內。
+        (el('.pjx__close') as HTMLElement | null)?.focus();
+      });
     }
 
     function close() {
@@ -138,6 +154,14 @@
       b.removeAttribute('data-open');
       b.setAttribute('aria-hidden', 'true');
       document.documentElement.style.overflow = '';
+      // 還原焦點到開啟前的元素；若無有效目標（如點圖開啟、img 不可聚焦），
+      // 則 blur 目前焦點，讓它離開已隱藏的對話框（不滯留在 aria-hidden 內）。
+      if (lastFocus && lastFocus !== document.body && document.contains(lastFocus)) {
+        lastFocus.focus();
+      } else {
+        (document.activeElement as HTMLElement | null)?.blur();
+      }
+      lastFocus = null;
       const im = img();
       setTimeout(() => {
         if (!b.hasAttribute('data-open') && im) im.src = '';
@@ -181,12 +205,35 @@
       im.style.transform = `scale(2) translate(${-rx * 42}%, ${-ry * 42}%)`;
     });
 
-    // 鍵盤：Esc 關、←/→ 翻頁
+    // 鍵盤：Esc 關、←/→ 翻頁、Tab 鎖在對話框內（focus trap）。
     document.addEventListener('keydown', (e) => {
       if (!isOpen()) return;
-      if (e.key === 'Escape') close();
-      else if (e.key === 'ArrowLeft') go(-1);
-      else if (e.key === 'ArrowRight') go(1);
+      if (e.key === 'Escape') return close();
+      if (e.key === 'ArrowLeft') return go(-1);
+      if (e.key === 'ArrowRight') return go(1);
+      if (e.key === 'Tab') {
+        const f = focusables();
+        if (f.length === 0) {
+          e.preventDefault();
+          return;
+        }
+        const b = box();
+        const first = f[0];
+        const last = f[f.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        const inside = !!(b && active && b.contains(active));
+        if (e.shiftKey) {
+          if (!inside || active === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (!inside || active === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
     });
 
     // 觸控左右滑翻頁
@@ -208,6 +255,7 @@
         b.setAttribute('aria-hidden', 'true');
       }
       document.documentElement.style.overflow = '';
+      lastFocus = null; // 導覽後焦點來源已失效，勿還原
     });
   }
 </script>

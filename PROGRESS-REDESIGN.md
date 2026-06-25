@@ -294,9 +294,123 @@
 
 ---
 
+## 階段 I — 工程地基整固（PM roadmap 軸 2：可維護性 ＋ 手機/平板）
+
+> 依據：2026-06-25 PM roadmap。原則：零視覺變更的物理重組（I1/I2）＋ 修真實響應式缺陷（I3）。
+> 唯一安全網＝視覺/行為等價，皆以 preview 工具量測，非肉眼喊「看起來對」。
+
+### I1. `global.css` 1016 行單檔 → CSS `@layer` 模組化
+- [x] I1-1 拆成 `src/styles/layers/{tokens,base,layout,components,machine,media}.css`，
+  `global.css` 改為 barrel：`@layer` 層序宣告 ＋ 純 `@import`（避開 Vite `@import layer()` 風險）。
+- [x] I1-2 層序＝原始碼區塊順序（cascade layer 優先於 specificity，故須對齊）；逐節搬移、
+  不改任何 selector/值；全域 reduced-motion `!important` 區塊刻意留在所有層之外（壓過一切）。
+- 驗證：`npm run build` 17 頁無警告；打包後 CSS 確認層序宣告＋六層依序＋`@import` 全 inline；
+  暗房（首頁 hero/archive/data-strip）與亮房（about 紙底/墨字/綠 active/半粗標題）視覺等價、零 console 錯誤。
+
+### I2. `Base.astro` 6 段 inline script（~370 行）→ `src/scripts/*.ts` 模組
+- [x] I2-1 抽成 `reveal/develop/read-progress/reticle/room-veil/audio.ts`，各 export `init()`；
+  `scripts/index.ts` 依原順序統一初始化；Base.astro 末尾改單一 `import '../scripts'`（486→121 行）。
+- [x] I2-2 邏輯一字不改、只搬家；保留各自「初次執行＋重綁 `astro:*` 事件」的時機。
+- 驗證：6 行為皆通過——reveal（元素居中時顯影）、develop（plate 3/3 is-loaded）、
+  read-progress（捲到底填滿 100%）、reticle（**跨 view-transition 導覽**建立/移除/重建）、
+  room-veil（暗↔亮房間切換）、audio（邏輯相同、sound-toggle 反映狀態）；零 console 錯誤。
+
+### I3. 響應式三斷點驗證（375/768/1440）＋ 修真實缺陷
+- [x] I3-1 **修真實手機缺陷**：375 寬下 6 導覽項＋聲音開關擠在單行 flex，每個 2 字標籤被壓成
+  上下兩字（作/品，15×41px）。修法（`layout.css`）：`.nav a { white-space: nowrap }` ＋
+  窄屏（≤560px）`.site-header__inner` 換兩列（brand 一列、導覽組另起一列靠左、縮 gap）。
+- [x] I3-2 驗證：375 nav 標籤恢復單行（28×22px）、brand 單行、無水平溢出；
+  768 平板維持單列 header（63px、無溢出）；手機 essay 長文無溢出、內文 19px/行高 35.2px、measure 335px。
+- 備註：reticle 在 `pointer: coarse` 不啟用之邏輯未動（headless 預覽不模擬 coarse pointer，沿用既有判斷）。
+
+> **階段 I 完成並驗證**（2026-06-25）。地基可持續擴建，手機導覽缺陷解除。
+
+---
+
+## 階段 J — 互動作品執行時（Works Runtime・PM roadmap 軸 1 核心）
+
+> 拍板：作品 IA **併入現有「作品」流**；**收編 Hero3D 進 runtime ＋首發原生 WebGL Shader**。
+> 關鍵後果：runtime 同時支援 vanilla（shader）與 React/R3F 兩種掛載 → React 降格為
+> 「眾引擎之一」、且**按需動態載入**，正面回應「React+Astro 只是表面結合」的疑慮。
+
+### J0. 引擎無關的掛載契約 ＋ registry ＋ 載入器
+- [x] J0-1 `src/sketches/types.ts`：`SketchModule.mount(host, ctx) → SketchInstance{pause/resume/destroy}`；
+  `ctx` 帶 reducedMotion / mobile / dpr / params / 全站 scroll ref。
+- [x] J0-2 `src/sketches/registry.ts`：`id → () => import()` 動態匯入表（加作品＝加一行＋一檔）。
+- [x] J0-3 `src/scripts/sketches.ts` 載入器：IntersectionObserver 進視口才下載＋掛載；離屏 pause；
+  `astro:before-swap` 全銷毀（釋放 WebGL context）；維護全站捲動 ref；`window.__sketchRuntime` 暴露狀態。
+- [x] J0-4 `src/components/Sketch.astro`：渲染 `[data-sketch]` 容器＋封面 fallback（無 JS/掛載前）。
+- 驗證（**實測非表面**）：drift-light 進視口→running＋canvas、**離屏 pause→`__driftFrames` 停增（rAF 確停）**、
+  捲回 resume→frames 恢復、**導覽離開→canvas 歸零＋runtime 清空（destroy 生效、無洩漏）**。
+
+### J1. Schema：`sketch` 文件型別（`../studio-artwork-portfolio`）
+- [x] J1-1 `sketch.ts`：title/slug/engine(shader|r3f)/sketchId(對 registry)/params(kv)/cover(metadata)/
+  capture/aspectRatio/status/featured/themes/description；註冊進 `index.ts`。
+- [ ] J1-2 部署 schema —— **待使用者執行**（agent 無後端部署權限，沿用階段 H 慣例）。
+  workaround：`manifest extract` → `npx sanity schema deploy --no-extract-manifest`。
+
+### J2. 查詢合流（`lib/queries.js`）
+- [x] J2-1 `WORKS_FEED`：post(artwork)＋sketch union，依精選/日期混排、排除草稿、帶 `_type`。
+- [x] J2-2 `SKETCH_BY_SLUG`（含 related：post＋sketch 同主題）、`SKETCH_SLUGS`。
+- 驗證：無 sketch 內容時 `WORKS_FEED` 向後相容（首頁仍顯 3 件 artwork、連 /post、零 LIVE 標記）。
+
+### J3. 頁面
+- [x] J3-1 `index.astro` 改用 `WORKS_FEED`；sketch 條目 `_type` 分流連 /sketch、data-strip 顯引擎 `▸ENGINE`、
+  克制 dim「互動 / LIVE」標記（非綠，綠留給狀態）。
+- [x] J3-2 `sketch/[slug].astro`（暗房）：標頭＋簽名 colophon（引擎綠標）＋全幅 `<Sketch>` 舞台＋描述＋related。
+- 驗證：以 mock 注入 getStaticPaths 端對端渲染真實模板——標題/▸SHADER 引擎綠標/簽名資料條/媒材/
+  shader 舞台 running/暗房皆正常；驗畢移除 mock。
+
+### J4. Hero3D 收編 ＋ 首發 shader 作品
+- [x] J4-1 `src/sketches/light-field.tsx`：Hero3D（一字不改）以 createRoot 掛載；React/R3F **按需動態載入**
+  （只有 R3F 作品掛載時才下載 react）。首頁 hero 由 `<Hero3D client:only>` 改為 `<Sketch sketchId="light-field" variant="hero">`。
+- [x] J4-2 `src/sketches/drift-light.ts`：原生 WebGL FBM 光場＋一粒綠＋（hero 才）隨捲動消融，作者可複製範本。
+- 修真實設計問題：drift-light 的 `u_scroll` 消融＝hero 專屬，inline 中段會整片變黑 → 改 `params.dissolve` 控制（預設關）。
+- 修真實 dev 問題：R3F 經島機制外動態載入觸發 `@vitejs/plugin-react preamble` 錯 → mount 前補 preamble 旗標 stub（僅 dev）。
+- 驗證：hero 點雲視覺等價（截圖）、`light-field` running；shader 桌機/手機渲染、reduced-motion 凍結、零 console 錯誤。
+
+### J5. 簽名整合
+- [x] J5-1 sketch 共用 `archiveSignature(slug, capture, cover.metadata)`（核心不改）；data-strip 增 `▸ENGINE`。
+
+> **階段 J 完成（J1-2 schema 部署待使用者）**（2026-06-25）。部署＋建 sketch 文件後，
+> 生成式作品自動出現在作品流並有 /sketch/[slug]。作者新增作品＝registry 加一行＋一個模組＋Studio 建一筆。
+
+---
+
+## 階段 K — 感官／閱讀完成度與無障礙
+
+> 依據：PM roadmap 軸 2／DESIGN §7（旁註）／v3.1（Reas per-work 簽名）。
+
+### K1. 旁註／側欄註腳（解 F3 暫緩案）
+- [x] K1-1 Schema：`post.body` block 加 `sidenote` annotation（`note` 文字）。
+- [x] K1-2 序列化器 `Sidenote.astro`：被標記文字 inline＋自動編號；註解桌機（≥1180px）浮於 measure
+  右側頁邊（`.prose` 為定位脈絡、top auto 維持參照行垂直位置）、窄屏 inline 縮排左線。
+  注：astro-portabletext 的 mark 註解資料在 `node.markDef.note`（與內建 link 的 `markDef.href` 同）。
+- [x] K1-3 註冊進 post（essay/artwork/gallery）與 sketch description 的 PortableText。
+- 驗證：mock 注入確認雙模式——桌機浮註（absolute、left 1011 > prose 右緣 980、無溢出）、
+  手機 inline（static、左線、無溢出）、編號與綠標號正常；驗畢移除 mock。
+- [ ] K1-4 部署 schema annotation —— **待使用者執行**（與 J1-2 同批）。
+
+### K2. 放映模式無障礙（`Lightbox.astro`）
+- [x] K2-1 focus trap（Tab 循環鎖在對話框內、自背景拉回）、開啟移焦關閉鈕、Esc 關閉。
+- [x] K2-2 關閉還焦觸發元素；無有效來源（點圖開啟、img 不可聚焦）則 blur，使焦點離開 aria-hidden 對話框。
+- 驗證：開啟→focus 關閉鈕；焦點逃到背景連結→Tab 拉回對話框；Esc→關閉＋焦點離開隱藏對話框（BODY、不在 dialog 內）。
+
+### K3. per-work 生成式視覺簽名（Reas）
+- [x] K3-1 `lib/glyph.js`：FNV-1a＋LCG 由 slug 種子產生決定性「感測軌跡」SVG（線條＋節點，一粒走 `--accent` 綠）。
+- [x] K3-2 套用作品內頁標頭 colophon（artwork/gallery/sketch），`.glyph/.glyph__live` 樣式（machine 層）。
+- 驗證：node 確認同 slug→同 SVG、不同 slug 相異、綠節點；作品頁渲染綠活節點 rgb(147,164,127)、5 節點、靜態。
+
+> **階段 K 完成（K1-4 schema annotation 部署待使用者）**（2026-06-25）。
+
+---
+
 ## 變更紀錄
 - 2026-06-21：建立重構進度檔，開始階段 A。
 - 2026-06-21：階段 A/B 完成。Review 後定 DESIGN v2，完成階段 C（系統化＋兩房＋綠收束＋閱讀室＋3D 樂章）。
 - 2026-06-23：PM roadmap 討論定四軸；拍板簽名半真化（路線 A）＋先動資料層。完成階段 E（schema status/featured/capture＋theme cover/order、半真簽名、related/上下篇、wip 綠標、A4-3 解決）。
 - 2026-06-24：完成並結案階段 F（光揭示轉場 F1／克制音景 F2，先前已實作未提交）。PM roadmap 軸 3 落地：階段 G（顯影地基 Plate＋放映模式 Projection），參考 Crewdson/Porodina/Davison。
 - 2026-06-24：階段 H（series 序列 schema＋頁面＋導覽；真 EXIF/GPS 簽名半真化升級）。schema 部署待使用者執行。
+- 2026-06-25：PM roadmap 軸 2 落地：階段 I（global.css `@layer` 模組化＋Base.astro script 抽模組＋手機導覽缺陷修復），零視覺回歸、6 行為等價驗證。
+- 2026-06-25：PM roadmap 軸 1 核心落地：階段 J（互動作品執行時——引擎無關契約＋registry＋載入器＋Sketch 元件；Hero3D 收編進 runtime、首發原生 shader；WORKS_FEED 合流；sketch schema/頁面）。生命週期以實測驗證。schema 部署待使用者。
+- 2026-06-25：階段 K（旁註 sidenote 序列化器＋雙模式；放映 focus trap 無障礙；Reas per-work 生成式 glyph 簽名）。I/J/K 三階段全數實作並驗證；待使用者部署 sketch＋sidenote schema。

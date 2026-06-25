@@ -44,6 +44,30 @@ export const ARTWORKS_LIST = `
   }
 `;
 
+// sketch 專屬欄位（生成式作品：引擎／模組／參數／比例）。
+const SKETCH_FIELDS = `
+  engine,
+  sketchId,
+  aspectRatio,
+  params
+`;
+
+// 作品流（首頁索引）：攝影 post（artwork）＋ 互動 sketch 合流，依精選/日期混排。
+// 每筆帶 _type，前台據此分流渲染與連結（post→/post，sketch→/sketch）。階段 J。
+export const WORKS_FEED = `
+  *[
+    (
+      (_type == "post" && (!defined(category) || category == "artwork")) ||
+      _type == "sketch"
+    )
+    && defined(slug.current) && status != "draft"
+  ] | ${LIST_ORDER}{
+    _type,
+    ${LIST_FIELDS},
+    ${SKETCH_FIELDS}
+  }
+`;
+
 export const GALLERIES_LIST = `
   *[_type == "post" && defined(slug.current) && status != "draft" && category == "gallery"] | ${LIST_ORDER}{
     ${LIST_FIELDS}
@@ -94,6 +118,36 @@ export const POST_BY_SLUG = `
 
 export const POST_SLUGS = `
   *[_type == "post" && defined(slug.current) && status != "draft"].slug.current
+`;
+
+// ---- 互動 / 生成作品（sketch）---------------------------------------
+export const SKETCH_BY_SLUG = `
+  *[_type == "sketch" && slug.current == $slug][0]{
+    _id,
+    _type,
+    title,
+    "slug": slug.current,
+    publishedAt,
+    cover ${IMG},
+    status,
+    featured,
+    capture,
+    ${SKETCH_FIELDS},
+    description,
+    "themes": themes[]->{title, "slug": slug.current},
+    // 同主題的關聯作品（post＋sketch，排除自身，最多 4）——維持作品流動線一致。
+    "related": *[
+      (_type == "post" || _type == "sketch") && defined(slug.current) && status != "draft"
+      && _id != ^._id && count(themes[@._ref in ^.themes[]._ref]) > 0
+    ] | order(publishedAt desc)[0...4]{
+      _type, title, "slug": slug.current, cover, category,
+      "themes": themes[]->{title, "slug": slug.current}
+    }
+  }
+`;
+
+export const SKETCH_SLUGS = `
+  *[_type == "sketch" && defined(slug.current) && status != "draft"].slug.current
 `;
 
 export const THEMES_LIST = `

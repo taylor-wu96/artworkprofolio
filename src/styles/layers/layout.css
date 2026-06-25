@@ -1,0 +1,229 @@
+/* ── 層：layout ──────────────────────────────────────────────────────────
+   閱讀進度條、頁首/導覽/聲音開關、光揭示轉場層、HERO、區段標頭。
+   頁面骨架與全站固定構件。 */
+@layer layout {
+  /* ---- 閱讀進度條（亮房長文；綠填充＝你在這/進行中）-------------------- */
+  .read-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 30;
+    background: transparent;
+    pointer-events: none;
+  }
+  .read-progress > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+  }
+
+  /* ---- 頁首(少於 7 個導覽項,極簡介面)-------------------------------- */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--header-bg);
+    backdrop-filter: blur(6px);
+  }
+  .site-header__inner {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    font-size: 0.82rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .nav {
+    display: flex;
+    gap: clamp(1rem, 3vw, 2.4rem);
+  }
+  .nav a {
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding-bottom: 2px;
+    border-bottom: 1px solid transparent;
+    white-space: nowrap; /* 標籤恆單行：窄屏不被擠成上下兩字（階段 I3）*/
+    transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+  .nav a:hover {
+    color: var(--text);
+    border-color: var(--accent); /* hover 預示「當前」的綠 */
+  }
+  /* 當前所在＝唯一的生命跡象：地衣綠標記。 */
+  .nav a[aria-current='page'] {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* nav ＋ 聲音開關靠右成組（brand 維持靠左）。 */
+  .site-header__right {
+    display: flex;
+    align-items: baseline;
+    gap: clamp(1rem, 3vw, 2.4rem);
+  }
+
+  /* 窄屏（手機）：6 項導覽＋聲音開關擠不進單行，換成兩列——
+     brand 一列、導覽組另起一列靠左展開（階段 I3 修真實手機缺陷）。 */
+  @media (max-width: 560px) {
+    .site-header__inner {
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: var(--space-2xs) var(--space-md);
+    }
+    .site-header__right {
+      flex-basis: 100%;
+      gap: clamp(0.85rem, 4.5vw, 1.4rem);
+    }
+    .nav {
+      gap: clamp(0.85rem, 4.5vw, 1.4rem);
+    }
+  }
+
+  /* ---- 聲音開關（暗房專屬・F2）---------------------------------------- */
+  .sound-toggle {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .sound-toggle:hover {
+    color: var(--text);
+  }
+  .sound-toggle__label {
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+  }
+  .sound-toggle__waves {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 11px;
+    transform: translateY(1px);
+  }
+  .sound-toggle__waves i {
+    width: 2px;
+    height: 3px;
+    background: currentColor;
+    transition: height var(--dur) var(--ease), background var(--dur-fast) var(--ease);
+  }
+  /* 啟用＝機器活著的訊號：綠（DESIGN §8 合法綠＝狀態）＋三條波呼吸。 */
+  .sound-toggle[data-on] {
+    color: var(--accent);
+  }
+  .sound-toggle[data-on] .sound-toggle__waves i {
+    background: var(--accent);
+  }
+  .sound-toggle[data-on] .sound-toggle__waves i:nth-child(1) {
+    animation: sound-wave 1.4s var(--ease) infinite;
+  }
+  .sound-toggle[data-on] .sound-toggle__waves i:nth-child(2) {
+    height: 9px;
+    animation: sound-wave 1.4s var(--ease) infinite 0.2s;
+  }
+  .sound-toggle[data-on] .sound-toggle__waves i:nth-child(3) {
+    animation: sound-wave 1.4s var(--ease) infinite 0.4s;
+  }
+  @keyframes sound-wave {
+    0%, 100% { height: 3px; }
+    50% { height: 11px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sound-toggle[data-on] .sound-toggle__waves i {
+      animation: none;
+      height: 7px;
+    }
+  }
+
+  /* ---- 光揭示房間轉場層（Turrell・F1）-------------------------------- */
+  #room-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--gallery);
+    transition: opacity var(--dur) var(--ease);
+  }
+  /* 亮房目標：光從中心徑向亮起（Turrell 的「光場」）。 */
+  #room-veil.is-light {
+    background: radial-gradient(circle at 50% 44%, #ffffff 0%, var(--paper) 58%);
+  }
+
+  /* ---- HERO：全螢幕藝術品 ---------------------------------------------- */
+  .hero {
+    position: relative;
+    height: 100svh;
+    min-height: 520px;
+    background: var(--hero-bg);
+  }
+  .hero__canvas {
+    position: absolute;
+    inset: 0;
+  }
+  .hero__caption {
+    position: absolute;
+    left: var(--margin);
+    bottom: clamp(1.5rem, 5vh, 3.5rem);
+    right: var(--margin);
+    color: var(--paper);
+    /* 無漸層遮罩；文字直接落在暗場邊緣 */
+  }
+  .hero__title {
+    font-size: var(--hero-title);
+    font-weight: var(--fw-regular); /* hero 恆為暗房展覽：輕量大字 */
+    letter-spacing: -0.01em;
+    line-height: 1.04;
+    mix-blend-mode: difference; /* 讓字隨光場明暗自適應，仍只用紙/墨 */
+  }
+  .hero__sub {
+    margin-top: 0.8rem;
+    max-width: 42ch;
+    font-size: 0.92rem;
+    color: color-mix(in oklab, var(--paper) 72%, transparent);
+  }
+  .hero__index {
+    position: absolute;
+    top: clamp(1.2rem, 4vh, 2.4rem);
+    left: var(--margin);
+    color: color-mix(in oklab, var(--paper) 60%, transparent);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* ---- 區段標頭 -------------------------------------------------------- */
+  .section-head {
+    padding-block: clamp(3.5rem, 9vh, 7rem) clamp(1.5rem, 4vh, 3rem);
+    border-bottom: 1px solid var(--line);
+  }
+  .section-head__title {
+    grid-column: 1 / -1;
+    margin-top: 0.6rem;
+  }
+  @media (min-width: 720px) {
+    .section-head__title {
+      grid-column: 4 / -1;
+    }
+    .section-head__label {
+      grid-column: 1 / 4;
+      padding-top: 0.5rem;
+    }
+  }
+}

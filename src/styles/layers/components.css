@@ -1,0 +1,333 @@
+/* ── 層：components ──────────────────────────────────────────────────────
+   作品檔案（archive/entry）、作品內頁與長文（work/prose）、影像集（plates）、
+   空狀態、頁尾。內容呈現的具名元件。 */
+@layer components {
+  /* ---- 作品檔案（非卡片；像圖錄逐頁翻閱）------------------------------ */
+  .archive {
+    list-style: none;
+    padding: 0;
+  }
+  .year-marker {
+    grid-column: 1 / -1;
+    padding-block: clamp(2.5rem, 7vh, 5rem) 1rem;
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    font-weight: 500;
+    color: var(--text-muted);
+    border-top: 1px solid var(--line);
+  }
+
+  .entry {
+    padding-block: clamp(2.2rem, 6vh, 4.5rem);
+  }
+  .entry__meta {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 1.2rem;
+    align-items: baseline;
+    margin-bottom: 1.2rem;
+  }
+  .entry__plate {
+    grid-column: 1 / -1;
+    display: block;
+  }
+  .entry__num {
+    font-variant-numeric: tabular-nums;
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+  }
+  /* 檔案索引「最新／進行中」標記＝生命跡象：地衣綠（DESIGN §8 白名單准用）。 */
+  .entry__latest,
+  .entry__wip {
+    font-variant-numeric: tabular-nums;
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  /* 進行中＝還在呼吸的作品：綠標極慢脈動（呼應 3D 那一粒綠光）。 */
+  .entry__wip {
+    animation: wip-breathe 3.6s var(--ease) infinite;
+  }
+  @keyframes wip-breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .entry__wip { animation: none; }
+  }
+  /* 互動作品標記：等寬 dim，克制——「最新/進行中」的綠已足夠，此處不再加綠。 */
+  .entry__live {
+    font-family: var(--font-mono);
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+  .entry__themes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+  .entry__themes span {
+    font-size: var(--step--2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .entry__img {
+    width: 100%;
+    /* 影像不裁切：自然比例。緩慢、沉思的揭示。 */
+    transition: opacity var(--dur-slow) var(--ease);
+  }
+  .entry__title {
+    margin-top: 1rem;
+    font-size: clamp(1.2rem, 2.6vw, 1.7rem); /* v2.2 收斂 */
+    font-weight: var(--fw-regular); /* 暗房圖錄條目：展覽輕量 */
+    letter-spacing: -0.01em;
+    transition: color var(--dur) var(--ease);
+  }
+  /* 圖錄條目 hover＝被觸碰的生機訊號：標題轉地衣綠。 */
+  .entry__plate:hover .entry__title {
+    color: var(--accent);
+  }
+  .entry__placeholder {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 720px) {
+    .entry__meta {
+      grid-column: 1 / 4;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 0;
+      position: sticky;
+      top: 5rem;
+      align-self: start;
+    }
+    .entry__plate {
+      grid-column: 4 / -1;
+    }
+    /* 寬螢幕下，較直的影像不撐滿整欄寬，維持圖錄的留白 */
+    .entry__img {
+      max-width: min(100%, 56rem);
+    }
+  }
+
+  /* ---- 文章 / 作品內頁（圖錄跨頁）------------------------------------- */
+  .work {
+    padding-block: clamp(2.5rem, 7vh, 6rem) clamp(4rem, 12vh, 9rem);
+  }
+  .work__header {
+    margin-bottom: clamp(2rem, 6vh, 4rem);
+  }
+  .work__title {
+    grid-column: 1 / -1;
+    margin-top: 0.8rem;
+  }
+  .work__meta {
+    grid-column: 1 / -1;
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .work__meta a:hover {
+    color: var(--accent);
+  }
+  @media (min-width: 720px) {
+    .work__title {
+      grid-column: 1 / 10;
+    }
+    .work__meta {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .work__cover {
+    width: 100%;
+    margin-bottom: clamp(2rem, 6vh, 4rem);
+  }
+
+  /* 長文：宋體內文、舒適行高與段距、窄 measure（亮房；暗房作品描述亦共用）。 */
+  .prose {
+    max-width: var(--measure);
+    font-family: var(--font-read);
+    font-size: var(--read-size);
+    line-height: 1.85; /* 中文舒適行高 */
+    color: var(--text-muted);
+  }
+  .prose > * + * {
+    margin-top: 1.6em;
+  }
+  .prose img {
+    width: 100%;
+    margin-block: clamp(2rem, 6vh, 4rem);
+  }
+  /* 圖說系統：與圖錄編號語言一致的無襯線小字。 */
+  .prose figure {
+    margin-block: clamp(2rem, 6vh, 4rem);
+  }
+  .prose figure img {
+    margin-block: 0;
+  }
+  .prose figcaption {
+    margin-top: 0.7rem;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  /* 標題用無襯線，在宋體內文中製造「呼吸點」與節奏對比。 */
+  .prose h2,
+  .prose h3 {
+    font-family: var(--font-ui);
+    font-weight: var(--fw-semibold); /* 段落頭半粗：長文裡清晰可掃描 */
+    color: var(--text);
+    letter-spacing: -0.005em;
+  }
+  .prose h2 {
+    font-size: 1.2rem;
+    margin-top: 2.4rem;
+  }
+  .prose h3 {
+    font-size: 1.05rem;
+    margin-top: 1.9rem;
+  }
+  /* 內文連結＝墨色字＋地衣綠下緣細線；hover 整體轉綠（v2.2：綠回到內文，
+   作為「可被觸碰」的生機訊號，見 DESIGN §8 tier 2）。 */
+  .prose a {
+    color: var(--text);
+    border-bottom: 1px solid var(--accent);
+    transition: color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+  .prose a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  /* 抽言（pull quote）：大宋體、墨色短左線，左右留白。 */
+  .prose blockquote {
+    margin-block: clamp(2rem, 6vh, 3.5rem);
+    margin-inline: 0;
+    padding-left: 1.4rem;
+    border-left: 2px solid var(--text);
+    font-size: 1.32rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  /* 章節分隔記號：置中短髮絲，取代純留白。 */
+  .prose hr {
+    border: none;
+    width: 3.5rem;
+    height: 1px;
+    margin: clamp(2.5rem, 7vh, 4rem) auto;
+    background: var(--text-dim);
+  }
+
+  /* ---- 旁註（報導者式 margin note・階段 K1）------------------------------
+     被標記文字照常 inline，附一個自動遞增的小編號；註解內容＝桌機浮於右側頁邊、
+     行動裝置 inline 縮排展開。編號用 CSS counter，與圖錄編號語言一致。 */
+  .prose {
+    counter-reset: sidenote;
+    position: relative; /* 桌機 margin note 的定位脈絡（measure 右緣） */
+  }
+  /* 注意：.sidenote 不可 position，否則浮註會以 span（行中）為定位脈絡而非 .prose 右緣。 */
+  .sidenote__mark {
+    counter-increment: sidenote;
+    font-family: var(--font-mono);
+    font-size: 0.62em;
+    color: var(--accent); /* 綠＝可展開的活訊號（合法綠） */
+    padding-left: 0.15em;
+    vertical-align: super;
+    line-height: 0;
+  }
+  .sidenote__mark::before {
+    content: counter(sidenote);
+  }
+  .sidenote__body {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--text-dim);
+    letter-spacing: 0.01em;
+  }
+  .sidenote__body::before {
+    content: counter(sidenote) '  ';
+    font-family: var(--font-mono);
+    color: var(--accent);
+  }
+  /* 行動／窄屏：inline 縮排小註，緊接被標記文字之後。 */
+  .sidenote__body {
+    display: block;
+    margin: 0.4rem 0 0.8rem 1.2rem;
+    padding-left: 0.8rem;
+    border-left: 1px solid var(--line);
+  }
+  /* 寬屏：浮入右側頁邊（measure 右緣外）；無 top → 維持在參照行的垂直位置。 */
+  @media (min-width: 1180px) {
+    .sidenote__body {
+      position: absolute;
+      left: calc(100% + 1.8rem);
+      width: 12rem;
+      margin: 0;
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+
+  /* ---- 影像集（不裁切、單欄為主、大量留白）--------------------------- */
+  .plates {
+    margin-top: clamp(3rem, 9vh, 6rem);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2.5rem, 8vh, 5rem);
+  }
+  .plates figure {
+    margin: 0;
+  }
+  .plates figcaption {
+    margin-top: 0.7rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  /* ---- 空狀態（檔案尚未建立）----------------------------------------- */
+  .empty {
+    grid-column: 1 / -1;
+    padding-block: clamp(3rem, 10vh, 7rem);
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    max-width: var(--measure);
+  }
+
+  /* ---- 頁尾 ------------------------------------------------------------ */
+  .site-footer {
+    border-top: 1px solid var(--line);
+    margin-top: clamp(4rem, 12vh, 9rem);
+    padding-block: 2.5rem clamp(2.5rem, 6vh, 4rem);
+  }
+  .site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+}

@@ -4,8 +4,10 @@ import { urlFor, safeFetch } from '../../lib/sanity.js';
 import { POST_SLUGS, POST_BY_SLUG } from '../../lib/queries.js';
 import { PortableText } from 'astro-portabletext';
 import PortableImage from '../../components/PortableImage.astro';
+import Sidenote from '../../components/Sidenote.astro';
 import Plate from '../../components/Plate.astro';
 import { archiveSignature } from '../../lib/signature.js';
+import { signatureGlyph } from '../../lib/glyph.js';
 
 export async function getStaticPaths() {
   const slugs = await safeFetch(POST_SLUGS);
@@ -108,7 +110,7 @@ const readingMinutes = (() => {
 
         {post.body && (
           <div class="prose prose--essay">
-            <PortableText value={post.body} components={{ type: { image: PortableImage } }} />
+            <PortableText value={post.body} components={{ type: { image: PortableImage }, mark: { sidenote: Sidenote } }} />
           </div>
         )}
       </div>
@@ -133,6 +135,7 @@ const readingMinutes = (() => {
             <span class="data-strip__sig">{sig.code}</span>
             <span>CH.{sig.channel}</span>
           </p>
+          <div class="work__glyph" set:html={signatureGlyph(slug, { size: 44 })} />
           {captureMeta.length > 0 && (
             <p class="work__capture">
               {captureMeta.map((m) => <span>{m}</span>)}
@@ -155,7 +158,7 @@ const readingMinutes = (() => {
 
         {post.body && (
           <div class="prose" style="margin-bottom: clamp(3rem, 8vh, 6rem);">
-            <PortableText value={post.body} components={{ type: { image: PortableImage } }} />
+            <PortableText value={post.body} components={{ type: { image: PortableImage }, mark: { sidenote: Sidenote } }} />
           </div>
         )}
 
@@ -202,6 +205,7 @@ const readingMinutes = (() => {
             <span class="data-strip__sig">{sig.code}</span>
             <span>CH.{sig.channel}</span>
           </p>
+          <div class="work__glyph" set:html={signatureGlyph(slug, { size: 44 })} />
           {captureMeta.length > 0 && (
             <p class="work__capture">
               {captureMeta.map((m) => <span>{m}</span>)}
@@ -224,7 +228,7 @@ const readingMinutes = (() => {
 
         {post.body && (
           <div class="prose">
-            <PortableText value={post.body} components={{ type: { image: PortableImage } }} />
+            <PortableText value={post.body} components={{ type: { image: PortableImage }, mark: { sidenote: Sidenote } }} />
           </div>
         )}
 

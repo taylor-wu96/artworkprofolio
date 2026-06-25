@@ -1,0 +1,55 @@
+---
+// 互動作品掛載點（Works Runtime・階段 J）。
+// 渲染一個帶 data-sketch 的容器；客戶端載入器（src/scripts/sketches.ts）進視口才
+// 動態下載對應引擎模組並掛載，離屏暫停、導覽銷毀。無 JS / 掛載前：顯示封面 fallback。
+// 影像不裁切原則沿用——fallback 走原比例；hero 變體填滿 .hero。
+import { urlFor } from '../lib/sanity.js';
+
+const {
+  sketchId,
+  params = {},
+  variant = 'inline', // 'hero'（全屏背景）| 'inline'（內文/作品頁，依比例）
+  cover = null,
+  alt = '',
+  height = null, // 例 '70vh'；未給則用封面比例
+  aspectRatio = null,
+  persist = variant === 'hero', // hero 不做離屏暫停
+  class: className = '',
+} = Astro.props;
+
+const meta = cover?.asset?.metadata ?? {};
+const lqip = meta.lqip;
+const ar = aspectRatio ?? meta.dimensions?.aspectRatio;
+const coverSrc = cover?.asset ? urlFor(cover).width(1600).url() : null;
+
+const style = [
+  lqip ? `--lqip:url("${lqip}")` : null,
+  variant !== 'hero' && ar ? `aspect-ratio:${ar}` : null,
+  variant !== 'hero' && height ? `height:${height}` : null,
+]
+  .filter(Boolean)
+  .join(';');
+---
+
+<div
+  class:list={['sketch', `sketch--${variant}`, className]}
+  data-sketch
+  data-sketch-id={sketchId}
+  data-params={JSON.stringify(params)}
+  data-sketch-persist={persist ? '' : undefined}
+  style={style}
+  role="img"
+  aria-label={alt || undefined}
+>
+  {
+    coverSrc && (
+      <img
+        class="sketch__fallback"
+        src={coverSrc}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+      />
+    )
+  }
+</div>

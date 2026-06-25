@@ -1,0 +1,85 @@
+/* ── 層：base ────────────────────────────────────────────────────────────
+   reset、根字體與表面、選取、聚焦環、排版尺度（.label/.display）、
+   12 欄網格與容器。結構性原語。 */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--surface);
+    color: var(--text);
+    /* 介面預設：瑞士式中性無襯線（長文另切換為宋體 --font-read） */
+    font-family: var(--font-ui);
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-text-size-adjust: 100%;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+
+  body {
+    margin: 0;
+  }
+
+  ::selection {
+    background: var(--text);
+    color: var(--surface);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* 聚焦環＝生命跡象之一：地衣綠（合法綠用法）。 */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: var(--radius);
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto; /* 永不裁切：只限寬，保留原始比例 */
+  }
+
+  h1,
+  h2,
+  h3,
+  p,
+  figure,
+  ul,
+  ol {
+    margin: 0;
+  }
+
+  /* ---- 排版尺度（中性、克制的字重）------------------------------------- */
+  .label {
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .display {
+    font-size: var(--display);
+    line-height: 1.02;
+    font-weight: var(--display-weight); /* 依房間：暗房輕量 / 亮房半粗 */
+    letter-spacing: -0.015em;
+  }
+
+  /* ---- 12 欄網格 -------------------------------------------------------- */
+  .container {
+    padding-inline: var(--margin);
+  }
+
+  .grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: var(--col-gap);
+  }
+}

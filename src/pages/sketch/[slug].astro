@@ -1,0 +1,206 @@
+---
+import Base from '../../layouts/Base.astro';
+import { urlFor, safeFetch } from '../../lib/sanity.js';
+import { SKETCH_SLUGS, SKETCH_BY_SLUG } from '../../lib/queries.js';
+import { PortableText } from 'astro-portabletext';
+import PortableImage from '../../components/PortableImage.astro';
+import Sidenote from '../../components/Sidenote.astro';
+import Sketch from '../../components/Sketch.astro';
+import { archiveSignature } from '../../lib/signature.js';
+import { signatureGlyph } from '../../lib/glyph.js';
+
+export async function getStaticPaths() {
+  const slugs = await safeFetch(SKETCH_SLUGS);
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const sketch = await safeFetch(SKETCH_BY_SLUG, { slug }, null);
+
+if (!sketch) {
+  return Astro.redirect('/404');
+}
+
+const fmtDate = (d) =>
+  d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+const sig = archiveSignature(slug, sketch.capture, sketch.cover?.asset?.metadata);
+
+// 半真拍攝/媒材資料：有填才顯示。
+const cap = sketch.capture ?? {};
+const captureMeta = [cap.location, cap.year, cap.gear, cap.film].filter(Boolean);
+
+// 由 kv 陣列組參數物件：值嘗試 JSON 解析（true / 0.5 / 文字）。
+const sketchParams = {};
+for (const kv of sketch.params ?? []) {
+  if (!kv?.key) continue;
+  let v = kv.value;
+  try { v = JSON.parse(kv.value); } catch { /* 維持字串 */ }
+  sketchParams[kv.key] = v;
+}
+
+const engineLabel = sketch.engine ? String(sketch.engine).toUpperCase() : null;
+const thumb = (img) => urlFor(img).width(640).height(480).fit('crop').url();
+---
+
+<Base
+  title={`${sketch.title} — 光・門檻・衰敗`}
+  image={sketch.cover ? urlFor(sketch.cover).width(1200).url() : undefined}
+  activeSection="works"
+  room="dark"
+>
+  <article class="detail-view container sketch-view">
+    <div class="artwork-layout">
+      <header class="work__header grid-12">
+        <span class="label" style="grid-column: 1 / -1">互動 / Interactive</span>
+        <h1 class="display work__title">{sketch.title}</h1>
+        <div class="work__meta">
+          <span>{fmtDate(sketch.publishedAt)}</span>
+          {engineLabel && <span class="sketch-engine">▸ {engineLabel}</span>}
+          {sketch.themes?.length > 0 &&
+            sketch.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
+        </div>
+        <p class="data-strip work__data">
+          <span>{sig.coord}</span>
+          <span class="data-strip__sig">{sig.code}</span>
+          <span>CH.{sig.channel}</span>
+          {engineLabel && <span>▸{engineLabel}</span>}
+        </p>
+        <div class="work__glyph" set:html={signatureGlyph(slug, { size: 44 })} />
+        {captureMeta.length > 0 && (
+          <p class="work__capture">
+            {captureMeta.map((m) => <span>{m}</span>)}
+          </p>
+        )}
+      </header>
+
+      {/* 作品本體：全幅掛載執行時。無 JS / 掛載前顯示封面 fallback。 */}
+      <Sketch
+        sketchId={sketch.sketchId}
+        params={sketchParams}
+        variant="inline"
+        cover={sketch.cover}
+        aspectRatio={sketch.aspectRatio}
+        height={sketch.aspectRatio ? null : 'min(72vh, 56rem)'}
+        alt={sketch.title}
+        class="sketch-stage"
+      />
+
+      {sketch.description && (
+        <div class="prose sketch-desc">
+          <PortableText value={sketch.description} components={{ type: { image: PortableImage }, mark: { sidenote: Sidenote } }} />
+        </div>
+      )}
+    </div>
+
+    {sketch.related?.length > 0 && (
+      <nav class="post-nav" aria-label="檔案動線">
+        <span class="label post-nav__label">檔案動線 / Archive</span>
+        <ul class="post-nav__related">
+          {sketch.related.map((r) => (
+            <li class="post-nav__item">
+              <a href={`${r._type === 'sketch' ? '/sketch' : '/post'}/${r.slug}`}>
+                <span class="post-nav__thumb">
+                  {r.cover && <img src={thumb(r.cover)} alt={r.title} loading="lazy" />}
+                </span>
+                <span class="post-nav__rtitle">{r.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+  </article>
+</Base>
+
+<style>
+  .work__data {
+    grid-column: 1 / -1;
+    margin-top: 0.9rem;
+  }
+  .sketch-engine {
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    color: var(--accent); /* 引擎＝這台機器「活著」的訊號（合法綠） */
+  }
+  /* 作品舞台：全幅、暗場、沉入式。Sketch 外層 .plate 等同 .sketch（子元件）→ :global。 */
+  :global(.sketch-stage) {
+    width: 100%;
+    margin-block: clamp(2rem, 6vh, 4rem) clamp(2.5rem, 7vh, 5rem);
+  }
+
+  .work__capture {
+    grid-column: 1 / -1;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    font-size: var(--step--2);
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+  }
+  .work__capture span {
+    position: relative;
+  }
+  .work__capture span + span::before {
+    content: '·';
+    position: absolute;
+    left: -0.7rem;
+    color: var(--text-dim);
+  }
+
+  .sketch-desc {
+    margin-top: clamp(1rem, 3vh, 2rem);
+  }
+
+  /* 檔案動線：暗房縮圖網格（與作品頁 related 視覺一致）。 */
+  .post-nav {
+    margin-top: clamp(4rem, 12vh, 8rem);
+    padding-top: clamp(1.6rem, 4vh, 2.4rem);
+    border-top: 1px solid var(--line);
+  }
+  .post-nav__label {
+    display: block;
+    margin-bottom: clamp(1.4rem, 3vh, 2rem);
+    color: var(--text-dim);
+  }
+  .post-nav__related {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(1rem, 2.5vw, 1.6rem);
+  }
+  .post-nav__thumb {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: color-mix(in oklab, var(--text) 6%, transparent);
+  }
+  .post-nav__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .post-nav__rtitle {
+    display: block;
+    margin-top: 0.7rem;
+    font-size: var(--step--1);
+    color: var(--text);
+    transition: color var(--dur) var(--ease);
+  }
+  .post-nav__item a:hover .post-nav__rtitle {
+    color: var(--accent);
+  }
+  .post-nav__item a:hover .post-nav__thumb img {
+    opacity: 0.82;
+    transform: scale(1.03);
+  }
+  @media (min-width: 720px) {
+    .post-nav__related {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>
