@@ -442,6 +442,40 @@
 
 ---
 
+## 階段 L — 影像觸控修誤觸（PM roadmap 軸 3）
+
+> 依據：DESIGN §15 影像觸控契約。修真實缺陷：手機放映「點暗場即關／邊緣熱區疊在影像上／
+> 點影像即縮放」三重誤觸。原則：coarse pointer 改用明確手勢消歧，fine pointer 行為一字不動。
+
+### L1. 取消觸控「點暗場關閉」＋手勢消歧（`Lightbox.astro`）
+- [x] L1-1 click handler 加 `coarse()` 閘：觸控下 zoom／關閉一律不靠 click（避免誤觸）；
+  fine pointer 維持「點影像縮放、點暗場關閉、邊緣 nav 翻頁」原狀。
+- [x] L1-2 touchstart/move/end 手勢：位移＋時間消歧——單 tap（<10px、<250ms）切底部 chrome 顯隱
+  （純淨影像 ↔ 看資料，280ms 延後確認避開雙擊）；double-tap 縮放；水平滑（>40px）翻頁；
+  向下拖曳（跟手位移＋暗場漸淡，>90px）關閉、未過閾值彈回。
+- [x] L1-3 `.pjx { touch-action: none }` 接管手勢、擋原生捲動／下拉刷新；拖曳殘留 `resetDrag()` 復位。
+
+### L2. 命中區、邊緣熱區、安全區（`media.css`・DESIGN §14.3）
+- [x] L2-1 coarse 隱藏左右邊緣 `.pjx__nav`（與影像重疊易誤觸）；改在底部 chrome 顯明確翻頁鈕
+  `.pjx__steps`（≥44px、僅 coarse 且非單圖）。
+- [x] L2-2 close ≥44px 命中區（透明 padding 擴張、視覺維持小字）＋ close／chrome 加 `env(safe-area-inset-*)`。
+
+### L3. 房間一致（DESIGN §15 point 4）
+- [x] L3-1 亮房（about 肖像／essay 封面）影像進 `.pjx--light` 安靜亮場放映：亮底、
+  無綠括弧／無機器簽名／無快門音（閱讀不被監視，呼應 §13）；暗房影像走完整機器放映。
+
+### L4. 驗證
+- [x] L4-1 `npm run build` 17 頁通過、無警告、無 console 錯誤。
+- [x] L4-2 合成 TouchEvent 實測手勢（暗房 /post/light-scales 4 圖）：水平滑 01→02、向下拖 140px 關閉、
+  單 tap 切 chrome（再 tap 復原）、double-tap 縮放；fine pointer 回歸測試：點影像 zoom on→off、
+  邊緣 next 翻頁、點暗場關閉皆原狀；about 開啟 `pjx--light`（亮底、括弧/簽名隱藏）、close 命中區 44px。
+- 註：coarse-only 視覺（底部翻頁鈕顯示／邊緣 nav 隱藏）在 headless 預覽無法模擬 pointer 型別截圖，
+  但手勢邏輯（與 pointer 無關、合成事件實測）與 `@media (pointer: coarse)` 閘皆已驗證。
+
+> **階段 L 完成並驗證**（2026-06-25）。手機放映三重誤觸解除；fine pointer 零回歸。
+
+---
+
 ## 變更紀錄
 - 2026-06-21：建立重構進度檔，開始階段 A。
 - 2026-06-21：階段 A/B 完成。Review 後定 DESIGN v2，完成階段 C（系統化＋兩房＋綠收束＋閱讀室＋3D 樂章）。
@@ -451,4 +485,4 @@
 - 2026-06-25：PM roadmap 軸 2 落地：階段 I（global.css `@layer` 模組化＋Base.astro script 抽模組＋手機導覽缺陷修復），零視覺回歸、6 行為等價驗證。
 - 2026-06-25：PM roadmap 軸 1 核心落地：階段 J（互動作品執行時——引擎無關契約＋registry＋載入器＋Sketch 元件；Hero3D 收編進 runtime、首發原生 shader；WORKS_FEED 合流；sketch schema/頁面）。生命週期以實測驗證。schema 部署待使用者。
 - 2026-06-25：階段 K（旁註 sidenote 序列化器＋雙模式；放映 focus trap 無障礙；Reas per-work 生成式 glyph 簽名）。I/J/K 三階段全數實作並驗證；待使用者部署 sketch＋sidenote schema。
-- 2026-06-25：PM roadmap 重訂四軸並更新 DESIGN（§14 響應式骨架／§15 影像觸控契約／v4 決策）。軸 1 起步：階段 N（N1 about CV 時間軸＋N2 影像集印樣 contact sheet），雙端驗證。N3 作品敬畏式／N4 series 放映原生待續。
+- 2026-06-25：PM roadmap 重訂四軸並更新 DESIGN（§14 響應式骨架／§15 影像觸控契約／v4 決策）。軸 1：階段 N（N1 about CV 時間軸＋N2 影像集印樣＋N3 作品單格敬畏），雙端驗證；N2 手機改單欄並修 `<ol>` 預設 padding 右偏。軸 3：階段 L（影像觸控修誤觸——coarse 取消點暗場關閉、tap/雙擊/滑動/拖曳消歧、邊緣熱區改底部翻頁鈕、44px 命中區、亮房安靜放映），合成事件實測手勢、fine pointer 零回歸。N4 series 放映原生待 schema 部署。

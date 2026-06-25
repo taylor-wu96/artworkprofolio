@@ -24,6 +24,11 @@
     <span class="pjx__count" aria-live="polite"></span>
     <span class="pjx__sig data-strip"></span>
     <span class="pjx__caption"></span>
+    <!-- 觸控專屬：明確翻頁鈕（≥44px）。邊緣熱區在 coarse 隱藏（與影像重疊易誤觸）。 -->
+    <span class="pjx__steps">
+      <button class="pjx__step pjx__step--prev" type="button" aria-label="上一張">←</button>
+      <button class="pjx__step pjx__step--next" type="button" aria-label="下一張">→</button>
+    </span>
   </div>
 </div>
 
@@ -42,6 +47,21 @@
     let current = -1;
     let zoomed = false;
     let lastFocus: HTMLElement | null = null; // 開啟前的焦點，關閉時還原（無障礙）
+
+    // 觸控手勢狀態（§15 觸控契約：tap/swipe/drag 消歧）。
+    const coarse = () => window.matchMedia('(pointer: coarse)').matches;
+    const stage = () => el('.pjx__stage') as HTMLElement | null;
+    let tStartX = 0, tStartY = 0, tStartT = 0;
+    let dragging = false; // 向下拖曳關閉中
+    let lastTap = 0; // 上次 tap 時戳（雙擊偵測）
+    let tapTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // 拖曳殘留復位（舞台位移、暗場透明度）。
+    function resetDrag() {
+      const st = stage(), b = box();
+      if (st) { st.style.transition = ''; st.style.transform = ''; }
+      if (b) b.style.opacity = '';
+    }
 
     // 對話框內可聚焦元素（可見的控制鈕）——focus trap 用。
     function focusables(): HTMLElement[] {
@@ -119,7 +139,10 @@
       if (sig) sig.innerHTML = pageSig ? pageSig.innerHTML : '';
 
       // 機器擷取了這一格：派發鎖定事件（音景模組響快門 blip）。
-      document.dispatchEvent(new CustomEvent('reticle:lock'));
+      // 亮房（閱讀）放映不發聲、不框選——閱讀不被監視（DESIGN §13/§15 point 4）。
+      if (!b.classList.contains('pjx--light')) {
+        document.dispatchEvent(new CustomEvent('reticle:lock'));
+      }
     }
 
     function go(delta: number) {
@@ -133,6 +156,11 @@
       if (!b) return;
       // 記住開啟前的焦點，關閉時還原（無障礙：不讓焦點掉到頁首）。
       lastFocus = (document.activeElement as HTMLElement) ?? node;
+      resetDrag();
+      b.classList.remove('is-bare');
+      // 房間一致：亮房（閱讀）影像進「安靜亮場」放映，不喚暗房監視儀器
+      // （無綠括弧／無機器簽名／無快門）。暗房影像走完整放映。見 DESIGN §15 point 4。
+      b.classList.toggle('pjx--light', document.documentElement.getAttribute('data-room') !== 'dark');
       // 序列＝整頁的 zoomable 影像（DOM 順序）；找出點擊者的索引。
       items = Array.from(document.querySelectorAll<HTMLImageElement>('img.zoomable'));
       current = Math.max(0, items.indexOf(node));
@@ -183,10 +211,16 @@
       }
       if (!isOpen()) return;
 
+      // 控制鈕：邊緣熱區（fine）與底部 chrome 翻頁鈕（coarse）皆在此處理。
       if (t.closest('.pjx__close')) return close();
-      if (t.closest('.pjx__prev')) return go(-1);
-      if (t.closest('.pjx__next')) return go(1);
-      // 點影像＝切換放大檢視；點暗場（非影像/非控制）＝關閉。
+      if (t.closest('.pjx__prev') || t.closest('.pjx__step--prev')) return go(-1);
+      if (t.closest('.pjx__next') || t.closest('.pjx__step--next')) return go(1);
+
+      // 觸控（coarse）：zoom／關閉一律不靠 click——交給 touchend 的 tap 消歧與
+      // 向下拖曳關閉（§15）。避免「點暗場即關」「點影像即縮放」在拇指下誤觸。
+      if (coarse()) return;
+
+      // 滑鼠（fine）：點影像＝切換放大；點暗場（非影像/非控制）＝關閉。
       if (t.closest('.pjx__img')) {
         e.stopPropagation();
         setZoom(!zoomed);
@@ -195,7 +229,7 @@
       if (t.closest('.pjx')) close();
     });
 
-    // 放大時：游標移動平移影像（看細節）。
+    // 放大時：指標移動平移影像（看細節）。滑鼠與觸控皆適用。
     document.addEventListener('pointermove', (e) => {
       if (!isOpen() || !zoomed) return;
       const im = img();
@@ -236,15 +270,79 @@
       }
     });
 
-    // 觸控左右滑翻頁
-    let touchX = 0;
+    // ── 觸控手勢（§15）：tap 切換 chrome、double-tap 縮放、水平滑翻頁、
+    //    向下拖曳關閉。位移＋時間消歧，避免誤觸關閉。──────────────────────
     document.addEventListener('touchstart', (e) => {
-      if (isOpen()) touchX = e.changedTouches[0].clientX;
+      if (!isOpen()) return;
+      const tc = e.changedTouches[0];
+      tStartX = tc.clientX; tStartY = tc.clientY; tStartT = Date.now();
+      dragging = false;
     }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!isOpen() || zoomed) return; // 放大時交給 pointermove 平移
+      const tc = e.changedTouches[0];
+      const dx = tc.clientX - tStartX;
+      const dy = tc.clientY - tStartY;
+      // 垂直為主且向下 → 進入「拖曳關閉」預覽（跟手位移＋暗場漸淡）。
+      if (!dragging && dy > 8 && Math.abs(dy) > Math.abs(dx)) dragging = true;
+      if (dragging) {
+        const st = stage(), b = box();
+        const d = Math.max(0, dy);
+        if (st) { st.style.transition = 'none'; st.style.transform = `translateY(${d}px)`; }
+        if (b) b.style.opacity = String(Math.max(0.2, 1 - d / 600));
+      }
+    }, { passive: true });
+
     document.addEventListener('touchend', (e) => {
-      if (!isOpen() || zoomed) return;
-      const dx = e.changedTouches[0].clientX - touchX;
-      if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+      if (!isOpen()) return;
+      const tc = e.changedTouches[0];
+      const dx = tc.clientX - tStartX;
+      const dy = tc.clientY - tStartY;
+      const dt = Date.now() - tStartT;
+
+      // 拖曳關閉：過閾值（90px）關閉，否則彈回。
+      if (dragging) {
+        dragging = false;
+        const st = stage(), b = box();
+        if (dy > 90) {
+          if (b) b.style.opacity = '';
+          resetDrag();
+          return close();
+        }
+        if (b) b.style.opacity = '';
+        if (st) {
+          st.style.transition = 'transform var(--dur) var(--ease)';
+          st.style.transform = '';
+          setTimeout(() => { const s = stage(); if (s) s.style.transition = ''; }, 360);
+        }
+        return;
+      }
+
+      // tap：位移小、時間短。
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && dt < 250) {
+        if ((e.target as HTMLElement).closest('button')) return; // 控制鈕交給 click
+        const now = Date.now();
+        if (now - lastTap < 300) { // double-tap → 縮放切換
+          if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; }
+          lastTap = 0;
+          setZoom(!zoomed);
+          return;
+        }
+        lastTap = now;
+        // 單 tap → 延後確認後切換底部 chrome（看純淨影像 ↔ 看資料）；不關閉、不縮放。
+        if (tapTimer) clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => {
+          tapTimer = null;
+          if (!zoomed) box()?.classList.toggle('is-bare');
+        }, 280);
+        return;
+      }
+
+      // 水平滑動翻頁（未拖曳關閉、未縮放、橫向為主）。
+      if (!zoomed && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        go(dx < 0 ? 1 : -1);
+      }
     }, { passive: true });
 
     // View Transitions 導覽後收起
