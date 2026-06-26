@@ -165,19 +165,26 @@ const readingMinutes = (() => {
         {post.gallery?.length > 0 && (
           <div class="plates plates--gallery">
             {post.gallery.map((img, i) => (
-              <figure class="gallery-item grid-12" data-reveal>
-                <div class="gallery-item__num label">影像 {String(i + 1).padStart(2, '0')} / {String(post.gallery.length).padStart(2, '0')}</div>
+              /* 兩欄：左＝大編號＋圖說「文」（≥md sticky 隨影像並行），右＝影像（捲動顯影動畫）。
+                 figcaption 仍留在 figure 內——放映 lightbox 由此讀圖說，不破。 */
+              <figure class="gallery-item grid-12">
+                <div class="gallery-item__aside">
+                  <div class="gallery-item__num">
+                    <span class="gallery-item__n">{String(i + 1).padStart(2, '0')}</span>
+                    <span class="gallery-item__total">／{String(post.gallery.length).padStart(2, '0')}</span>
+                  </div>
+                  {img.caption && <figcaption class="gallery-caption">{img.caption}</figcaption>}
+                </div>
                 <div class="gallery-item__media">
                   <Plate
                     image={img}
                     width={2000}
                     full={2600}
                     zoomable
-                    sizes="(min-width: 720px) 66vw, 100vw"
+                    sizes="(min-width: 720px) 60vh, 100vw"
                     alt={img.caption ?? ''}
                     loading="lazy"
                   />
-                  {img.caption && <figcaption class="gallery-caption">{img.caption}</figcaption>}
                 </div>
               </figure>
             ))}
@@ -378,44 +385,126 @@ const readingMinutes = (() => {
     margin-bottom: 2rem;
   }
 
-  /* 影像集專屬排版 */
+  /* ---- 影像集 gallery：編輯式兩欄（左 文＋編號 ／ 右 影像＋捲動顯影）----------
+     對標 Porodina／Maison：左欄安定的編號與圖說、右欄影像、刻意的大間距節奏。
+     影像沿用「等高基線」(--seq-h)：橫/直版等高並置、不裁切、不留 lqip 邊條。
+     間距一律走 §4.1 token；svh 避開行動網址列跳動。 */
+  .gallery-layout {
+    --seq-h: min(62svh, 40rem); /* 等高基線（fallback：不支援 sqrt 時用） */
+    --lin: min(60svh, 38rem);   /* 等面積方形邊長：面積 = --lin²，橫/直版份量對等 */
+    --maxh: 80svh;              /* 極端長幅限高，避免直幅溢出視窗 */
+  }
   .plates--gallery {
-    margin-top: clamp(2rem, 5vh, 4rem);
+    margin-top: var(--space-2xl);
     display: flex;
     flex-direction: column;
-    gap: clamp(4rem, 12vh, 8rem);
+    /* 刻意的大間距節奏（取代隨手 clamp）——這是「間隔」的來源。 */
+    gap: clamp(var(--space-3xl), 16vh, var(--space-5xl));
   }
   .gallery-item {
-    column-gap: var(--col-gap);
-    row-gap: 1rem;
+    row-gap: var(--space-lg);
+  }
+
+  /* 左欄：大編號（檔案語言）＋ 圖說「文」。預設（行動）單欄、置於影像之上。 */
+  .gallery-item__aside {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
   }
   .gallery-item__num {
-    grid-column: 1 / -1;
-    color: var(--ink-45);
+    display: flex;
+    align-items: baseline;
+    gap: 0.3em;
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
+    line-height: 1;
   }
-  .gallery-item__media {
-    grid-column: 1 / -1;
+  .gallery-item__n {
+    font-size: var(--step-3); /* 編輯級大編號 */
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+  .gallery-item__total {
+    font-size: var(--step-0);
+    color: var(--text-dim);
   }
   .gallery-caption {
-    margin-top: 1rem;
-    font-size: 0.8rem;
-    letter-spacing: 0.04em;
+    font-size: 0.86rem;
+    letter-spacing: 0.02em;
     color: var(--text-dim);
-    line-height: 1.5;
+    line-height: 1.7;
     max-width: var(--measure);
   }
 
+  /* 右欄：靠左對齊貼近左欄文字（同一條左脊）。 */
+  .gallery-item__media {
+    grid-column: 1 / -1;
+  }
+  /* 尺寸 fallback（不支援 sqrt）：等高基線、寬隨寬高比。 */
+  .gallery-item__media :global(.plate) {
+    width: min(100%, calc(var(--seq-h) * var(--ar, 1.333)));
+  }
+  /* 等視覺重量（equal area）：寬 = --lin × √比例 → 面積恆定 = --lin²。
+     橫幅變寬而矮、直幅變窄而高，但份量對等、橫豎切換不斷裂。
+     RWD 策略內建於 min()：窄螢幕欄寬(100%)先綁定＝影像填滿、回到單張凝視；
+     寬螢幕才由等面積值決定＝在橫向空間裡平衡份量。--maxh×比例 防直幅溢出。 */
+  @supports (width: calc(1px * sqrt(2))) {
+    .gallery-item__media :global(.plate) {
+      width: min(
+        100%,
+        calc(var(--lin) * sqrt(var(--ar, 1))),
+        calc(var(--maxh) * var(--ar, 1))
+      );
+    }
+  }
+
+  /* 捲動顯影（純 CSS scroll-driven，零新增 JS、不碰 reveal.ts）：影像進場時
+     clip-path 由上掀開＋微落定，呼應暗房顯影。包在 @supports＋減動偏好內，
+     不支援/減動時影像靜態直接可見（優雅降級）。 */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .plates--gallery .gallery-item__media :global(.plate) {
+        animation: gallery-develop linear both;
+        animation-timeline: view();
+        animation-range: entry 4% entry 46%;
+        will-change: transform, clip-path;
+      }
+      @keyframes gallery-develop {
+        from {
+          opacity: 0.001;
+          transform: translateY(2.4rem) scale(0.985);
+          clip-path: inset(12% 0 0 0);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+          clip-path: inset(0 0 0 0);
+        }
+      }
+    }
+  }
+
+  /* ≥ md：兩欄。左欄窄（1/4），編號＋圖說「跟著影像一起滑」（非 sticky），
+     並錨在影像底部（align-self:end）＝畫作下緣的展卡，與影像綁成同一行。 */
   @media (min-width: 720px) {
-    .gallery-item__num {
+    .gallery-item__aside {
       grid-column: 1 / 4;
-      position: sticky;
-      top: 6rem;
-      align-self: start;
-      padding-top: 0.5rem;
+      align-self: end;
+      padding-bottom: 0.2rem;
     }
     .gallery-item__media {
       grid-column: 4 / -1;
+    }
+  }
+  /* 大螢幕（≥lg）：整個兩欄區塊右移一個等分（左留一欄margin），把重心從偏左
+     拉回版面中軸——影像為視覺重量，往右一格即與留白平衡。中型螢幕維持原樣。 */
+  @media (min-width: 1180px) {
+    .gallery-item__aside {
+      grid-column: 2 / 5;
+    }
+    .gallery-item__media {
+      grid-column: 5 / -1;
     }
   }
 

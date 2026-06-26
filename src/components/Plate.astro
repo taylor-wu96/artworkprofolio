@@ -37,9 +37,10 @@ if (ok) {
   dataFull = zoomable ? urlFor(image).width(Math.min(full, maxW)).url() : undefined;
 
   // 外層樣式：lqip 當背景模糊底；aspect-ratio 先撐版位。
+  // --ar（寬高比，無單位）外露，供呼叫端以 viewport 高度安全限高（不裁切、不留邊）。
   style = [
     lqip ? `--lqip:url("${lqip}")` : null,
-    dim?.aspectRatio ? `aspect-ratio:${dim.aspectRatio}` : null,
+    dim?.aspectRatio ? `aspect-ratio:${dim.aspectRatio};--ar:${dim.aspectRatio}` : null,
   ].filter(Boolean).join(';');
 
   imgClass = ['plate__img', zoomable ? 'zoomable' : '', className && `${className}__img`]
