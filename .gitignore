@@ -30,3 +30,10 @@ skills-lock.json
 
 # local preview config
 .claude/launch.json
+
+# playwright（baseline 快照入庫，過程產物不入庫）
+/test-results/
+/playwright-report/
+/blob-report/
+/tests/__screenshots__/**/*-actual.png
+/tests/__screenshots__/**/*-diff.png

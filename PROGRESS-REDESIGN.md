@@ -486,3 +486,57 @@
 - 2026-06-25：PM roadmap 軸 1 核心落地：階段 J（互動作品執行時——引擎無關契約＋registry＋載入器＋Sketch 元件；Hero3D 收編進 runtime、首發原生 shader；WORKS_FEED 合流；sketch schema/頁面）。生命週期以實測驗證。schema 部署待使用者。
 - 2026-06-25：階段 K（旁註 sidenote 序列化器＋雙模式；放映 focus trap 無障礙；Reas per-work 生成式 glyph 簽名）。I/J/K 三階段全數實作並驗證；待使用者部署 sketch＋sidenote schema。
 - 2026-06-25：PM roadmap 重訂四軸並更新 DESIGN（§14 響應式骨架／§15 影像觸控契約／v4 決策）。軸 1：階段 N（N1 about CV 時間軸＋N2 影像集印樣＋N3 作品單格敬畏），雙端驗證；N2 手機改單欄並修 `<ol>` 預設 padding 右偏。軸 3：階段 L（影像觸控修誤觸——coarse 取消點暗場關閉、tap/雙擊/滑動/拖曳消歧、邊緣熱區改底部翻頁鈕、44px 命中區、亮房安靜放映），合成事件實測手勢、fine pointer 零回歸。N4 series 放映原生待 schema 部署。
+
+---
+
+## 階段 v2 — 一體性 ＋ 可控迭代（依 [ROADMAP-v2.md](ROADMAP-v2.md)）
+
+> 脊椎：對外讓全館連成一個連續的身體（甲線 G）／對內立護欄使迭代可控（乙線 E）。
+> **原則：E 系列（護欄）先於 G 系列（一體性），因為一體性工作落在最脆弱的全域過場上。**
+
+### E4. 「完成」的定義（DoD）— 每筆改動收工前必過
+觀者面四問（v1 §三）之外，補三條專治「只做一半／改了沒套用」：
+- [ ] **兩房都看過了嗎？**（暗房 dark + 亮房 light，token 重映正確）
+- [ ] **手機都看過了嗎？**（390 寬，不只桌機 1440）
+- [ ] **是「導覽過去」再看的，不只是 reload？**（ClientRouter view-transition 換頁後才看得到的塌陷，reload 看不到）
+
+### E6. VT 脆弱性根治原則（架構法律・踩過三次的坑）
+**法律**：任何觸及 **grid 軌道／欄寬**的版面樣式，一律放**全域 `@layer`（components/layout）**；頁級 scoped `<style>` 只放不影響軌道的微調。
+- **根因**：Astro ClientRouter view-transition 換頁後，頁級 scoped 樣式會短暫失效；若該樣式定義 grid 軌道，元素退回吃全域 `.grid-12` 的 `repeat(12,1fr)`，在 VT 不確定寬度下塌成一字寬（中文圖說/編號直排）。見記憶 vt-grid-cjk-collapse。
+- **加固**：軌道用固定長度 `min`（`minmax(8rem, …)`）而非純 `1fr`——固定 min 不依賴容器寬度，VT 下永遠有寬。gallery 版面（components.css `.gallery-item`）已是範本。
+- **既有風險點**：`about.astro` 頁級 `grid-template-columns: 4rem 1fr`（首軌固定 4rem，理論上受保護，但仍違背法律字面）→ 待 E2 lint 掃出後評估下沉。
+- **守門**：由 E2 stylelint 規則「頁級 scoped 禁 grid-template」持續攔截。
+
+### E1. 視覺回歸護欄（Playwright）— 已落地
+- `@playwright/test` ＋ [playwright.config.ts](playwright.config.ts)：跑在 **production build（astro preview）** 而非 dev（無 HMR／無 dev 動態 import 延遲＝決定性高）。桌機 1440 ＋ 手機 390（Pixel 5），reducedMotion=reduce。
+- 矩陣：[tests/visual.spec.ts](tests/visual.spec.ts)（11 頁型 × 2 視口，斷言 data-room）＋ [tests/navigation.spec.ts](tests/navigation.spec.ts)（**VT 護欄**：從首頁「點導覽過去」換頁後才快照，攔截只在 ClientRouter swap 後現形的塌陷）。共 32 快照。
+- 穩定性：3D canvas mask；[tests/_helpers.ts](tests/_helpers.ts) settle（等 load→強制載宋體兩字重消 fallback 競態→預捲觸發 lazy 圖→等 img 解碼，皆帶逾時護欄）。
+- **連帶修真 bug**：[Hero3D.jsx](src/components/Hero3D.jsx) reduced-motion 下改 `frameloop='demand'`（畫一幀即停）——兌現 DESIGN §4.5「停止所有動畫」，先前只是每幀畫同樣的東西、引擎沒停。
+- 指令：`npm run test:visual` / `:update`。baseline 入 `tests/__screenshots__/`；說明見 [tests/README.md](tests/README.md)。兩次連續乾淨執行皆 32 passed（決定性確認）。
+
+### E2. 設計契約 lint — 已落地
+- [tools/lint-design.mjs](tools/lint-design.mjs)（`npm run lint:design`）：**ERROR**＝CSS/.astro 出現地衣綠字面值（DESIGN §4.1 唯一不可退讓約束，鎖死「綠經 --accent」）；**WARN**＝tokens.css 外裸色號（§8.2 債）＋頁級 <style> 的 grid 軌道（E6 候選）。3D 綠（Three.js 介質）刻意不掃。
+- 現況：0 error、18 warn（綠已乾淨；18 為既有維護債，擇期清）。
+
+### E3. 行為腳本生命週期契約 — 已落地
+- [src/scripts/lifecycle.ts](src/scripts/lifecycle.ts) `onPage(fn)`：初次（DOM 就緒即跑）＋ astro:after-swap 重綁；刻意用 after-swap（不在初次觸發）避免與直接呼叫雙跑。
+- reveal/develop/read-progress/reticle/audio 五支統一改走 onPage（原本 after-swap 與 page-load 混用）。委派監聽仍一次性綁定。room-veil/sketches 為轉場／懶掛載特例（已於 lifecycle.ts 註明豁免）。
+- 順手修 read-progress 換頁累積 window 監聽的洩漏（重綁前移除舊 handler）。
+
+### G1. 三入口釐清（給框架，非收斂）— 已落地
+- [RoomNav.astro](src/components/RoomNav.astro)「三道門指路」：作品／影像／系列彼此看得見、標當前、空房門不出現（NAV_COUNTS）。首頁／影像／系列索引各加策展 lede（單張／一捲／排序動線的身分句）＋ wayfinder。`.section-head__lede`/`.section-cross` 在全域 layout 層（E6 合規）。
+
+### G2. 連續的暗 — 已落地
+- 結構上 `html{background:var(--surface)}` 隨 data-room 重映、暗房間 --surface 不變＝無白閃（nav 測試證實）。補 `<meta name="theme-color">` 依房間，延伸連續到瀏覽器 chrome。
+
+### G3. 空房尊嚴 ＋ 隱藏空房 — 已落地
+- [Base.astro](src/layouts/Base.astro) 依 NAV_COUNTS 條件隱藏 影像／系列／散文（當前房間例外，避免 aria-current 指向不存在門）；現況 series 空 → 系列退出大廳、僅在 /series 自身顯示。
+- 空狀態文案全改館的語氣（首頁／影像／系列／散文／主題的「還沒…在那之前…」），棄 App 式「到 Studio 新增」。
+
+### G4. 統一過場「顯影即移動」— 已落地
+- [Plate.astro](src/components/Plate.astro) 加 `transitionName` → 外層 .plate 掛 `transition:name`。首頁／影像索引縮圖 ↔ 內頁封面（essay/gallery/artwork 三分支）以 `cover-${slug}` 配對，換頁時瀏覽器 morph。reduced-motion 下退回直切。驗證 build 後 home 與 detail 同名輸出、無 undefined 外洩。
+
+### G5. 綠一致性審計 — 已落地
+- 逐項核對白名單（focus 環／aria-current／進度條／reticle／glyph 節點／wip/latest／內文連結／sidenote／新 wayfinder）皆走 var(--accent)。唯一直用 --life-dark 的 reticle（[machine.css](src/styles/layers/machine.css)）改 --accent（暗房限定，值相同，零視覺變化）→ 全站每一處 CSS 綠皆經單一語意 token。E2 lint 持續守住。
+
+> **階段 v2 全數實作並以 E1 護欄驗證**（2026-06-28）。脊椎兌現：對外連續的身體（G4 顯影移動／G2 連續暗／G1 三門指路／G3 空房尊嚴），對內護欄（E1 視覺回歸／E2 綠契約／E3 生命週期／E4 DoD／E6 VT 法律）。

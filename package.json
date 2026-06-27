@@ -8,7 +8,10 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
+    "lint:design": "node tools/lint-design.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.7",
@@ -28,5 +31,8 @@
     "sanity": "^6.1.0",
     "styled-components": "^6.4.2",
     "three": "^0.184.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
   }
 }

@@ -1,5 +1,7 @@
 // 克制音景（WebAudio・程序生成，無音檔）：暗房環境底噪＋準星鎖定音。
 // 聲音＝綠的聽覺對等物：稀少、是「機器還活著」的訊號。預設關、絕不自動播放。
+import { onPage } from './lifecycle';
+
 export function init() {
   const KEY = 'sound-on';
   let ctx: AudioContext | null = null;
@@ -116,8 +118,8 @@ export function init() {
     o.stop(t + 0.18);
   });
 
-  // 房間切換：底噪暗房淡入／亮房淡出
-  document.addEventListener('astro:page-load', () => {
+  // 房間切換：底噪暗房淡入／亮房淡出。每頁同步走 onPage 契約（reflect 開關鈕狀態 ＋ 依房間 ramp）。
+  onPage(() => {
     reflect();
     ramp();
   });

@@ -1,5 +1,7 @@
 // 機器視覺準星（觀看的機器 v3）：暗房專屬，跟隨游標、hover 作品時框選鎖定。
 // 凝視/監視母題（Steyerl・Lozano-Hemmer・Paglen）＋ net-art 反應手勢。
+import { onPage } from './lifecycle';
+
 export function init() {
   const fine = window.matchMedia('(pointer: fine)').matches;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -108,6 +110,6 @@ export function init() {
       active = false;
     }
   }
-  sync();
-  document.addEventListener('astro:page-load', sync);
+  // pointer/blur 委派監聽在上方一次性綁定（撐過換頁）；每頁的暗/亮房同步走 onPage 契約。
+  onPage(sync);
 }

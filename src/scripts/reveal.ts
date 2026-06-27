@@ -1,4 +1,6 @@
 // 緩慢、克制的入場揭示：元素進入視窗才現形。
+import { onPage } from './lifecycle';
+
 export function init() {
   function observe() {
     const els = document.querySelectorAll('[data-reveal]:not(.is-visible)');
@@ -19,6 +21,5 @@ export function init() {
     );
     els.forEach((el) => io.observe(el));
   }
-  observe();
-  document.addEventListener('astro:after-swap', observe);
+  onPage(observe);
 }

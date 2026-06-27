@@ -256,6 +256,10 @@ export default function Hero3D() {
       camera={{ position: [0, 0, 5], fov: 42 }}
       dpr={[1, 2]}
       gl={{ antialias: true, alpha: false }}
+      // reduced-motion：渲染一幀即停（frameloop=demand），不再持續重繪——
+      // 兌現 DESIGN §4.5「停止所有動畫，靜止的光場仍完整」，並省電、且讓視覺回歸護欄
+      // 在跨頁重掛後能取得穩定快照（光場凍結＝可比對）。
+      frameloop={prefersReduced ? 'demand' : 'always'}
     >
       <color attach="background" args={['#0c0c0b']} />
       <fog attach="fog" args={['#0c0c0b', 4.5, 9]} />

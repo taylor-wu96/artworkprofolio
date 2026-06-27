@@ -1,4 +1,6 @@
 // 顯影：影像板載入完成才從模糊底浮現（含已快取的 complete 情況）。
+import { onPage } from './lifecycle';
+
 export function init() {
   function develop() {
     document
@@ -13,6 +15,5 @@ export function init() {
         }
       });
   }
-  develop();
-  document.addEventListener('astro:page-load', develop);
+  onPage(develop);
 }
