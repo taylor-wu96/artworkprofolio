@@ -7,8 +7,9 @@
     display: block;
     position: relative;
     overflow: hidden;
-    /* lqip 當背景：影像未到位前先有一層模糊低彩底（aspect-ratio 已撐好版位）。 */
-    background-color: var(--g-ink-20);
+    /* lqip 當背景：影像未到位前先有一層模糊低彩底（aspect-ratio 已撐好版位）。
+       底色隨房間（--plate-bg）：暗房暗灰、亮房紙灰，避免亮頁載入前閃深塊。 */
+    background-color: var(--plate-bg);
     background-image: var(--lqip, none);
     background-size: cover;
     background-position: center;

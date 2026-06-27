@@ -88,6 +88,10 @@
     --line: var(--ink-15);
     --accent: var(--life);
     --header-bg: color-mix(in oklab, var(--paper) 88%, transparent);
+    /* 長文正文：亮房閱讀要實墨對比（呼應導言）；暗房改軟白避免光暈（見暗房重映）。 */
+    --text-body: var(--text);
+    /* 影像顯影前的 lqip 佔位底：亮房＝紙灰，暗房＝暗灰（隨房間重映，避免亮頁閃深塊）。 */
+    --plate-bg: color-mix(in oklab, var(--ink) 6%, var(--paper));
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -106,5 +110,8 @@
     --header-bg: color-mix(in oklab, var(--gallery) 82%, transparent);
     /* 暗房展覽：大標走輕量，靠尺寸與字距撐起存在感。 */
     --display-weight: var(--fw-regular);
+    /* 暗房正文＝軟白（避免純白在黑底的光暈）；顯影底＝暗灰。維持暗房原貌不變。 */
+    --text-body: var(--text-muted);
+    --plate-bg: var(--g-ink-20);
   }
 }
