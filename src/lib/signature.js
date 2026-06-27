@@ -33,6 +33,47 @@ function exifYear(meta) {
 }
 
 /**
+ * 機器的「讀檔」：把封面／影像的真實 EXIF 讀成攝影師在意的五個參數。
+ * 與半真化簽名（archiveSignature）刻意分流——簽名允許生成佔位（座標/編碼是
+ * 顯然的抽象），但**技術參數只讀真的**：機器不捏造光圈。沒有 EXIF 就回傳空陣列，
+ * 呼叫端據此整條不顯（DESIGN §三・層 1：資料的誠實）。
+ * 優先序：手填器材／底片（capture）覆寫對應欄；其餘讀 EXIF。
+ * @param {{exif?: object}} [assetMeta] 影像 asset.metadata（含 exif）
+ * @param {{gear?: string, film?: string}} [capture] 手填覆寫
+ * @returns {string[]} 已格式化的參數（如 ['f/2.8','1/250s','ISO 400','35mm','Summicron']）
+ */
+export function readExif(assetMeta = null, capture = null) {
+  const e = assetMeta?.exif;
+  if (!e && !capture?.gear && !capture?.film) return [];
+  const out = [];
+
+  // 光圈：FNumber 2.8 → f/2.8（整數不補小數）。
+  if (typeof e?.FNumber === 'number' && e.FNumber > 0) {
+    out.push(`f/${Number(e.FNumber.toFixed(1))}`);
+  }
+  // 快門：ExposureTime 為秒（小數）。< 1 → 1/N s；≥ 1 → Ns。
+  if (typeof e?.ExposureTime === 'number' && e.ExposureTime > 0) {
+    out.push(
+      e.ExposureTime < 1
+        ? `1/${Math.round(1 / e.ExposureTime)}s`
+        : `${Number(e.ExposureTime.toFixed(1))}s`,
+    );
+  }
+  // 感光：手填底片覆寫 ISO；否則讀 EXIF ISO。
+  if (capture?.film) out.push(String(capture.film));
+  else if (typeof e?.ISO === 'number' && e.ISO > 0) out.push(`ISO ${Math.round(e.ISO)}`);
+  // 焦段：FocalLength（mm）。
+  if (typeof e?.FocalLength === 'number' && e.FocalLength > 0) {
+    out.push(`${Number(e.FocalLength.toFixed(0))}mm`);
+  }
+  // 器材：手填 gear 覆寫鏡頭名；否則讀 EXIF LensModel。
+  const lens = capture?.gear || e?.LensModel;
+  if (lens) out.push(String(lens).trim());
+
+  return out;
+}
+
+/**
  * 由種子（slug）＋ 選填的真實拍攝資料產生一組檔案簽名。
  * 優先序（半真化・階段 H）：手填 capture ＞ 封面 EXIF/GPS ＞ slug 生成。
  * @param {string} seed 通常是 slug。

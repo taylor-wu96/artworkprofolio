@@ -231,6 +231,20 @@
   .pjx__sig:empty {
     display: none;
   }
+  /* 機器讀檔：真 EXIF 五參數。等寬、極小、配角——影像永遠是主角（DESIGN §4.3）。 */
+  .pjx__exif {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
+    font-size: var(--step--2);
+    color: var(--g-ink-45);
+  }
+  .pjx__exif:empty {
+    display: none;
+  }
+  .pjx--light .pjx__exif {
+    color: var(--ink-45);
+  }
   .pjx__caption {
     color: var(--g-ink-45);
     font-size: var(--step--2);

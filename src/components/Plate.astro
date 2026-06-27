@@ -4,6 +4,7 @@
 // dimensions 提供寬高比，先撐出版位、杜絕 CLS；srcset/sizes 響應式省流量。
 // 影像永不裁切（DESIGN §5）：只限寬，保留原始比例。
 import { urlFor } from '../lib/sanity.js';
+import { readExif } from '../lib/signature.js';
 
 const {
   image,
@@ -22,6 +23,8 @@ const ok = !!image?.asset;
 const meta = ok ? image.asset.metadata ?? {} : {};
 const dim = meta.dimensions; // { width, height, aspectRatio }
 const lqip = meta.lqip; // base64 模糊小圖
+// 機器讀檔：真 EXIF 五參數，供放映模式逐格顯示（無 EXIF 則空、整條不顯）。
+const exifStr = ok ? readExif(meta).join(' · ') : '';
 
 // 候選寬度：不放大超過原圖。
 const CANDIDATES = [640, 960, 1280, 1600, 2000, 2560];
@@ -62,6 +65,7 @@ if (ok) {
       width={dim?.width}
       height={dim?.height}
       data-full={dataFull}
+      data-exif={exifStr || undefined}
     />
   </span>
 )}

@@ -157,7 +157,9 @@ H2 擴張 ── 只做能放大作品的，逐項驗證 ROI       （謹慎）
 
 ---
 
-### H0.3 — 影像補 EXIF／metadata 抽取（修漏抽）
+### H0.3 — 影像補 EXIF／metadata 抽取（修漏抽）　✅ 已落地（2026-06-27，待回填）
+
+> 落地備註：[post.ts](../studio-artwork-portfolio/schemaTypes/post.ts) 的 `gallery[]` 與 `body` 內 image 補 `metadata:['lqip','dimensions','exif','location']`。query 層（IMG 投影）原已撈 exif/location，無需改。**尾巴**：① 需重啟／重部署 Studio（schema deploy 有已知 crash，見記憶 workaround）才對新上傳生效；② 既有影像不回填，需重新上傳。目前資料集影像皆無 EXIF（種子圖），故顯示面以合成資料驗證（見 H1.1）。
 
 **問題**：只有 `post.cover` 設了 `metadata:['lqip','palette','dimensions','exif','location']`。`gallery[]`、`body` 內的圖**沒設**——這些圖上傳時 Sanity 不抽 EXIF/GPS，連 `dimensions`（杜絕 CLS 用）都可能缺。這是 H1「真 EXIF 顯示面」的**前置地基**。
 
@@ -187,7 +189,9 @@ H2 擴張 ── 只做能放大作品的，逐項驗證 ROI       （謹慎）
 
 > 地基拉好後，這個地平線讓機器**真的開始讀**，並讓作品**真的被分享出去**。
 
-### H1.1 — 真實 EXIF「讀取檔案」面
+### H1.1 — 真實 EXIF「讀取檔案」面　✅ 已落地（2026-06-27）
+
+> 落地備註：新增 [signature.js](src/lib/signature.js) `readExif()`——**只讀真 EXIF、不捏造光圈**（誠實取捨，偏離原案的「回退 signature」：捏造 f-stop 是說謊，與捏造抽象檔案碼性質不同）；手填 `capture.gear/film` 覆寫鏡頭／ISO。[Plate.astro](src/components/Plate.astro) 算好 `data-exif`；[Lightbox.astro](src/components/Lightbox.astro) 放映逐格顯示 `.pjx__exif`（mono、配角）；[post/[slug].astro](src/pages/post/[slug].astro) 作品／影像集標頭加 `<details>` 讀檔揭示（▸→▾ 綠記號、無 JS、鍵盤／觸控皆可）。已驗證：formatter（光圈/快門/ISO/焦段/鏡頭、partial、override、空陣列）、放映逐格＋Grid 跳轉同步、標頭開合視覺。資料集無真 EXIF，故以合成資料驗證渲染路徑——真照片上傳後自動點亮。build 18 頁、無 console error。
 
 **問題**：EXIF 抽了，卻**只拿去當 signature 種子**（半真化座標），從沒以真實可讀形式端給觀者。觀者從不知道這張照片是 f/2.8、1/250、ISO 400、35mm、某顆鏡頭拍的。
 

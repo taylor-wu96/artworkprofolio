@@ -33,6 +33,8 @@
   <div class="pjx__chrome">
     <span class="pjx__count" aria-live="polite"></span>
     <span class="pjx__sig data-strip"></span>
+    <!-- 機器讀檔：這一格的真實 EXIF（光圈·快門·ISO·焦段·鏡頭）。無則留空、不顯。 -->
+    <span class="pjx__exif" aria-live="polite"></span>
     <span class="pjx__caption"></span>
   </div>
 </div>
@@ -138,6 +140,10 @@
 
       const cap = el('.pjx__caption');
       if (cap) cap.textContent = captionOf(node);
+
+      // 機器讀檔：這一格影像的真實 EXIF（Plate 已算好放在 data-exif）。無則留空。
+      const ex = el('.pjx__exif');
+      if (ex) ex.textContent = node.dataset.exif || '';
 
       // 簽名標籤：複製當頁的機器簽名資料條（保留綠色 code）。閱讀頁無則留空。
       const sig = el('.pjx__sig') as HTMLElement | null;

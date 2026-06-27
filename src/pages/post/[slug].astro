@@ -6,7 +6,7 @@ import { PortableText } from 'astro-portabletext';
 import PortableImage from '../../components/PortableImage.astro';
 import Sidenote from '../../components/Sidenote.astro';
 import Plate from '../../components/Plate.astro';
-import { archiveSignature } from '../../lib/signature.js';
+import { archiveSignature, readExif } from '../../lib/signature.js';
 import { signatureGlyph } from '../../lib/glyph.js';
 
 export async function getStaticPaths() {
@@ -48,6 +48,8 @@ const seriesInfo = (() => {
 // 真實拍攝資料（半真化）：有填才顯示，與生成簽名並存。
 const cap = post.capture ?? {};
 const captureMeta = [cap.location, cap.year, cap.gear, cap.film].filter(Boolean);
+// 機器讀檔：封面真 EXIF 五參數（手填器材／底片覆寫）。空則整條不顯。
+const exif = readExif(post.cover?.asset?.metadata, cap);
 
 // 動線量詞與關聯資料
 const unit = category === 'essay' ? '篇' : category === 'gallery' ? '組' : '件';
@@ -141,6 +143,17 @@ const readingMinutes = (() => {
               {captureMeta.map((m) => <span>{m}</span>)}
             </p>
           )}
+          {exif.length > 0 && (
+            /* 機器讀檔：預設收起（克制），點擊／鍵盤展開真 EXIF。配角，影像為主。 */
+            <details class="work__exif">
+              <summary>
+                <span class="work__exif__hint">讀取檔案 / Read file</span>
+              </summary>
+              <p class="work__exif__row">
+                {exif.map((p) => <span>{p}</span>)}
+              </p>
+            </details>
+          )}
         </header>
 
         {post.cover && (
@@ -217,6 +230,17 @@ const readingMinutes = (() => {
             <p class="work__capture">
               {captureMeta.map((m) => <span>{m}</span>)}
             </p>
+          )}
+          {exif.length > 0 && (
+            /* 機器讀檔：預設收起（克制），點擊／鍵盤展開真 EXIF。配角，影像為主。 */
+            <details class="work__exif">
+              <summary>
+                <span class="work__exif__hint">讀取檔案 / Read file</span>
+              </summary>
+              <p class="work__exif__row">
+                {exif.map((p) => <span>{p}</span>)}
+              </p>
+            </details>
           )}
         </header>
 
@@ -408,6 +432,73 @@ const readingMinutes = (() => {
     position: absolute;
     left: -0.7rem;
     color: var(--text-dim);
+  }
+
+  /* ---- 機器讀檔（真 EXIF 揭示）：等寬、克制、配角 -----------------------
+     收起時只見一行 mono 提示；展開（details）顯五參數。原生 disclosure＝
+     鍵盤／觸控／滑鼠皆可，無 JS。綠＝可被啟動的訊號（hover／open，§4.1 白名單）。 */
+  .work__exif {
+    grid-column: 1 / -1;
+    margin-top: 0.7rem;
+  }
+  .work__exif > summary {
+    list-style: none; /* 去掉原生三角 */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    width: fit-content;
+  }
+  .work__exif > summary::-webkit-details-marker {
+    display: none;
+  }
+  .work__exif__hint {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    transition: color var(--dur-fast) var(--ease);
+  }
+  /* 自製揭示記號：收起 ▸、展開 ▾（隨 open 旋轉），恆綠＝可啟動訊號。 */
+  .work__exif__hint::before {
+    content: '▸';
+    display: inline-block;
+    margin-right: 0.45rem;
+    color: var(--accent);
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .work__exif[open] .work__exif__hint::before {
+    transform: rotate(90deg);
+  }
+  .work__exif > summary:hover .work__exif__hint,
+  .work__exif > summary:focus-visible .work__exif__hint {
+    color: var(--accent);
+  }
+  .work__exif__row {
+    margin-top: 0.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--step--2);
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+  .work__exif__row span {
+    position: relative;
+  }
+  .work__exif__row span + span::before {
+    content: '·';
+    position: absolute;
+    left: -0.7rem;
+    color: var(--text-dim);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .work__exif__hint::before {
+      transition: none;
+    }
   }
 
   /* ---- 作品 artwork：單格敬畏（與影像集序列分化）---------------------
