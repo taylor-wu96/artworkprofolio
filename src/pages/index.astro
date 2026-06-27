@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Sketch from '../components/Sketch.astro';
 import Plate from '../components/Plate.astro';
+import RoomNav from '../components/RoomNav.astro';
 import { safeFetch } from '../lib/sanity.js';
 import { WORKS_FEED } from '../lib/queries.js';
 import { archiveSignature } from '../lib/signature.js';
@@ -44,6 +45,8 @@ const newestSlug = [...works].sort(
     <header class="section-head grid-12">
       <span class="label section-head__label">索引 / Works</span>
       <h2 class="display section-head__title">作品檔案</h2>
+      <p class="section-head__lede">全部影像，依時間倒敘的檔案。在這裡每一格被單獨凝視——一張，就是一張。</p>
+      <RoomNav current="works" />
     </header>
 
     {total > 0 ? (
@@ -91,6 +94,7 @@ const newestSlug = [...works].sort(
                       sizes="(min-width: 720px) min(56rem, 60vw), 100vw"
                       alt={p.title}
                       loading={i < 2 ? 'eager' : 'lazy'}
+                      transitionName={isSketch ? undefined : `cover-${p.slug}`}
                     />
                   ) : (
                     <div class="entry__placeholder">{isSketch ? '互動作品 / INTERACTIVE' : '無影像 / NO IMAGE'}</div>
@@ -104,7 +108,8 @@ const newestSlug = [...works].sort(
       </ol>
     ) : (
       <p class="empty">
-        檔案尚未建立。到 Sanity Studio 新增第一件作品，這份索引就會開始記錄。
+        這座檔案還沒有收進任何一張。<br />
+        第一件作品落定之後，這份索引就會開始記錄光的去向——在那之前，牆是空的。
       </p>
     )}
   </div>

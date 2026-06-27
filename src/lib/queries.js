@@ -213,6 +213,14 @@ export const SERIES_SLUGS = `
   *[_type == "series" && defined(slug.current)].slug.current
 `;
 
+// 導覽可用性（G1/G3）：哪些「房間」有內容值得進。空房不在大廳擺門——
+// 誠實 IA：別讓人推開一扇門進到空房。works/about 恆在，故不計。
+export const NAV_COUNTS = `{
+  "galleries": count(*[_type == "post" && status != "draft" && category == "gallery"]),
+  "essays": count(*[_type == "post" && status != "draft" && category == "essay"]),
+  "series": count(*[_type == "series" && defined(slug.current) && count(works[@->status != "draft"]) > 0])
+}`;
+
 export const ABOUT_QUERY = `
   *[_type == "about"][0]{
     name,

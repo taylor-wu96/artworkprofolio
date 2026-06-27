@@ -48,7 +48,9 @@
     z-index: 60;
     pointer-events: none;
     transform: translate3d(-200px, -200px, 0);
-    color: var(--life-dark);
+    /* 準星限暗房（JS isDark 閘）→ --accent 在暗房＝--life-dark，值相同；
+       走 --accent 讓全站每一處綠都經單一語意 token（G5 一致性）。 */
+    color: var(--accent);
     opacity: 0;
     transition: opacity var(--dur-fast) var(--ease), width 0.22s var(--ease-out),
       height 0.22s var(--ease-out);

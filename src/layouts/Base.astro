@@ -3,6 +3,8 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Lightbox from '../components/Lightbox.astro';
 import Newsletter from '../components/Newsletter.astro';
+import { safeFetch } from '../lib/sanity.js';
+import { NAV_COUNTS } from '../lib/queries.js';
 
 interface Props {
   title?: string;
@@ -33,6 +35,13 @@ const isSeries = activeSection ? activeSection === 'series' : path.startsWith('/
 const isWritings = activeSection ? activeSection === 'writings' : path.startsWith('/writings');
 const isThemes = activeSection ? activeSection === 'themes' : path.startsWith('/themes');
 const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/about');
+
+// G3 誠實 IA：空房不在大廳擺門。取不到計數時不藏（保守，寧顯勿誤藏）；
+// 當前所在的房間一律顯示（即使空），避免 aria-current 指向不存在的門。
+const navCounts = await safeFetch(NAV_COUNTS, {}, { galleries: 1, essays: 1, series: 1 });
+const showGallery = (navCounts?.galleries ?? 0) > 0 || isGallery;
+const showSeries = (navCounts?.series ?? 0) > 0 || isSeries;
+const showWritings = (navCounts?.essays ?? 0) > 0 || isWritings;
 ---
 
 <!doctype html>
@@ -40,6 +49,8 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- G2 連續的身體：瀏覽器 chrome 色跟著房間走（暗房暗室／亮房紙白），延伸到視窗外框。 -->
+    <meta name="theme-color" content={room === 'dark' ? '#0c0c0b' : '#f4f4f2'} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- 編輯雙體：長文宋體 Noto Serif TC（CJK 由 unicode-range 自動 subset） -->
@@ -88,9 +99,9 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
         <div class="site-header__right">
         <nav class="nav" aria-label="主導覽">
           <a href="/" aria-current={isWorks ? 'page' : undefined}>作品</a>
-          <a href="/gallery" aria-current={isGallery ? 'page' : undefined}>影像</a>
-          <a href="/series" aria-current={isSeries ? 'page' : undefined}>系列</a>
-          <a href="/writings" aria-current={isWritings ? 'page' : undefined}>散文</a>
+          {showGallery && <a href="/gallery" aria-current={isGallery ? 'page' : undefined}>影像</a>}
+          {showSeries && <a href="/series" aria-current={isSeries ? 'page' : undefined}>系列</a>}
+          {showWritings && <a href="/writings" aria-current={isWritings ? 'page' : undefined}>散文</a>}
           <a href="/about" aria-current={isAbout ? 'page' : undefined}>關於</a>
         </nav>
         {room === 'dark' && (

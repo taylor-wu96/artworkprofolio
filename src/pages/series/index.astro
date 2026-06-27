@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Plate from '../../components/Plate.astro';
+import RoomNav from '../../components/RoomNav.astro';
 import { safeFetch } from '../../lib/sanity.js';
 import { SERIES_LIST } from '../../lib/queries.js';
 import { ogImageUrl } from '../../lib/og.js';
@@ -20,6 +21,8 @@ const total = series.length;
     <header class="section-head grid-12">
       <span class="label section-head__label">組曲 / Series</span>
       <h1 class="display section-head__title">系列</h1>
+      <p class="section-head__lede">作者手排的序列。我決定你以什麼順序翻閱這捲底片——這是策展的手，不是機器的索引。</p>
+      <RoomNav current="series" />
     </header>
 
     {total > 0 ? (
@@ -55,7 +58,8 @@ const total = series.length;
       </ol>
     ) : (
       <p class="empty">
-        尚無系列。到 Sanity Studio 新增 series，拖曳作品排成一條動線——那就是觀者翻閱的順序。
+        還沒有任何序列被排定。<br />
+        當作品被排成一條動線，這裡就會出現第一捲——在那之前，這個房間安靜地空著。
       </p>
     )}
   </div>

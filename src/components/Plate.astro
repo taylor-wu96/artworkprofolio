@@ -17,6 +17,7 @@ const {
   full = 2400, // 放大檢視寬
   reveal = false, // 是否掛 data-reveal（入場揭示）
   projectable = false, // 供「整組放映」收集：發 data-full 但不單獨點擊放大（無 zoomable class）
+  transitionName = undefined, // G4：跨頁共享元素名。索引縮圖↔內頁封面同名 → 換頁時「顯影即移動」般 morph。
 } = Astro.props;
 
 const ok = !!image?.asset;
@@ -54,7 +55,7 @@ if (ok) {
 ---
 
 {ok && (
-  <span class:list={['plate', className]} style={style} data-reveal={reveal ? '' : undefined}>
+  <span class:list={['plate', className]} style={style} data-reveal={reveal ? '' : undefined} transition:name={transitionName}>
     <img
       class={imgClass}
       src={src}

@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Plate from '../../components/Plate.astro';
+import RoomNav from '../../components/RoomNav.astro';
 import { safeFetch } from '../../lib/sanity.js';
 import { GALLERIES_LIST } from '../../lib/queries.js';
 import { archiveSignature } from '../../lib/signature.js';
@@ -24,6 +25,8 @@ const fmtDate = (d) =>
     <header class="section-head grid-12">
       <span class="label section-head__label">影像 / Galleries</span>
       <h1 class="display section-head__title">影像檔案</h1>
+      <p class="section-head__lede">成捲的影像——同一次凝視裡的複數張，攤成印樣。影像是複數的一捲，不是單張。</p>
+      <RoomNav current="gallery" />
     </header>
 
     {total > 0 ? (
@@ -46,6 +49,7 @@ const fmtDate = (d) =>
                     sizes="(min-width: 980px) 30vw, (min-width: 560px) 45vw, 50vw"
                     alt={p.title}
                     loading={i < 4 ? 'eager' : 'lazy'}
+                    transitionName={`cover-${p.slug}`}
                   />
                 ) : (
                   <div class="cs-frame__placeholder">無影像 / NO IMAGE</div>
@@ -73,7 +77,8 @@ const fmtDate = (d) =>
       </ol>
     ) : (
       <p class="empty">
-        影像檔案尚未建立。到 Sanity Studio 新增分類為「影像集」的作品，這份索引就會開始記錄。
+        還沒有任何一捲被沖洗出來。<br />
+        第一組影像集顯影之後，這片印樣台就會排上格子——在那之前，燈箱是暗的。
       </p>
     )}
   </div>
