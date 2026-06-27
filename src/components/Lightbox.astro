@@ -30,12 +30,20 @@
     </figure>
   </div>
 
+  <!-- 策展論述（Press Release 式）：預設沉默，可呼出。半透明上滑、影像仍在——
+       文字是邀請而非遮蔽。內容由當頁提供（作品陳述／系列序言）。無則整個收起。 -->
+  <aside class="pjx__statement" aria-hidden="true">
+    <p class="pjx__statement-body"></p>
+  </aside>
+
   <div class="pjx__chrome">
     <span class="pjx__count" aria-live="polite"></span>
     <span class="pjx__sig data-strip"></span>
     <!-- 機器讀檔：這一格的真實 EXIF（光圈·快門·ISO·焦段·鏡頭）。無則留空、不顯。 -->
     <span class="pjx__exif" aria-live="polite"></span>
     <span class="pjx__caption"></span>
+    <!-- 呼出策展論述；當頁無陳述時 JS 隱藏此鈕。 -->
+    <button class="pjx__stmt" type="button" aria-expanded="false" hidden>說明 / Statement</button>
   </div>
 </div>
 
@@ -230,7 +238,35 @@
       next.scrollIntoView({ block: 'nearest' });
     }
 
-    function open(node: HTMLImageElement) {
+    // ── 策展論述（Statement）──────────────────────────────────────────────
+    // 當頁以隱藏節點 .pjx-statement 提供陳述（作品 lead／系列序言）。有才掛鈕。
+    function setupStatement() {
+      const b = box();
+      if (!b) return;
+      const src = document.querySelector('.pjx-statement');
+      const text = src?.textContent?.trim() || '';
+      const btn = el('.pjx__stmt') as HTMLElement | null;
+      const body = el('.pjx__statement-body');
+      b.classList.remove('is-statement'); // 每次開啟收起
+      const panel = el('.pjx__statement');
+      panel?.setAttribute('aria-hidden', 'true');
+      if (btn) {
+        btn.toggleAttribute('hidden', !text);
+        btn.setAttribute('aria-expanded', 'false');
+      }
+      if (body) body.textContent = text;
+    }
+
+    function toggleStatement() {
+      const b = box();
+      if (!b) return;
+      const on = !b.classList.contains('is-statement');
+      b.classList.toggle('is-statement', on);
+      (el('.pjx__stmt') as HTMLElement | null)?.setAttribute('aria-expanded', String(on));
+      el('.pjx__statement')?.setAttribute('aria-hidden', String(!on));
+    }
+
+    function open(node: HTMLImageElement, seq?: HTMLImageElement[]) {
       const b = box();
       if (!b) return;
       // 記住開啟前的焦點，關閉時還原（無障礙：不讓焦點掉到頁首）。
@@ -240,8 +276,8 @@
       // 房間一致：亮房（閱讀）影像進「安靜亮場」放映，不喚暗房監視儀器
       // （無綠括弧／無機器簽名／無快門）。暗房影像走完整放映。見 DESIGN §15 point 4。
       b.classList.toggle('pjx--light', document.documentElement.getAttribute('data-room') !== 'dark');
-      // 序列＝整頁的 zoomable 影像（DOM 順序）；找出點擊者的索引。
-      items = Array.from(document.querySelectorAll<HTMLImageElement>('img.zoomable'));
+      // 序列：明確傳入（整組放映，作者排序）＞ 整頁 zoomable 影像（DOM 順序）。
+      items = seq && seq.length ? seq : Array.from(document.querySelectorAll<HTMLImageElement>('img.zoomable'));
       current = Math.max(0, items.indexOf(node));
       b.toggleAttribute('data-single', items.length < 2);
       // 每次開啟都從「序列」起手（凝視優先）。
@@ -249,6 +285,10 @@
       b.classList.remove('is-grid');
       (el('.pjx__view--slides') as HTMLElement | null)?.setAttribute('aria-pressed', 'true');
       (el('.pjx__view--grid') as HTMLElement | null)?.setAttribute('aria-pressed', 'false');
+
+      // 策展論述：讀當頁陳述（作品／系列），有才顯示「說明」鈕；預設收起。
+      setupStatement();
+
       render();
       b.setAttribute('aria-hidden', 'false');
       document.documentElement.style.overflow = 'hidden';
@@ -263,6 +303,7 @@
       const b = box();
       if (!b) return;
       setZoom(false);
+      b.classList.remove('is-statement');
       b.removeAttribute('data-open');
       b.setAttribute('aria-hidden', 'true');
       document.documentElement.style.overflow = '';
@@ -293,6 +334,19 @@
         open(zoomable);
         return;
       }
+      // 整組放映：按鈕帶 data-seq-scope（容器選擇器），依 DOM 順序（＝作者排序）收集影像。
+      const projBtn = t.closest('.project-seq') as HTMLElement | null;
+      if (projBtn && !isOpen()) {
+        const scope = projBtn.getAttribute('data-seq-scope');
+        const imgs = scope
+          ? Array.from(document.querySelectorAll<HTMLImageElement>(`${scope} img`))
+          : [];
+        if (imgs.length) {
+          e.preventDefault();
+          open(imgs[0], imgs);
+        }
+        return;
+      }
       if (!isOpen()) return;
 
       // 控制鈕：close ＋ 左右邊緣熱區（fine）。coarse 翻頁交給水平 swipe（§15）。
@@ -308,6 +362,9 @@
         current = Number(cell.dataset.index) || 0;
         return setView('slides'); // 顯影跳入該格
       }
+
+      // 策展論述：鈕呼出／收起；點面板本身亦收起（讀完即退，回到凝視）。
+      if (t.closest('.pjx__stmt') || t.closest('.pjx__statement')) return toggleStatement();
 
       // 觸控（coarse）：zoom／關閉一律不靠 click——交給 touchend 的 tap 消歧與
       // 向下拖曳關閉（§15）。避免「點暗場即關」「點影像即縮放」在拇指下誤觸。
@@ -335,6 +392,8 @@
     // 鍵盤：Esc 關、←/→ 翻頁、Tab 鎖在對話框內（focus trap）。
     document.addEventListener('keydown', (e) => {
       if (!isOpen()) return;
+      // 論述面板開著時：Esc 先收論述（不關放映）。
+      if (e.key === 'Escape' && box()?.classList.contains('is-statement')) return toggleStatement();
       // 總覽：Esc 退回序列（單層），方向鍵移動印樣格焦點。
       if (view === 'grid') {
         if (e.key === 'Escape') return setView('slides');
@@ -453,6 +512,7 @@
         b.removeAttribute('data-open');
         b.setAttribute('aria-hidden', 'true');
         b.classList.remove('is-grid');
+        b.classList.remove('is-statement');
       }
       view = 'slides';
       document.documentElement.style.overflow = '';

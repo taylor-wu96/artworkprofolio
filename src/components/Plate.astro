@@ -16,6 +16,7 @@ const {
   zoomable = false, // 點擊放大（lightbox 會讀 data-full）
   full = 2400, // 放大檢視寬
   reveal = false, // 是否掛 data-reveal（入場揭示）
+  projectable = false, // 供「整組放映」收集：發 data-full 但不單獨點擊放大（無 zoomable class）
 } = Astro.props;
 
 const ok = !!image?.asset;
@@ -37,7 +38,7 @@ if (ok) {
 
   src = urlFor(image).width(Math.min(width, maxW)).url();
   srcset = widths.map((w) => `${urlFor(image).width(w).url()} ${w}w`).join(', ');
-  dataFull = zoomable ? urlFor(image).width(Math.min(full, maxW)).url() : undefined;
+  dataFull = zoomable || projectable ? urlFor(image).width(Math.min(full, maxW)).url() : undefined;
 
   // 外層樣式：lqip 當背景模糊底；aspect-ratio 先撐版位。
   // --ar（寬高比，無單位）外露，供呼叫端以 viewport 高度安全限高（不裁切、不留邊）。

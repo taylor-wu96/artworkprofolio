@@ -8,6 +8,7 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  imageAlt?: string;
   activeSection?: 'works' | 'gallery' | 'series' | 'writings' | 'themes' | 'about';
   // 兩個房間：暗房（圖錄・作品・3D）／亮房（閱讀，預設）。見 DESIGN §1。
   room?: 'light' | 'dark';
@@ -17,12 +18,14 @@ const {
   title = '光・門檻・衰敗 — 攝影檔案',
   description = '一個關於光、門檻與邊界、衰敗與生機並存的攝影檔案。',
   image,
+  imageAlt,
   activeSection,
   room = 'light',
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = image ? new URL(image, Astro.site).toString() : undefined;
+const SITE_NAME = '光・門檻・衰敗';
 const path = Astro.url.pathname;
 const isWorks = activeSection ? activeSection === 'works' : (path === '/' || path.startsWith('/post'));
 const isGallery = activeSection ? activeSection === 'gallery' : path.startsWith('/gallery');
@@ -51,11 +54,23 @@ const isAbout = activeSection ? activeSection === 'about' : path.startsWith('/ab
     <link rel="canonical" href={canonical} />
 
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="zh_Hant_TW" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    {ogImage && <meta property="og:image" content={ogImage} />}
-    <meta name="twitter:card" content="summary_large_image" />
+    {ogImage && (
+      <>
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={imageAlt ?? title} />
+      </>
+    )}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
 
     <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml" />
     <ClientRouter />

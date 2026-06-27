@@ -3,12 +3,19 @@ import Base from '../../layouts/Base.astro';
 import Plate from '../../components/Plate.astro';
 import { safeFetch } from '../../lib/sanity.js';
 import { SERIES_LIST } from '../../lib/queries.js';
+import { ogImageUrl } from '../../lib/og.js';
 
 const series = await safeFetch(SERIES_LIST);
 const total = series.length;
 ---
 
-<Base title="系列 — 光・門檻・衰敗" activeSection="series" room="dark">
+<Base
+  title="系列 — 光・門檻・衰敗"
+  activeSection="series"
+  room="dark"
+  image={ogImageUrl(series.find((s) => s.cover)?.cover)}
+  imageAlt="組曲 / Series"
+>
   <div class="container">
     <header class="section-head grid-12">
       <span class="label section-head__label">組曲 / Series</span>

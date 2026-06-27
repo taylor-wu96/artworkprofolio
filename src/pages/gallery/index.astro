@@ -4,6 +4,7 @@ import Plate from '../../components/Plate.astro';
 import { safeFetch } from '../../lib/sanity.js';
 import { GALLERIES_LIST } from '../../lib/queries.js';
 import { archiveSignature } from '../../lib/signature.js';
+import { ogImageUrl } from '../../lib/og.js';
 
 const galleries = await safeFetch(GALLERIES_LIST);
 const total = galleries.length;
@@ -12,7 +13,13 @@ const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' }) : '';
 ---
 
-<Base title="影像集 — 光・門檻・衰敗" activeSection="gallery" room="dark">
+<Base
+  title="影像集 — 光・門檻・衰敗"
+  activeSection="gallery"
+  room="dark"
+  image={ogImageUrl(galleries.find((g) => g.cover)?.cover)}
+  imageAlt="影像檔案"
+>
   <div class="container">
     <header class="section-head grid-12">
       <span class="label section-head__label">影像 / Galleries</span>

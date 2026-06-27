@@ -28,7 +28,15 @@ const fmtYear = (d) => (d ? new Date(d).getFullYear() : '');
       <span class="label section-head__label">組曲 / Series</span>
       <h1 class="display section-head__title">{series.title}</h1>
       {series.description && <p class="series__lead">{series.description}</p>}
-      <span class="label series__count">{total} 件・序列動線</span>
+      <div class="series__actions">
+        <span class="label series__count">{total} 件・序列動線</span>
+        {total > 0 && (
+          /* 整組進放映儀器：zine 動線在數位載體上的兌現（H2.1）。 */
+          <button class="project-seq" type="button" data-seq-scope=".series-seq">
+            放映此系列 <span class="project-seq__arrow" aria-hidden="true">▸</span>
+          </button>
+        )}
+      </div>
     </header>
 
     {total > 0 ? (
@@ -52,6 +60,8 @@ const fmtYear = (d) => (d ? new Date(d).getFullYear() : '');
                     image={w.cover}
                     class="entry__img"
                     width={1600}
+                    full={2600}
+                    projectable
                     sizes="(min-width: 720px) min(56rem, 60vw), 100vw"
                     alt={w.title}
                     loading={i < 2 ? 'eager' : 'lazy'}
@@ -82,10 +92,47 @@ const fmtYear = (d) => (d ? new Date(d).getFullYear() : '');
     line-height: 1.7;
     color: var(--text-muted);
   }
-  .series__count {
+  .series__actions {
     grid-column: 1 / -1;
     margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 1.2rem 1.8rem;
+  }
+  .series__count {
     color: var(--text-dim);
+  }
+  /* 放映此系列：動線入口。綠箭頭＝可前進的活路（DESIGN §4.1 白名單）。 */
+  .project-seq {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0;
+    background: none;
+    border: none;
+    font-family: var(--font-ui);
+    font-size: var(--step--1);
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .project-seq__arrow {
+    color: var(--accent);
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .project-seq:hover {
+    color: var(--text);
+  }
+  .project-seq:hover .project-seq__arrow {
+    transform: translateX(0.25rem);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .project-seq__arrow {
+      transition: none;
+    }
   }
   /* 序列＝編號動線（呼應放映模式的翻閱）。沿用暗房 entry 骨架。 */
   .series-seq {

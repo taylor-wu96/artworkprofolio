@@ -229,7 +229,9 @@ H2 擴張 ── 只做能放大作品的，逐項驗證 ROI       （謹慎）
 
 ---
 
-### H1.2 — OG／分享影像生成
+### H1.2 — OG／分享影像生成　✅ 已落地（2026-06-27，image-forward）
+
+> 落地備註與取捨：**選 image-forward，不做 satori 文字立面**。理由：本站核心律是 [DESIGN §4.3](DESIGN.md)「影像高於標題」——乾淨的暗房 1200×630 封面本身就是最對的分享卡；且避免把多 MB CJK 字體＋原生光柵化拖進 repo（§0 拒絕子系統）。實作：[og.js](src/lib/og.js) `ogImageUrl()`（hotspot 裁 1200×630）；[Base.astro](src/layouts/Base.astro) 補齊 og:site_name/locale/image:width/height/alt＋twitter title/desc/image；每個頁面（作品／首頁／關於／影像／系列／主題／散文）都餵代表封面，作品另抽內文首段為 description。已驗證 build 後 meta 正確（hotspot rect、1200×630）。**satori「展牆說明卡」列為可選 polish，未做。**
 
 **問題**：[DESIGN §8.2](DESIGN.md) 標記「**SEO / OG 影像：❌ 缺席**」。作品分享到社群是裸連結，零視覺存在感——這直接違背「讓作品更被看見」。
 
@@ -256,7 +258,9 @@ H2 擴張 ── 只做能放大作品的，逐項驗證 ROI       （謹慎）
 
 ---
 
-### H1.3 — 圖說／Press Release 文字面板
+### H1.3 — 圖說／Press Release 文字面板　✅ 已落地（2026-06-27）
+
+> 落地備註：放映 chrome 加「說明 / Statement」呼出鈕（當頁無陳述時 JS 隱藏）；論述面板自底半透明上滑、**影像仍在**（文字是邀請不是遮蔽），宋體（--font-read）承文學重量；論述開時底部 chrome 收起避免雙層打架。內容由 [post/[slug].astro](src/pages/post/[slug].astro) 以隱藏節點 `.pjx-statement` 提供（作品陳述首段）。**層疊 Esc**：論述開→Esc 先收論述（放映不關）、再 Esc 才關放映；總覽 Esc 退回序列——三態互不打架。已於 corridor（有陳述）驗證開合、層疊 Esc、暗房／亮房、無 console error。
 
 **問題**：參考站放映模式有「Press Release」文字面板。我們的 gallery 圖說（`caption`）只是單行小字，body 與單張圖之間沒有「展覽論述」的綁定。
 
@@ -285,7 +289,11 @@ H2 擴張 ── 只做能放大作品的，逐項驗證 ROI       （謹慎）
 
 > 這個地平線**默認懷疑**。每一項都要先問：它讓某一張照片更被看見，還是只是讓我多一個可炫耀的 feature？
 
-### H2.1 — Series 連續放映（策展主脊兌現）
+### H2.1 — Series 連續放映（策展主脊兌現）　✅ 已落地（2026-06-27，待內容）
+
+> 落地備註：[Lightbox.astro](src/components/Lightbox.astro) 的 `open(node, seq?)` 改為可接受**明確序列**；新增 `.project-seq` 觸發（按鈕帶 `data-seq-scope` 容器選擇器，依 DOM 順序＝作者排序收集影像）。[Plate.astro](src/components/Plate.astro) 加 `projectable` prop（發 data-full 供高解析顯影，但不變單張點擊放大）。[series/[slug].astro](src/pages/series/[slug].astro) 標頭加「放映此系列 ▸」（綠箭頭動線）＋ 序列影像設 projectable。**目前資料集無 series 文件**（索引為空狀態），故以同一程式路徑在 12 圖 gallery 上驗證 `data-seq-scope` 收集＋ `open(node,seq)`（開於 01/12）——真 series 建立後自動生效。
+
+
 
 #### 🎨 藝術／設計目標
 把兩個各自最強的零件合流：**series（作者手排的 zine 動線）＋ projection（放映儀器）**。在系列頁按一個鍵，整組作品依作者編排的順序連續放映——這是 zine 的本質在數位載體上的兌現（[series.ts schema 註解](../studio-artwork-portfolio/schemaTypes/series.ts) 早已埋下這個意圖）。翻閱一本攝影集的動作，被忠實地搬進了暗房。
@@ -318,7 +326,11 @@ H2 擴張 ── 只做能放大作品的，逐項驗證 ROI       （謹慎）
 
 ---
 
-### H2.3 — Token 一致性收尾
+### H2.3 — Token 一致性收尾　◑ 主項已完成（其餘為低優維護債）
+
+> 盤點結果（2026-06-27）：§8.2 點名的「`.prose` 主長文用 muted」**其實早已修好**——[tokens.css](src/styles/layers/tokens.css) 中亮房 `--text-body: var(--text)`＝實墨（暗房才刻意軟白），DESIGN 文件此點已過時。這是 H2.3 唯一直接影響每次閱讀的項目，故視為完成。其餘（散落 `clamp()` 手寫值、`.work__meta{0.78rem}` 等未對齊 scale）為**低優維護債**，不值得無觸發的全域掃描——留待實際改動該區塊時順手遷移。
+
+
 
 #### 🎨 設計目標
 [DESIGN §8.2](DESIGN.md) 列的弱點：散落的 `clamp()` 手寫值未走 `--space-*` token、`.work__meta{font-size:0.78rem}` 等未對齊字級 scale、`.prose` 主長文用 `--text-muted`（70% 墨）而非 [DESIGN §6](DESIGN.md) 建議的 `--text` 實墨（影響閱讀清晰度）。

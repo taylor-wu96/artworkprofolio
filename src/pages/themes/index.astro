@@ -2,11 +2,18 @@
 import Base from '../../layouts/Base.astro';
 import { urlFor, safeFetch } from '../../lib/sanity.js';
 import { THEMES_LIST } from '../../lib/queries.js';
+import { ogImageUrl } from '../../lib/og.js';
 
 const themes = await safeFetch(THEMES_LIST);
 ---
 
-<Base title="主題 — 光・門檻・衰敗" activeSection="themes" room="dark">
+<Base
+  title="主題 — 光・門檻・衰敗"
+  activeSection="themes"
+  room="dark"
+  image={ogImageUrl(themes.find((t) => t.cover)?.cover)}
+  imageAlt="主題 / Themes"
+>
   <div class="container">
     <header class="section-head grid-12">
       <span class="label section-head__label">分類 / Themes</span>

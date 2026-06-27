@@ -251,6 +251,80 @@
     letter-spacing: 0.04em;
     line-height: 1.5;
   }
+
+  /* 「說明」呼出鈕：靠右收於 chrome 尾，克制 mono；展開時轉綠（可啟動訊號）。 */
+  .pjx__stmt {
+    margin-left: auto; /* 推到 chrome 最右 */
+    min-height: 44px;
+    padding: 0 0.2rem;
+    background: none;
+    border: none;
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    color: var(--g-ink-45);
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .pjx__stmt[hidden] { display: none; }
+  .pjx__stmt:hover { color: var(--g-ink-70); }
+  .pjx__stmt[aria-expanded='true'] { color: var(--accent); }
+  .pjx--light .pjx__stmt { color: var(--ink-45); }
+  .pjx--light .pjx__stmt:hover { color: var(--ink-70); }
+  .pjx--light .pjx__stmt[aria-expanded='true'] { color: var(--ink); }
+
+  /* 論述面板：自底上滑，半透明暗場——影像仍在（文字是邀請，不是遮蔽）。 */
+  .pjx__statement {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
+    padding: clamp(2rem, 6vh, 3.5rem) clamp(1.4rem, 5vw, 4rem)
+      calc(clamp(2rem, 6vh, 3.5rem) + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, #0c0c0b 92%, transparent) 0%,
+      color-mix(in oklab, #0c0c0b 78%, transparent) 70%,
+      transparent 100%
+    );
+    transform: translateY(101%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+    cursor: pointer; /* 點面板＝讀完收起 */
+  }
+  .pjx.is-statement .pjx__statement {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* 論述開著時，底部 chrome 收起避免雙層文字打架。 */
+  .pjx.is-statement .pjx__chrome {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .pjx__statement-body {
+    max-width: var(--measure);
+    margin: 0 auto;
+    font-family: var(--font-read);
+    font-size: var(--step-0);
+    line-height: 1.75;
+    color: var(--g-ink-70);
+    letter-spacing: 0.01em;
+  }
+  .pjx--light .pjx__statement {
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--paper) 94%, transparent) 0%,
+      color-mix(in oklab, var(--paper) 82%, transparent) 70%,
+      transparent 100%
+    );
+  }
+  .pjx--light .pjx__statement-body { color: var(--ink-70); }
+  @media (prefers-reduced-motion: reduce) {
+    .pjx__statement { transition: opacity var(--dur) var(--ease); transform: none; }
+  }
   @media (prefers-reduced-motion: reduce) {
     .pjx__img {
       transition: none;

@@ -5,6 +5,7 @@ import Plate from '../components/Plate.astro';
 import { safeFetch } from '../lib/sanity.js';
 import { WORKS_FEED } from '../lib/queries.js';
 import { archiveSignature } from '../lib/signature.js';
+import { ogImageUrl } from '../lib/og.js';
 
 // 作品流：攝影 post（artwork）＋ 互動 sketch 合流（階段 J）。
 const works = await safeFetch(WORKS_FEED);
@@ -22,7 +23,12 @@ const newestSlug = [...works].sort(
 )[0]?.slug;
 ---
 
-<Base activeSection="works" room="dark">
+<Base
+  activeSection="works"
+  room="dark"
+  image={ogImageUrl(works.find((w) => w.cover)?.cover)}
+  imageAlt="光・門檻・衰敗 攝影檔案"
+>
   <section class="hero">
     <Sketch sketchId="light-field" variant="hero" />
     <span class="hero__index">攝影檔案 / Archive</span>

@@ -8,6 +8,7 @@ import Sidenote from '../../components/Sidenote.astro';
 import Plate from '../../components/Plate.astro';
 import { archiveSignature, readExif } from '../../lib/signature.js';
 import { signatureGlyph } from '../../lib/glyph.js';
+import { ogImageUrl } from '../../lib/og.js';
 
 export async function getStaticPaths() {
   const slugs = await safeFetch(POST_SLUGS);
@@ -69,16 +70,47 @@ const readingMinutes = (() => {
   }
   return chars > 0 ? Math.max(1, Math.round(chars / 350)) : null;
 })();
+
+// 分享摘要：取內文首段（≤140 字），缺則由主題拼一句；最後回退站台預設。
+const excerpt = (() => {
+  if (Array.isArray(post.body)) {
+    for (const blk of post.body) {
+      if (blk?._type === 'block' && Array.isArray(blk.children)) {
+        const t = blk.children.map((c) => c?.text || '').join('').trim();
+        if (t) return t.length > 140 ? `${t.slice(0, 140)}…` : t;
+      }
+    }
+  }
+  if (post.themes?.length) return `${labelName} · ${post.themes.map((t) => t.title).join('、')}`;
+  return undefined;
+})();
+const ogImg = ogImageUrl(post.cover);
+
+// 放映模式的策展論述：作品陳述首段（完整，不截斷）。放映時可呼出。無則不掛。
+const statement = (() => {
+  if (!Array.isArray(post.body)) return null;
+  for (const blk of post.body) {
+    if (blk?._type === 'block' && Array.isArray(blk.children)) {
+      const t = blk.children.map((c) => c?.text || '').join('').trim();
+      if (t) return t;
+    }
+  }
+  return null;
+})();
 ---
 
 <Base
   title={`${post.title} — 光・門檻・衰敗`}
-  image={post.cover ? urlFor(post.cover).width(1200).url() : undefined}
+  description={excerpt}
+  image={ogImg}
+  imageAlt={post.cover?.alt ?? post.title}
   activeSection={activeSection}
   room={room}
 >
   <article class={`detail-view container ${category}-view`}>
-    
+    {/* 放映模式讀此隱藏節點作為策展論述（Press Release）。不顯於頁面本身。 */}
+    {statement && <p class="pjx-statement" hidden set:text={statement} />}
+
     {category === 'essay' ? (
       /* --- 散文創作排版 --- */
       <div class="essay-layout" data-reveal data-read-progress>
