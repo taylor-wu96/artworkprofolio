@@ -375,27 +375,63 @@
      佔 stage 同一格（grid-row 1），is-grid 時頂出 stage/chrome/nav。 */
   .pjx__grid {
     grid-row: 1;
+    min-height: 0; /* grid item 預設 min-height:auto 會撐到內容高而不內捲；歸零才保證
+                      長影像集在短視窗（IG 內建瀏覽器）內部捲動、到得了底。 */
     display: none;
-    align-content: start;
-    grid-template-columns: repeat(auto-fill, minmax(clamp(120px, 22vw, 200px), 1fr));
-    gap: clamp(0.5rem, 1.5vw, 1rem);
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     touch-action: pan-y; /* 總覽恢復原生垂直捲動（覆蓋 .pjx 的 touch-action:none） */
     -webkit-overflow-scrolling: touch;
-    /* 頂部留出 views 切換帶高度；底部安全區。 */
-    padding: calc(env(safe-area-inset-top, 0px) + clamp(3.4rem, 9vh, 5rem))
+    /* 頂部留出 views 切換帶：用「固定 min」而非 vh——切換帶是固定高（top 偏移＋44px
+       命中區≈4.1rem），若用 9vh 在短視窗（如 IG 內建瀏覽器）會塌到切換帶之下而重疊。
+       故 min 4.7rem 恆清開切換帶，視窗夠高才以 vh 增呼吸。底部留安全區。 */
+    padding: calc(env(safe-area-inset-top, 0px) + clamp(4.7rem, 7vh, 5.6rem))
       clamp(1rem, 4vw, 3rem)
       calc(clamp(1.5rem, 4vh, 3rem) + env(safe-area-inset-bottom, 0px));
   }
-  .pjx.is-grid .pjx__grid { display: grid; }
+  /* masonry 內層：多欄、各圖原生比例自然落位（永不裁切）。外層固定高捲動，內層高度
+     隨內容增長＝多欄在自然高度平衡，故垂直捲動正常、不產生橫向欄溢出。 */
+  .pjx__grid-inner {
+    column-width: clamp(120px, 22vw, 200px);
+    column-gap: clamp(0.5rem, 1.5vw, 1rem);
+  }
+  .pjx.is-grid .pjx__grid { display: block; }
   .pjx.is-grid .pjx__stage,
   .pjx.is-grid .pjx__chrome,
   .pjx.is-grid .pjx__nav { display: none; }
+  /* 頂部遮罩帶：切換帶（序列／總覽・關閉）本身無底，捲動時縮圖會穿到文字下。
+     在總覽加一條與表面同色的漸層帶（z 2＝壓在縮圖上、讓在控制 z 3 之下），
+     縮圖捲到頂即沒入此帶，控制文字恆清晰。slides 視圖不需要（影像置中留白）。 */
+  .pjx.is-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: calc(env(safe-area-inset-top, 0px) + 4.4rem);
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      #0c0c0b 55%,
+      color-mix(in oklab, #0c0c0b 60%, transparent) 82%,
+      transparent 100%
+    );
+  }
+  .pjx--light.pjx.is-grid::before {
+    background: linear-gradient(
+      to bottom,
+      var(--paper) 55%,
+      color-mix(in oklab, var(--paper) 60%, transparent) 82%,
+      transparent 100%
+    );
+  }
 
   .pjx__cell {
     position: relative;
     display: block;
-    aspect-ratio: 3 / 2; /* 35mm 印樣格 */
+    width: 100%;
+    margin-bottom: clamp(0.5rem, 1.5vw, 1rem); /* 欄內垂直間距（column-gap 只管水平） */
+    break-inside: avoid; /* 一格不被拆到兩欄 */
+    -webkit-column-break-inside: avoid;
     padding: 0;
     border: 1px solid var(--hairline-dark);
     background: var(--g-ink-20);
@@ -403,10 +439,10 @@
     overflow: hidden;
     transition: border-color var(--dur-fast) var(--ease);
   }
+  /* 各圖以原生比例完整呈現——不裁切、不擠壓（DESIGN §5）。寬高屬性已撐版位。 */
   .pjx__cell img {
     width: 100%;
-    height: 100%;
-    object-fit: cover; /* 索引縮圖例外允許裁切（DESIGN §5） */
+    height: auto;
     display: block;
     opacity: 0.86;
     transition: opacity var(--dur-fast) var(--ease), transform var(--dur) var(--ease);

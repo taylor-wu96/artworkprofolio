@@ -18,8 +18,9 @@
   <button class="pjx__nav pjx__prev" type="button" aria-label="上一張">←</button>
   <button class="pjx__nav pjx__next" type="button" aria-label="下一張">→</button>
 
-  <!-- 印樣台：整捲縮圖密排，點任一格顯影跳入序列。縮圖複用已載入資源，不重打高解析。 -->
-  <div class="pjx__grid" role="group" aria-label="影像總覽"></div>
+  <!-- 印樣台：整捲縮圖密排成 masonry（各圖原生比例・永不裁切，DESIGN §5）。
+       外層 .pjx__grid 垂直捲動；內層 .pjx__grid-inner 多欄排版。 -->
+  <div class="pjx__grid" role="group" aria-label="影像總覽"><div class="pjx__grid-inner"></div></div>
 
   <div class="pjx__stage">
     <figure class="pjx__frame">
@@ -175,7 +176,7 @@
     // 縮圖複用各序列影像「已載入」的來源（currentSrc），絕不重打高解析——
     // 開一次總覽不該變成 18 個網路請求（DESIGN 省流量）。
     function buildGrid() {
-      const grid = el('.pjx__grid');
+      const grid = el('.pjx__grid-inner') || el('.pjx__grid');
       if (!grid) return;
       grid.innerHTML = '';
       items.forEach((node, i) => {
@@ -190,6 +191,10 @@
         im.alt = node.getAttribute('alt') || '';
         im.loading = 'lazy';
         im.decoding = 'async';
+        // 帶上原生寬高 → 瀏覽器以此撐出正確比例的版位（masonry 不裁切、不跳動）。
+        const w = node.getAttribute('width') || node.naturalWidth;
+        const h = node.getAttribute('height') || node.naturalHeight;
+        if (w && h) { im.setAttribute('width', String(w)); im.setAttribute('height', String(h)); }
         const num = document.createElement('span');
         num.className = 'pjx__cellnum';
         num.textContent = fmt(i + 1);

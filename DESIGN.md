@@ -1,6 +1,6 @@
 # DESIGN — 灰階・生機・門檻
 
-> **視覺設計文件 v5**（2026-06-27）
+> **視覺設計文件 v6**（2026-06-27）
 > 受眾：視覺設計師、互動設計師。工程實作細節見 [PROGRESS-REDESIGN.md](PROGRESS-REDESIGN.md)。
 > 母文件通則見 [`.agents/skills/Design.md`](.agents/skills/Design.md)。
 
@@ -251,21 +251,22 @@
 | **Token 地基** | ✅ 成熟 | 三套 token（space/type/motion）完整，語意層（`--surface`/`--text`/`--accent`）正確重映 |
 | **兩房系統** | ✅ 成熟 | `data-room` 語意切換乾淨，視覺等價已驗證 |
 | **影像系統** | ✅ 成熟 | 顯影地基（Plate）、放映模式（Lightbox）、觸控手勢消歧皆落地 |
+| **放映儀器擴充** | ✅ 成熟 | 序列／總覽（印樣台 Grid）、真 EXIF 逐格讀檔、Press Release 論述面板、Series 連續放映（見 [ROADMAP](ROADMAP.md) H0.2/H1.1/H1.3/H2.1） |
 | **藝術融合四層** | ✅ 成熟 | Ikeda 資料條、Turrell 光場、凝視準星、JODI 反應性皆落地 |
 | **動態語言** | ✅ 成熟 | duration/easing token 一致；入場/顯影/轉場皆對齊 |
 | **互動作品執行時** | ✅ 成熟 | 引擎無關契約、registry、IntersectionObserver 懶載入，架構正確 |
 | **閱讀室工具箱** | ✅ 成熟 | lead/pull-quote/figcaption/sidenote/progress 皆實作 |
+| **長文閱讀對比** | ✅ 成熟 | 亮房 `--text-body` ＝ `--text`（實墨），暗房刻意軟白；§7 對比達標 |
+| **分享立面（OG）** | ✅ 成熟 | image-forward：封面 hotspot 裁 1200×630 ＋ 完整 og/twitter meta（[ROADMAP](ROADMAP.md) H1.2） |
 
 ### 8.2 尚未成熟的部分
 
 | 面向 | 評估 | 問題 |
 |---|---|---|
 | **間距 token 落實** | ⚠️ 部分 | `components.css` 仍有散落的 `clamp(2.2rem, 6vh, ...)` 等手寫值，未走 `--space-*` token |
-| **字級 token 落實** | ⚠️ 部分 | `.work__meta { font-size: 0.78rem }` 等硬寫值未對齊 scale |
-| **內文色彩** | ⚠️ 弱點 | `.prose { color: var(--text-muted) }` — 主長文用 muted（70% 墨），DESIGN §7 建議主文用 `--text`（實色），影響閱讀清晰度 |
-| **content 填充** | ⚠️ 空殼 | 旁註、series、sketch 皆已實作但 schema 未部署；「觀看的機器」名實相符有賴真實 EXIF/metadata 回填 |
+| **字級 token 落實** | ⚠️ 部分 | `.work__meta { font-size: 0.78rem }` 等硬寫值未對齊 scale（低優維護債） |
+| **content 填充** | ⚠️ 空殼 | 顯示面已建好但**休眠**：真 EXIF 讀檔、Series 連續放映皆就緒，但種子圖無 EXIF、資料集無 series 文件；gallery EXIF 抽取已補 schema，待重部署 Studio ＋ 重傳回填。**這是當前唯一的真風險。** |
 | **斷點一致性** | ⚠️ 部分 | `@media (min-width: 720px)` 已對齊 `md`，但部分頁級 `<style>` 仍有未遷移的舊值 |
-| **SEO / OG 影像** | ❌ 缺席 | 無 Open Graph 影像生成；分享出去是裸連結 |
 | **無障礙審計** | ⚠️ 部分 | focus trap 在 Lightbox 完成；其他元件的鍵盤/ARIA 未系統性審計 |
 | **v3.1 藝術融合尾巴** | ⚠️ 候選 | 掃描線/網格（Ikeda）、Rozendaal 著陸——已列入候選但未開始 |
 
@@ -273,10 +274,12 @@
 
 這個設計系統的**架構成熟度**在當代藝術個人網站裡是少見的高——token 地基、層級系統（CSS @layer）、兩房結構、藝術參照的有意識融合都已落地。**當前真正的風險不是設計系統本身，而是「骨架比肉身豐富」**：工程的地基比內容填充走得更快。
 
+> **2026-06-27 更新**：[ROADMAP](ROADMAP.md) 的 H0／H1 收斂與通電已執行——主題降為 facet、放映加 Grid 總覽、真 EXIF 讀檔、OG 立面、論述面板、Series 連續放映皆落地。這讓上面的結論更尖銳而非過時：**儀器又添了幾件，但它們大多在空轉**（EXIF／series 等著真內容點亮）。所以方向不變，且第 1 點的優先級更高了。
+
 接下來的設計工作方向：
-1. 把已建好的結構用真實內容填滿
-2. 修幾個局部的 token 一致性問題
-3. 選擇性推進 v3.1 候選（只做能讓作品「更被看見」的，拒絕功能劇場）
+1. 把已建好的結構用真實內容填滿（**最高優先**：真照片＋EXIF、建立 series）
+2. 修幾個局部的 token 一致性問題（低優維護債）
+3. 選擇性推進 v3.1 候選（只做能讓作品「更被看見」的，拒絕功能劇場）；地圖（GPS）維持 HOLD
 
 ---
 
@@ -305,6 +308,7 @@
 | 2026-06-23 | v2.2→v3 | 綠升 tier 2、「觀看的機器」四層融合、標題尺度收斂 |
 | 2026-06-25 | v4 | 響應式正式化（直幅/橫幅/四斷點）、觸控誤觸修正、可維護性契約 |
 | 2026-06-27 | v5 | 文件重構：以視覺設計師為受眾、補設計脈絡分析、系統成熟度評估 |
+| 2026-06-27 | v6 | ROADMAP H0／H1 執行：主題降 facet、放映 Grid 總覽、真 EXIF 讀檔、image-forward OG、論述面板、Series 連續放映；成熟度表校正（OG／內文對比已達標）。修印樣台短視窗重疊（vh padding → 固定 min ＋ 頂部遮罩帶 ＋ `min-height:0` 內捲） |
 
 ---
 
