@@ -22,14 +22,14 @@ const total = theme.posts?.length ?? 0;
 
 <Base title={`${theme.title} — 主題`} activeSection="themes" room="dark">
   <div class="container">
+    {/* facet 落地頁：不是「主題索引的一格」，而是「以此主題凝視的一組作品」。
+        主題已從主導覽撤下（降級為 facet）——觀者由作品上的標籤橫向跳轉至此。 */}
     <header class="section-head grid-12">
-      <span class="label section-head__label">主題 / Theme</span>
+      <span class="label section-head__label">以此凝視 / Through This Theme</span>
       <h1 class="display section-head__title">{theme.title}</h1>
+      {theme.description && <p class="theme__lead">{theme.description}</p>}
+      <span class="label theme__count">{total} 件 · 以此主題收束的作品</span>
     </header>
-
-    {theme.description && (
-      <p class="empty" style="color:var(--text-muted)">{theme.description}</p>
-    )}
 
     {total > 0 ? (
       <ol class="archive">
@@ -60,3 +60,20 @@ const total = theme.posts?.length ?? 0;
     )}
   </div>
 </Base>
+
+<style>
+  /* 策展短語：與 series__lead 同語彙——主題作為「凝視的角度」而非分類抽屜。 */
+  .theme__lead {
+    grid-column: 1 / -1;
+    margin-top: 1rem;
+    max-width: 52ch;
+    font-size: var(--step-0);
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+  .theme__count {
+    grid-column: 1 / -1;
+    margin-top: 1rem;
+    color: var(--text-dim);
+  }
+</style>

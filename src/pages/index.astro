@@ -65,7 +65,7 @@ const newestSlug = [...works].sort(
                   {p.slug === newestSlug && <span class="entry__latest">最新 / Latest</span>}
                   {p.themes?.length > 0 && (
                     <span class="entry__themes">
-                      {p.themes.map((t) => <span>{t.title}</span>)}
+                      {p.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
                     </span>
                   )}
                   <span class="entry__num">{fmtDate(p.publishedAt)}</span>

@@ -8,8 +8,18 @@
 <div id="projection" class="pjx" aria-hidden="true" role="dialog" aria-modal="true" aria-label="影像放映">
   <button class="pjx__close" type="button" aria-label="關閉放映">關閉 ×</button>
 
+  <!-- 序列（凝視）／ 總覽（印樣選片）：同一捲底片的兩種看法。單張時隱藏（data-single）。 -->
+  <div class="pjx__views" role="group" aria-label="檢視模式">
+    <button class="pjx__view pjx__view--slides" type="button" aria-pressed="true">序列</button>
+    <span class="pjx__viewsep" aria-hidden="true">／</span>
+    <button class="pjx__view pjx__view--grid" type="button" aria-pressed="false">總覽</button>
+  </div>
+
   <button class="pjx__nav pjx__prev" type="button" aria-label="上一張">←</button>
   <button class="pjx__nav pjx__next" type="button" aria-label="下一張">→</button>
+
+  <!-- 印樣台：整捲縮圖密排，點任一格顯影跳入序列。縮圖複用已載入資源，不重打高解析。 -->
+  <div class="pjx__grid" role="group" aria-label="影像總覽"></div>
 
   <div class="pjx__stage">
     <figure class="pjx__frame">
@@ -40,6 +50,7 @@
 
     let items: HTMLImageElement[] = []; // 當前序列（整頁的 img.zoomable）
     let current = -1;
+    let view: 'slides' | 'grid' = 'slides'; // 序列（凝視）／ 總覽（印樣選片）
     let zoomed = false;
     let lastFocus: HTMLElement | null = null; // 開啟前的焦點，關閉時還原（無障礙）
 
@@ -146,6 +157,73 @@
       render();
     }
 
+    // ── 總覽（Grid）：整捲印樣 ────────────────────────────────────────────
+    // 縮圖複用各序列影像「已載入」的來源（currentSrc），絕不重打高解析——
+    // 開一次總覽不該變成 18 個網路請求（DESIGN 省流量）。
+    function buildGrid() {
+      const grid = el('.pjx__grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      items.forEach((node, i) => {
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.className = 'pjx__cell' + (i === current ? ' is-current' : '');
+        cell.dataset.index = String(i);
+        cell.setAttribute('aria-label', `第 ${i + 1} 張，共 ${items.length} 張`);
+        if (i === current) cell.setAttribute('aria-current', 'true');
+        const im = document.createElement('img');
+        im.src = node.currentSrc || node.src;
+        im.alt = node.getAttribute('alt') || '';
+        im.loading = 'lazy';
+        im.decoding = 'async';
+        const num = document.createElement('span');
+        num.className = 'pjx__cellnum';
+        num.textContent = fmt(i + 1);
+        cell.append(im, num);
+        grid.appendChild(cell);
+      });
+    }
+
+    // 切換視圖：總覽即時建格＋移焦當前格；回序列＝重新「擷取」當前影像（綠括弧）。
+    function setView(v: 'slides' | 'grid') {
+      const b = box();
+      if (!b || items.length < 2) return; // 單張無總覽
+      view = v;
+      if (v === 'grid') {
+        setZoom(false);
+        buildGrid();
+      }
+      b.classList.toggle('is-grid', v === 'grid');
+      (el('.pjx__view--slides') as HTMLElement | null)?.setAttribute('aria-pressed', String(v === 'slides'));
+      (el('.pjx__view--grid') as HTMLElement | null)?.setAttribute('aria-pressed', String(v === 'grid'));
+      if (v === 'grid') {
+        // 移焦「你剛剛在這一格」，並捲入視野（鍵盤使用者立即可操作）。
+        requestAnimationFrame(() => {
+          const cur = (b.querySelector('.pjx__cell.is-current') ||
+            b.querySelector('.pjx__cell')) as HTMLElement | null;
+          cur?.focus();
+          cur?.scrollIntoView({ block: 'nearest' });
+        });
+      } else {
+        render(); // 回序列：重新顯影＋四角括弧擷取當前格
+        requestAnimationFrame(() => (el('.pjx__close') as HTMLElement | null)?.focus());
+      }
+    }
+
+    // 總覽下方向鍵：在印樣格間移動焦點（Enter/Space 由原生按鈕觸發跳入）。
+    function focusCell(delta: number) {
+      const b = box();
+      if (!b) return;
+      const cells = Array.from(b.querySelectorAll<HTMLElement>('.pjx__cell'));
+      if (!cells.length) return;
+      let idx = cells.indexOf(document.activeElement as HTMLElement);
+      if (idx < 0) idx = cells.findIndex((c) => c.classList.contains('is-current'));
+      if (idx < 0) idx = 0;
+      const next = cells[(idx + delta + cells.length) % cells.length];
+      next.focus();
+      next.scrollIntoView({ block: 'nearest' });
+    }
+
     function open(node: HTMLImageElement) {
       const b = box();
       if (!b) return;
@@ -160,6 +238,11 @@
       items = Array.from(document.querySelectorAll<HTMLImageElement>('img.zoomable'));
       current = Math.max(0, items.indexOf(node));
       b.toggleAttribute('data-single', items.length < 2);
+      // 每次開啟都從「序列」起手（凝視優先）。
+      view = 'slides';
+      b.classList.remove('is-grid');
+      (el('.pjx__view--slides') as HTMLElement | null)?.setAttribute('aria-pressed', 'true');
+      (el('.pjx__view--grid') as HTMLElement | null)?.setAttribute('aria-pressed', 'false');
       render();
       b.setAttribute('aria-hidden', 'false');
       document.documentElement.style.overflow = 'hidden';
@@ -211,6 +294,15 @@
       if (t.closest('.pjx__prev')) return go(-1);
       if (t.closest('.pjx__next')) return go(1);
 
+      // 視圖切換與印樣選格：fine／coarse 皆走 click（按鈕原生），故置於 coarse 早退之前。
+      const viewBtn = t.closest('.pjx__view') as HTMLElement | null;
+      if (viewBtn) return setView(viewBtn.classList.contains('pjx__view--grid') ? 'grid' : 'slides');
+      const cell = t.closest('.pjx__cell') as HTMLElement | null;
+      if (cell) {
+        current = Number(cell.dataset.index) || 0;
+        return setView('slides'); // 顯影跳入該格
+      }
+
       // 觸控（coarse）：zoom／關閉一律不靠 click——交給 touchend 的 tap 消歧與
       // 向下拖曳關閉（§15）。避免「點暗場即關」「點影像即縮放」在拇指下誤觸。
       if (coarse()) return;
@@ -237,9 +329,17 @@
     // 鍵盤：Esc 關、←/→ 翻頁、Tab 鎖在對話框內（focus trap）。
     document.addEventListener('keydown', (e) => {
       if (!isOpen()) return;
-      if (e.key === 'Escape') return close();
-      if (e.key === 'ArrowLeft') return go(-1);
-      if (e.key === 'ArrowRight') return go(1);
+      // 總覽：Esc 退回序列（單層），方向鍵移動印樣格焦點。
+      if (view === 'grid') {
+        if (e.key === 'Escape') return setView('slides');
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); return focusCell(1); }
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); return focusCell(-1); }
+        // Tab 仍交給下方 focus trap
+      } else {
+        if (e.key === 'Escape') return close();
+        if (e.key === 'ArrowLeft') return go(-1);
+        if (e.key === 'ArrowRight') return go(1);
+      }
       if (e.key === 'Tab') {
         const f = focusables();
         if (f.length === 0) {
@@ -268,14 +368,14 @@
     // ── 觸控手勢（§15）：tap 切換 chrome、double-tap 縮放、水平滑翻頁、
     //    向下拖曳關閉。位移＋時間消歧，避免誤觸關閉。──────────────────────
     document.addEventListener('touchstart', (e) => {
-      if (!isOpen()) return;
+      if (!isOpen() || view === 'grid') return; // 總覽交給原生捲動
       const tc = e.changedTouches[0];
       tStartX = tc.clientX; tStartY = tc.clientY; tStartT = Date.now();
       dragging = false;
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
-      if (!isOpen() || zoomed) return; // 放大時交給 pointermove 平移
+      if (!isOpen() || zoomed || view === 'grid') return; // 放大／總覽交給原生
       const tc = e.changedTouches[0];
       const dx = tc.clientX - tStartX;
       const dy = tc.clientY - tStartY;
@@ -290,7 +390,7 @@
     }, { passive: true });
 
     document.addEventListener('touchend', (e) => {
-      if (!isOpen()) return;
+      if (!isOpen() || view === 'grid') return; // 總覽：tap 跳格由 click 處理
       const tc = e.changedTouches[0];
       const dx = tc.clientX - tStartX;
       const dy = tc.clientY - tStartY;
@@ -346,7 +446,9 @@
       if (b) {
         b.removeAttribute('data-open');
         b.setAttribute('aria-hidden', 'true');
+        b.classList.remove('is-grid');
       }
+      view = 'slides';
       document.documentElement.style.overflow = '';
       lastFocus = null; // 導覽後焦點來源已失效，勿還原
     });

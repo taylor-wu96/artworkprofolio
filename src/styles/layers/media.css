@@ -243,6 +243,120 @@
     }
   }
 
+  /* ---- 視圖切換：序列（凝視）／ 總覽（印樣選片）------------------------
+     頂部置中，與 close 同高度帶。當前視圖＝合法綠（「你在這個視圖」，白名單
+     之 current 狀態）。亮房（安靜亮場）不喚綠：改實墨表「當前」。 */
+  .pjx__views {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + clamp(0.6rem, 3vh, 1.4rem));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+  }
+  /* 單張無「一捲」可總覽——隱藏切換。 */
+  .pjx[data-single] .pjx__views { display: none; }
+  .pjx__view {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px; /* ≥44px 命中區（§14.3） */
+    padding: 0 0.3rem;
+    background: none;
+    border: none;
+    color: var(--g-ink-45);
+    font-family: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .pjx__view[aria-pressed='true'] { color: var(--accent); }
+  .pjx__view:hover { color: var(--g-ink-70); }
+  .pjx__viewsep { color: var(--g-ink-20); }
+  .pjx--light .pjx__view { color: var(--ink-45); }
+  .pjx--light .pjx__view[aria-pressed='true'] { color: var(--ink); }
+  .pjx--light .pjx__view:hover { color: var(--ink-70); }
+  .pjx--light .pjx__viewsep { color: var(--ink-15); }
+
+  /* ---- 印樣台（Grid 總覽）：整捲密排，膠捲齒孔編號 ----------------------
+     佔 stage 同一格（grid-row 1），is-grid 時頂出 stage/chrome/nav。 */
+  .pjx__grid {
+    grid-row: 1;
+    display: none;
+    align-content: start;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(120px, 22vw, 200px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+    overflow: auto;
+    touch-action: pan-y; /* 總覽恢復原生垂直捲動（覆蓋 .pjx 的 touch-action:none） */
+    -webkit-overflow-scrolling: touch;
+    /* 頂部留出 views 切換帶高度；底部安全區。 */
+    padding: calc(env(safe-area-inset-top, 0px) + clamp(3.4rem, 9vh, 5rem))
+      clamp(1rem, 4vw, 3rem)
+      calc(clamp(1.5rem, 4vh, 3rem) + env(safe-area-inset-bottom, 0px));
+  }
+  .pjx.is-grid .pjx__grid { display: grid; }
+  .pjx.is-grid .pjx__stage,
+  .pjx.is-grid .pjx__chrome,
+  .pjx.is-grid .pjx__nav { display: none; }
+
+  .pjx__cell {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 2; /* 35mm 印樣格 */
+    padding: 0;
+    border: 1px solid var(--hairline-dark);
+    background: var(--g-ink-20);
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color var(--dur-fast) var(--ease);
+  }
+  .pjx__cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 索引縮圖例外允許裁切（DESIGN §5） */
+    display: block;
+    opacity: 0.86;
+    transition: opacity var(--dur-fast) var(--ease), transform var(--dur) var(--ease);
+  }
+  .pjx__cell:hover img,
+  .pjx__cell:focus-visible img { opacity: 1; }
+  .pjx__cell:focus-visible { outline: none; border-color: var(--accent); }
+  .pjx__cellnum {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0.2rem 0.45rem;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+    color: var(--g-ink-70);
+    background: color-mix(in oklab, #0c0c0b 65%, transparent);
+  }
+  /* 「你剛剛在這一格」——凝視訊號（合法綠 current 狀態，呼應準星 lock）。 */
+  .pjx__cell.is-current { border-color: var(--accent); }
+  .pjx__cell.is-current::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 0 2px var(--accent);
+    pointer-events: none;
+  }
+  /* 亮房：不喚綠，用實墨外框表「當前」。 */
+  .pjx--light .pjx__cell { border-color: var(--ink-15); background: var(--ink-15); }
+  .pjx--light .pjx__cellnum {
+    color: var(--ink-70);
+    background: color-mix(in oklab, var(--paper) 65%, transparent);
+  }
+  .pjx--light .pjx__cell:focus-visible,
+  .pjx--light .pjx__cell.is-current { border-color: var(--ink); }
+  .pjx--light .pjx__cell.is-current::after { box-shadow: inset 0 0 0 2px var(--ink); }
+
   img.zoomable {
     cursor: zoom-in;
   }

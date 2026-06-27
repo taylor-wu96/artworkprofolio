@@ -67,11 +67,19 @@
     flex-wrap: wrap;
     gap: 0.8rem;
   }
-  .entry__themes span {
+  .entry__themes span,
+  .entry__themes a {
     font-size: var(--step--2);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--text-dim);
+  }
+  /* 主題＝可橫向跳轉的 facet：hover 觸碰的生機（DESIGN §4.1 白名單）。 */
+  .entry__themes a {
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .entry__themes a:hover {
+    color: var(--accent);
   }
   .entry__img {
     width: 100%;
