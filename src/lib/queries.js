@@ -29,8 +29,12 @@ const LIST_FIELDS = `
   "themes": themes[]->{title, "slug": slug.current}
 `;
 
-// 索引排序：精選置頂，其餘依日期。
-const LIST_ORDER = `order(coalesce(featured, false) desc, publishedAt desc)`;
+// 索引排序：純時間倒敘（ROADMAP-v4 A3・痛點5）。
+// 原為「精選置頂 → 依日期」，但首頁敘事是「依時間倒敘的檔案」＋年份分組＋「最新」標——
+// 精選把舊作插隊到第一位，打斷年份脊椎、讓編號與「最新」各說各話，背叛觀者的時間直覺。
+// 檔案的脊椎是時間的誠實，館不替任何一件插隊。featured 欄位保留備用：未來若要「此刻凝視」
+// 單格，由獨立查詢取之，不污染檔案排序。
+const LIST_ORDER = `order(publishedAt desc)`;
 
 export const POSTS_LIST = `
   *[_type == "post" && defined(slug.current) && status != "draft"] | ${LIST_ORDER}{

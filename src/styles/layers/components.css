@@ -307,8 +307,12 @@
   */
 
   /* ---- 文章 / 作品內頁（圖錄跨頁）------------------------------------- */
-  .work {
-    padding-block: clamp(2.5rem, 7vh, 6rem) clamp(4rem, 12vh, 9rem);
+  /* 進門退一步（ROADMAP-v4 B1・痛點2）：作品/影像集/互動內頁的標頭原本貼著黏性
+     導覽下緣（只有 .essay-layout 自帶頂距）。統一吃 --page-top 母距治根；散文版型
+     已自有 padding，不在此列。原孤兒 .work 規則（無任何頁面使用）已移除。 */
+  .artwork-layout,
+  .gallery-layout {
+    padding-block-start: var(--page-top);
   }
 
   .work__header {

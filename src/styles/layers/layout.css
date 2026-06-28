@@ -382,6 +382,12 @@
     border-bottom: 1px solid var(--line);
   }
 
+  /* 頁內錨點跳轉（首頁 #works）留位：黏性 .site-header 不蓋住被跳到的標頭
+     （ROADMAP-v4 B1・痛點2）。值＝導覽高 + 一口呼吸。 */
+  #works {
+    scroll-margin-top: calc(4rem + var(--space-md));
+  }
+
   .section-head__title {
     grid-column: 1 / -1;
     margin-top: 0.6rem;

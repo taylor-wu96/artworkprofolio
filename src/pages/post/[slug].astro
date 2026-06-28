@@ -165,11 +165,14 @@ const statement = (() => {
               </a>
             )}
           </div>
-          <p class="data-strip work__data">
-            <span>{sig.coord}</span>
-            <span class="data-strip__sig">{sig.code}</span>
-            <span>CH.{sig.channel}</span>
-          </p>
+          {/* S1 誠實化：有真座標/年份才顯示資料條，否則沉默（不捏造觀看痕跡）。 */}
+          {sig.real && (
+            <p class="data-strip work__data">
+              {sig.coord && <span>{sig.coord}</span>}
+              <span class="data-strip__sig">{sig.code}</span>
+              <span>CH.{sig.channel}</span>
+            </p>
+          )}
           <div class="work__glyph" set:html={signatureGlyph(slug, { size: 44 })} />
           {captureMeta.length > 0 && (
             <p class="work__capture">
@@ -254,11 +257,14 @@ const statement = (() => {
               </a>
             )}
           </div>
-          <p class="data-strip work__data">
-            <span>{sig.coord}</span>
-            <span class="data-strip__sig">{sig.code}</span>
-            <span>CH.{sig.channel}</span>
-          </p>
+          {/* S1 誠實化：有真座標/年份才顯示資料條，否則沉默（不捏造觀看痕跡）。 */}
+          {sig.real && (
+            <p class="data-strip work__data">
+              {sig.coord && <span>{sig.coord}</span>}
+              <span class="data-strip__sig">{sig.code}</span>
+              <span>CH.{sig.channel}</span>
+            </p>
+          )}
           <div class="work__glyph" set:html={signatureGlyph(slug, { size: 44 })} />
           {captureMeta.length > 0 && (
             <p class="work__capture">

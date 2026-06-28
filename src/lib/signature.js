@@ -1,7 +1,10 @@
 // 觀看的機器：每件作品的「檔案座標／簽名」。
-// 半真化（DESIGN §13 路線 A）：有真拍攝資料就用真的、缺則由 slug 種子生成
-// 決定性的 fallback。真假共用同一等寬視覺語言——機器要真的在觀看，
-// 但允許尚未回填的作品以生成值佔位。
+// 誠實化（ROADMAP-v5 S1・推翻原半真化路線 A）：座標只在有真拍攝資料（手填 capture
+// 或封面 EXIF/GPS）時顯示，缺則沉默——機器不捏造一件作品的觀看痕跡。一件作品的右下角
+// 空著，比貼一串假座標更有尊嚴；參差的沉默正是目的（治 AI 味的「無差別套用」）。
+// 回傳 `real` 旗標供呼叫端決定整條資料條是否渲染。
+// （內部抽象編碼 code＝0x 編目指紋，性質如館方流水號，非感測數據；僅在資料條已亮起
+//  時陪同顯示。）
 
 // FNV-1a 雜湊：字串 → 32-bit 種子
 function hashSeed(str = '') {
@@ -110,11 +113,16 @@ export function archiveSignature(seed = '', capture = null, assetMeta = null) {
     ? String(hashSeed(`${year}:${seed}`) % 10000).padStart(4, '0')
     : genChannel;
 
+  // 誠實化（S1）：有真資料（座標或年份）才視為「機器真的讀過這件」。否則整條沉默。
+  const real = coordReal || !!year;
+
   return {
-    coord: coordReal ? `${fmt(lat, 4)}° ${fmt(lon, 4)}°` : `${fmt(genLat, 4)}° ${fmt(genLon, 4)}°`,
+    // 座標只給真的；無真座標＝null（不再用 genLat/genLon 捏造）。
+    coord: coordReal ? `${fmt(lat, 4)}° ${fmt(lon, 4)}°` : null,
     code: `0x${hex}`,
     channel,
     coordReal,
     year,
+    real,
   };
 }

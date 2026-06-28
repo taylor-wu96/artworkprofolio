@@ -2,6 +2,7 @@
    影像板「顯影」、入場揭示、放映模式（Projection）、視覺隱藏工具、
    全域減少動態偏好。影像/動態行為層。 */
 @layer media {
+
   /* ---- 影像板「顯影」：lqip 模糊底 → 載入後轉銳利（暗房 develop）------ */
   .plate {
     display: block;
@@ -14,6 +15,7 @@
     background-size: cover;
     background-position: center;
   }
+
   .plate__img {
     display: block;
     width: 100%;
@@ -22,11 +24,15 @@
     opacity: 0;
     transition: opacity var(--dur-slow) var(--ease-out);
   }
+
   .plate__img.is-loaded {
     opacity: 1;
   }
+
   @media (prefers-reduced-motion: reduce) {
-    .plate__img { transition: none; }
+    .plate__img {
+      transition: none;
+    }
   }
 
   /* ---- 慢速、克制的入場揭示 ------------------------------------------ */
@@ -37,9 +43,23 @@
       transform var(--dur-slow) var(--ease-out);
     will-change: opacity, transform;
   }
+
   [data-reveal].is-visible {
     opacity: 1;
     transform: none;
+  }
+
+  /* ---- D1 兩房溫差到體感層（ROADMAP-v5）------------------------------------
+     把暗/亮的差異從「資訊層（換底色）」帶到「體感層（換體溫）」：同一套入場機制，
+     不同的落定深度。暗房＝沉入、屏息（更深的落定，像影像浮上暗牆）；亮房＝鬆開、
+     閱讀靜默（更淺、更輕的安定）。時長仍走既有 --dur-slow token，不新增動態方言
+     （DoD 第八問）；只調空間起點。reduced-motion 下方統一凍結（見檔尾全域規則）。 */
+  html[data-room='dark'] [data-reveal] {
+    transform: translateY(26px);
+  }
+
+  html[data-room='light'] [data-reveal] {
+    transform: translateY(8px);
   }
 
   /* ---- 放映模式（Projection）：滿版暗場・序列翻閱・顯影 --------------- */
@@ -47,8 +67,10 @@
     position: fixed;
     inset: 0;
     z-index: 100;
-    display: grid;
-    grid-template-rows: 1fr auto; /* 影像舞台 / 底部簽名標籤 */
+    /* ROADMAP-v4 A1（痛點4）：原為 grid `1fr auto`——底部 chrome 一換行就吃掉
+       影像的 1fr，長圖說因此把影像縮小／上移（手機最嚴重）。改為單層：舞台滿版、
+       chrome 覆蓋於底（見下）。影像位置從此只由舞台留位決定，與圖說長度脫鉤。 */
+    display: block;
     background: color-mix(in oklab, #0c0c0b 97%, black);
     /* 觸控手勢由本元件接管（拖曳關閉／滑動翻頁）：關掉原生捲動與下拉刷新。 */
     touch-action: none;
@@ -58,33 +80,54 @@
     pointer-events: none;
     transition: opacity var(--dur) var(--ease), visibility 0s linear var(--dur);
   }
+
   /* 亮房（閱讀）放映＝安靜亮場：不喚機器（無綠括弧／無簽名／無快門，見 §15 point 4）。 */
   .pjx.pjx--light {
     background: color-mix(in oklab, var(--paper) 97%, white);
   }
-  .pjx--light .pjx__c { display: none; }
-  .pjx--light .pjx__sig { display: none; }
+
+  .pjx--light .pjx__c {
+    display: none;
+  }
+
+  .pjx--light .pjx__sig {
+    display: none;
+  }
+
   .pjx--light .pjx__close,
   .pjx--light .pjx__count,
-  .pjx--light .pjx__caption { color: var(--ink-70); }
-  .pjx--light .pjx__nav { color: var(--ink-45); }
-  .pjx--light .pjx__chrome { border-top-color: var(--ink-15); }
+  .pjx--light .pjx__caption {
+    color: var(--ink-70);
+  }
+
+  .pjx--light .pjx__nav {
+    color: var(--ink-45);
+  }
+
+  .pjx--light .pjx__chrome {
+    border-top-color: var(--ink-15);
+  }
+
   .pjx[data-open] {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transition: opacity var(--dur) var(--ease);
   }
+
   .pjx__stage {
-    grid-row: 1;
-    position: relative;
+    /* 滿版舞台（A1）：絕對覆蓋整個放映層；底部以固定留位（--pjx-chrome-h）替 chrome
+       讓出空間，使置中影像永不被 chrome 遮住、也永不隨圖說長度位移。 */
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: clamp(1rem, 4vw, 3rem);
-    min-height: 0; /* 讓影像在 grid 內可收縮 */
+    padding-bottom: calc(clamp(1rem, 4vw, 3rem) + var(--pjx-chrome-h, clamp(3.5rem, 11vh, 5.5rem)));
     overflow: hidden;
   }
+
   .pjx__frame {
     position: relative;
     margin: 0;
@@ -94,6 +137,7 @@
     max-width: 100%;
     max-height: 100%;
   }
+
   /* 機器擷取：四角綠括弧，每格落定時 snap-in（凝視/監視母題，呼應全站準星）。 */
   .pjx__c {
     position: absolute;
@@ -103,40 +147,87 @@
     opacity: 0;
     pointer-events: none;
   }
-  .pjx__c.tl { top: -9px; left: -9px; border-right: 0; border-bottom: 0; }
-  .pjx__c.tr { top: -9px; right: -9px; border-left: 0; border-bottom: 0; }
-  .pjx__c.bl { bottom: -9px; left: -9px; border-right: 0; border-top: 0; }
-  .pjx__c.br { bottom: -9px; right: -9px; border-left: 0; border-top: 0; }
+
+  .pjx__c.tl {
+    top: -9px;
+    left: -9px;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .pjx__c.tr {
+    top: -9px;
+    right: -9px;
+    border-left: 0;
+    border-bottom: 0;
+  }
+
+  .pjx__c.bl {
+    bottom: -9px;
+    left: -9px;
+    border-right: 0;
+    border-top: 0;
+  }
+
+  .pjx__c.br {
+    bottom: -9px;
+    right: -9px;
+    border-left: 0;
+    border-top: 0;
+  }
+
   .pjx__frame.is-acquiring .pjx__c {
     animation: pjx-acquire var(--dur) var(--ease-out);
   }
+
   @keyframes pjx-acquire {
-    0% { opacity: 0; transform: scale(1.6); }
-    35% { opacity: 1; }
-    100% { opacity: 0; transform: scale(1); }
+    0% {
+      opacity: 0;
+      transform: scale(1.6);
+    }
+
+    35% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
   }
-  .pjx.is-zoomed .pjx__c { display: none; }
+
+  .pjx.is-zoomed .pjx__c {
+    display: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .pjx__frame.is-acquiring .pjx__c { animation: none; }
+    .pjx__frame.is-acquiring .pjx__c {
+      animation: none;
+    }
   }
+
   .pjx__img {
     max-width: 92vw;
     max-height: 80vh;
     width: auto;
-    height: auto; /* 放映同樣不裁切 */
+    height: auto;
+    /* 放映同樣不裁切 */
     cursor: zoom-in;
     /* 顯影：高解析載入前先模糊；切換時隨之溶接。 */
     transition: filter var(--dur-slow) var(--ease-out), opacity var(--dur) var(--ease);
   }
+
   .pjx__img.is-developing {
     filter: blur(12px);
     opacity: 0.92;
   }
+
   .pjx.is-zoomed .pjx__img {
     max-width: none;
     max-height: none;
     cursor: zoom-out;
-    transition: none; /* 平移要即時跟手 */
+    transition: none;
+    /* 平移要即時跟手 */
   }
 
   /* 翻頁：左右大熱區，克制的綠 hover（互動生機）。 */
@@ -155,25 +246,32 @@
     cursor: pointer;
     transition: color var(--dur-fast) var(--ease);
   }
+
   .pjx__nav:hover {
     color: var(--accent);
   }
+
   .pjx__prev {
     left: 0;
     justify-content: flex-start;
     padding-left: clamp(1rem, 3vw, 2rem);
   }
+
   .pjx__next {
     right: 0;
     justify-content: flex-end;
     padding-right: clamp(1rem, 3vw, 2rem);
   }
+
   .pjx[data-single] .pjx__nav {
     display: none;
   }
+
   /* 觸控（coarse）：移除與影像重疊的左右邊緣熱區——改靠水平滑動＋底部明確翻頁鈕（§15）。 */
   @media (pointer: coarse) {
-    .pjx__nav { display: none; }
+    .pjx__nav {
+      display: none;
+    }
   }
 
   .pjx__close {
@@ -195,6 +293,7 @@
     cursor: pointer;
     transition: color var(--dur-fast) var(--ease);
   }
+
   .pjx__close:hover {
     color: var(--accent);
   }
@@ -202,7 +301,13 @@
   /* 底部標籤：編號（mono）＋ 機器簽名 ＋ 圖說（Davison 編號 × Ikeda 資料）。
      翻頁：fine＝左右邊緣熱區；coarse＝水平 swipe（§15）。不放重複的明確翻頁鈕。 */
   .pjx__chrome {
-    grid-row: 2;
+    /* 覆蓋於底（A1）：絕對定位、疊在舞台之上，不再佔 grid 列、不再壓縮影像。
+       一道由下而上的極淡 scrim 讓資料浮在影像邊緣仍可讀（合法漸層：媒體 scrim 前例）。 */
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -210,14 +315,28 @@
     padding: clamp(0.9rem, 3vh, 1.4rem) clamp(1.2rem, 4vw, 2.4rem);
     /* 底部安全區（避開瀏海手機的圓角／home indicator）。 */
     padding-bottom: calc(clamp(1.4rem, 4vh, 2.2rem) + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to top,
+        color-mix(in oklab, var(--gallery) 90%, transparent),
+        color-mix(in oklab, var(--gallery) 55%, transparent) 60%,
+        transparent);
     border-top: 1px solid var(--hairline-dark);
     transition: opacity var(--dur) var(--ease);
   }
+
+  /* 亮房放映：scrim 換紙底（安靜亮場，不喚機器）。 */
+  .pjx--light .pjx__chrome {
+    background: linear-gradient(to top,
+        color-mix(in oklab, var(--paper) 90%, transparent),
+        color-mix(in oklab, var(--paper) 55%, transparent) 60%,
+        transparent);
+  }
+
   /* 單 tap 切換：純淨影像 ↔ 看資料（觸控，§15）。 */
   .pjx.is-bare .pjx__chrome {
     opacity: 0;
     pointer-events: none;
   }
+
   .pjx__count {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
@@ -225,12 +344,15 @@
     color: var(--g-ink-70);
     font-size: var(--step--2);
   }
+
   .pjx__count:empty {
     display: none;
   }
+
   .pjx__sig:empty {
     display: none;
   }
+
   /* 機器讀檔：真 EXIF 五參數。等寬、極小、配角——影像永遠是主角（DESIGN §4.3）。 */
   .pjx__exif {
     font-family: var(--font-mono);
@@ -239,22 +361,37 @@
     font-size: var(--step--2);
     color: var(--g-ink-45);
   }
+
   .pjx__exif:empty {
     display: none;
   }
+
   .pjx--light .pjx__exif {
     color: var(--ink-45);
   }
+
   .pjx__caption {
     color: var(--g-ink-45);
     font-size: var(--step--2);
     letter-spacing: 0.04em;
     line-height: 1.5;
+    /* 圖說單行收斂（A1）：吸收剩餘寬、過長以省略號截斷，不再換行撐高 chrome。
+       長篇論述交給「說明 / Statement」呼出面板（圖說是標牌，不是說明書）。 */
+    flex: 1 1 12rem;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pjx__caption:empty {
+    display: none;
   }
 
   /* 「說明」呼出鈕：靠右收於 chrome 尾，克制 mono；展開時轉綠（可啟動訊號）。 */
   .pjx__stmt {
-    margin-left: auto; /* 推到 chrome 最右 */
+    margin-left: auto;
+    /* 推到 chrome 最右 */
     min-height: 44px;
     padding: 0 0.2rem;
     background: none;
@@ -266,12 +403,30 @@
     cursor: pointer;
     transition: color var(--dur-fast) var(--ease);
   }
-  .pjx__stmt[hidden] { display: none; }
-  .pjx__stmt:hover { color: var(--g-ink-70); }
-  .pjx__stmt[aria-expanded='true'] { color: var(--accent); }
-  .pjx--light .pjx__stmt { color: var(--ink-45); }
-  .pjx--light .pjx__stmt:hover { color: var(--ink-70); }
-  .pjx--light .pjx__stmt[aria-expanded='true'] { color: var(--ink); }
+
+  .pjx__stmt[hidden] {
+    display: none;
+  }
+
+  .pjx__stmt:hover {
+    color: var(--g-ink-70);
+  }
+
+  .pjx__stmt[aria-expanded='true'] {
+    color: var(--accent);
+  }
+
+  .pjx--light .pjx__stmt {
+    color: var(--ink-45);
+  }
+
+  .pjx--light .pjx__stmt:hover {
+    color: var(--ink-70);
+  }
+
+  .pjx--light .pjx__stmt[aria-expanded='true'] {
+    color: var(--ink);
+  }
 
   /* 論述面板：自底上滑，半透明暗場——影像仍在（文字是邀請，不是遮蔽）。 */
   .pjx__statement {
@@ -280,25 +435,31 @@
     right: 0;
     bottom: 0;
     z-index: 4;
-    padding: clamp(2rem, 6vh, 3.5rem) clamp(1.4rem, 5vw, 4rem)
-      calc(clamp(2rem, 6vh, 3.5rem) + env(safe-area-inset-bottom, 0px));
-    background: color-mix(in oklab, #0c0c0b 85%, transparent);
-    transform: translateY(101%);
+    padding: clamp(2rem, 6vh, 3.5rem) clamp(1.4rem, 5vw, 4rem) calc(clamp(2rem, 6vh, 3.5rem) + env(safe-area-inset-bottom, 0px));
+    /* background: linear-gradient(to top,
+        color-mix(in oklab, #0c0c0b 92%, transparent) 0%,
+        color-mix(in oklab, #0c0c0b 78%, transparent) 70%,
+        transparent 100%);
+    transform: translateY(101%); */
     opacity: 0;
     pointer-events: none;
     transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
-    cursor: pointer; /* 點面板＝讀完收起 */
+    cursor: pointer;
+    /* 點面板＝讀完收起 */
   }
+
   .pjx.is-statement .pjx__statement {
     transform: translateY(0);
     opacity: 1;
     pointer-events: auto;
   }
+
   /* 論述開著時，底部 chrome 收起避免雙層文字打架。 */
   .pjx.is-statement .pjx__chrome {
     opacity: 0;
     pointer-events: none;
   }
+
   .pjx__statement-body {
     max-width: var(--measure);
     margin: 0 auto;
@@ -308,13 +469,25 @@
     color: var(--g-ink-70);
     letter-spacing: 0.01em;
   }
-  .pjx--light .pjx__statement {
-    background: color-mix(in oklab, var(--paper) 88%, transparent);
+
+  /* .pjx--light .pjx__statement {
+    background: linear-gradient(to top,
+        color-mix(in oklab, var(--paper) 94%, transparent) 0%,
+        color-mix(in oklab, var(--paper) 82%, transparent) 70%,
+        transparent 100%);
+  } */
+
+  .pjx--light .pjx__statement-body {
+    color: var(--ink-70);
   }
-  .pjx--light .pjx__statement-body { color: var(--ink-70); }
+
   @media (prefers-reduced-motion: reduce) {
-    .pjx__statement { transition: opacity var(--dur) var(--ease); transform: none; }
+    .pjx__statement {
+      transition: opacity var(--dur) var(--ease);
+      transform: none;
+    }
   }
+
   @media (prefers-reduced-motion: reduce) {
     .pjx__img {
       transition: none;
@@ -337,12 +510,17 @@
     font-size: 0.82rem;
     letter-spacing: 0.12em;
   }
+
   /* 單張無「一捲」可總覽——隱藏切換。 */
-  .pjx[data-single] .pjx__views { display: none; }
+  .pjx[data-single] .pjx__views {
+    display: none;
+  }
+
   .pjx__view {
     display: inline-flex;
     align-items: center;
-    min-height: 44px; /* ≥44px 命中區（§14.3） */
+    min-height: 44px;
+    /* ≥44px 命中區（§14.3） */
     padding: 0 0.3rem;
     background: none;
     border: none;
@@ -353,42 +531,71 @@
     cursor: pointer;
     transition: color var(--dur-fast) var(--ease);
   }
-  .pjx__view[aria-pressed='true'] { color: var(--accent); }
-  .pjx__view:hover { color: var(--g-ink-70); }
-  .pjx__viewsep { color: var(--g-ink-20); }
-  .pjx--light .pjx__view { color: var(--ink-45); }
-  .pjx--light .pjx__view[aria-pressed='true'] { color: var(--ink); }
-  .pjx--light .pjx__view:hover { color: var(--ink-70); }
-  .pjx--light .pjx__viewsep { color: var(--ink-15); }
+
+  .pjx__view[aria-pressed='true'] {
+    color: var(--accent);
+  }
+
+  .pjx__view:hover {
+    color: var(--g-ink-70);
+  }
+
+  .pjx__viewsep {
+    color: var(--g-ink-20);
+  }
+
+  .pjx--light .pjx__view {
+    color: var(--ink-45);
+  }
+
+  .pjx--light .pjx__view[aria-pressed='true'] {
+    color: var(--ink);
+  }
+
+  .pjx--light .pjx__view:hover {
+    color: var(--ink-70);
+  }
+
+  .pjx--light .pjx__viewsep {
+    color: var(--ink-15);
+  }
 
   /* ---- 印樣台（Grid 總覽）：整捲密排，膠捲齒孔編號 ----------------------
      佔 stage 同一格（grid-row 1），is-grid 時頂出 stage/chrome/nav。 */
   .pjx__grid {
     grid-row: 1;
-    min-height: 0; /* grid item 預設 min-height:auto 會撐到內容高而不內捲；歸零才保證
+    min-height: 0;
+    /* grid item 預設 min-height:auto 會撐到內容高而不內捲；歸零才保證
                       長影像集在短視窗（IG 內建瀏覽器）內部捲動、到得了底。 */
     display: none;
     overflow-y: auto;
     overflow-x: hidden;
-    touch-action: pan-y; /* 總覽恢復原生垂直捲動（覆蓋 .pjx 的 touch-action:none） */
+    touch-action: pan-y;
+    /* 總覽恢復原生垂直捲動（覆蓋 .pjx 的 touch-action:none） */
     -webkit-overflow-scrolling: touch;
     /* 頂部留出 views 切換帶：用「固定 min」而非 vh——切換帶是固定高（top 偏移＋44px
        命中區≈4.1rem），若用 9vh 在短視窗（如 IG 內建瀏覽器）會塌到切換帶之下而重疊。
        故 min 4.7rem 恆清開切換帶，視窗夠高才以 vh 增呼吸。底部留安全區。 */
-    padding: calc(env(safe-area-inset-top, 0px) + clamp(4.7rem, 7vh, 5.6rem))
-      clamp(1rem, 4vw, 3rem)
-      calc(clamp(1.5rem, 4vh, 3rem) + env(safe-area-inset-bottom, 0px));
+    padding: calc(env(safe-area-inset-top, 0px) + clamp(4.7rem, 7vh, 5.6rem)) clamp(1rem, 4vw, 3rem) calc(clamp(1.5rem, 4vh, 3rem) + env(safe-area-inset-bottom, 0px));
   }
+
   /* masonry 內層：多欄、各圖原生比例自然落位（永不裁切）。外層固定高捲動，內層高度
      隨內容增長＝多欄在自然高度平衡，故垂直捲動正常、不產生橫向欄溢出。 */
   .pjx__grid-inner {
     column-width: clamp(120px, 22vw, 200px);
     column-gap: clamp(0.5rem, 1.5vw, 1rem);
   }
-  .pjx.is-grid .pjx__grid { display: block; }
+
+  .pjx.is-grid .pjx__grid {
+    display: block;
+  }
+
   .pjx.is-grid .pjx__stage,
   .pjx.is-grid .pjx__chrome,
-  .pjx.is-grid .pjx__nav { display: none; }
+  .pjx.is-grid .pjx__nav {
+    display: none;
+  }
+
   /* 頂部遮罩帶：切換帶（序列／總覽・關閉）本身無底，捲動時縮圖會穿到文字下。
      在總覽加一條與表面同色的漸層帶（z 2＝壓在縮圖上、讓在控制 z 3 之下），
      縮圖捲到頂即沒入此帶，控制文字恆清晰。slides 視圖不需要（影像置中留白）。 */
@@ -401,6 +608,7 @@
     pointer-events: none;
     background: #0c0c0b;
   }
+
   .pjx--light.pjx.is-grid::before {
     background: var(--paper);
   }
@@ -409,8 +617,10 @@
     position: relative;
     display: block;
     width: 100%;
-    margin-bottom: clamp(0.5rem, 1.5vw, 1rem); /* 欄內垂直間距（column-gap 只管水平） */
-    break-inside: avoid; /* 一格不被拆到兩欄 */
+    margin-bottom: clamp(0.5rem, 1.5vw, 1rem);
+    /* 欄內垂直間距（column-gap 只管水平） */
+    break-inside: avoid;
+    /* 一格不被拆到兩欄 */
     -webkit-column-break-inside: avoid;
     padding: 0;
     border: 1px solid var(--hairline-dark);
@@ -419,6 +629,7 @@
     overflow: hidden;
     transition: border-color var(--dur-fast) var(--ease);
   }
+
   /* 各圖以原生比例完整呈現——不裁切、不擠壓（DESIGN §5）。寬高屬性已撐版位。 */
   .pjx__cell img {
     width: 100%;
@@ -427,9 +638,17 @@
     opacity: 0.86;
     transition: opacity var(--dur-fast) var(--ease), transform var(--dur) var(--ease);
   }
+
   .pjx__cell:hover img,
-  .pjx__cell:focus-visible img { opacity: 1; }
-  .pjx__cell:focus-visible { outline: none; border-color: var(--accent); }
+  .pjx__cell:focus-visible img {
+    opacity: 1;
+  }
+
+  .pjx__cell:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+  }
+
   .pjx__cellnum {
     position: absolute;
     top: 0;
@@ -442,8 +661,12 @@
     color: var(--g-ink-70);
     background: color-mix(in oklab, #0c0c0b 65%, transparent);
   }
+
   /* 「你剛剛在這一格」——凝視訊號（合法綠 current 狀態，呼應準星 lock）。 */
-  .pjx__cell.is-current { border-color: var(--accent); }
+  .pjx__cell.is-current {
+    border-color: var(--accent);
+  }
+
   .pjx__cell.is-current::after {
     content: '';
     position: absolute;
@@ -451,15 +674,26 @@
     box-shadow: inset 0 0 0 2px var(--accent);
     pointer-events: none;
   }
+
   /* 亮房：不喚綠，用實墨外框表「當前」。 */
-  .pjx--light .pjx__cell { border-color: var(--ink-15); background: var(--ink-15); }
+  .pjx--light .pjx__cell {
+    border-color: var(--ink-15);
+    background: var(--ink-15);
+  }
+
   .pjx--light .pjx__cellnum {
     color: var(--ink-70);
     background: color-mix(in oklab, var(--paper) 65%, transparent);
   }
+
   .pjx--light .pjx__cell:focus-visible,
-  .pjx--light .pjx__cell.is-current { border-color: var(--ink); }
-  .pjx--light .pjx__cell.is-current::after { box-shadow: inset 0 0 0 2px var(--ink); }
+  .pjx--light .pjx__cell.is-current {
+    border-color: var(--ink);
+  }
+
+  .pjx--light .pjx__cell.is-current::after {
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
 
   img.zoomable {
     cursor: zoom-in;
@@ -481,12 +715,14 @@
 
 /* ---- 尊重減少動態的偏好（全域，刻意置於所有層之外：!important 保證壓過一切）-- */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+
   [data-reveal] {
     opacity: 1;
     transform: none;

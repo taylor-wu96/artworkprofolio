@@ -64,7 +64,7 @@ const newestSlug = [...works].sort(
     <header class="section-head grid-12">
       <span class="label section-head__label">索引 / Works</span>
       <h2 class="display section-head__title">作品檔案</h2>
-      <p class="section-head__lede">全部影像，依時間倒敘的檔案。在這裡每一格被單獨凝視——一張，就是一張。</p>
+      <p class="section-head__lede">全部影像，依拍攝時間倒敘排列。</p>
       <RoomNav current="works" />
     </header>
 
@@ -97,12 +97,16 @@ const newestSlug = [...works].sort(
                     </span>
                   )}
                   <span class="entry__num">{fmtDate(p.publishedAt)}</span>
-                  <span class="data-strip">
-                    <span>{sig.coord}</span>
-                    <span class="data-strip__sig">{sig.code}</span>
-                    <span>CH.{sig.channel}</span>
-                    {isSketch && p.engine && <span>▸{String(p.engine).toUpperCase()}</span>}
-                  </span>
+                  {/* S1 誠實化：資料條只在機器真的讀過這件（有真座標/年份）時亮起；
+                      否則沉默——參差的留白正是目的。互動作品的引擎是真訊號，故另計。 */}
+                  {(sig.real || (isSketch && p.engine)) && (
+                    <span class="data-strip">
+                      {sig.coord && <span>{sig.coord}</span>}
+                      {sig.real && <span class="data-strip__sig">{sig.code}</span>}
+                      {sig.real && <span>CH.{sig.channel}</span>}
+                      {isSketch && p.engine && <span>▸{String(p.engine).toUpperCase()}</span>}
+                    </span>
+                  )}
                 </div>
                 <a class="entry__plate" href={href}>
                   {p.cover ? (

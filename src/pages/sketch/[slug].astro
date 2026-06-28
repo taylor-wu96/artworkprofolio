@@ -60,12 +60,15 @@ const thumb = (img) => urlFor(img).width(640).height(480).fit('crop').url();
           {sketch.themes?.length > 0 &&
             sketch.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
         </div>
-        <p class="data-strip work__data">
-          <span>{sig.coord}</span>
-          <span class="data-strip__sig">{sig.code}</span>
-          <span>CH.{sig.channel}</span>
-          {engineLabel && <span>▸{engineLabel}</span>}
-        </p>
+        {/* S1 誠實化：有真座標/年份才顯示生成式編碼；引擎是互動作品的真訊號，故另計。 */}
+        {(sig.real || engineLabel) && (
+          <p class="data-strip work__data">
+            {sig.coord && <span>{sig.coord}</span>}
+            {sig.real && <span class="data-strip__sig">{sig.code}</span>}
+            {sig.real && <span>CH.{sig.channel}</span>}
+            {engineLabel && <span>▸{engineLabel}</span>}
+          </p>
+        )}
         <div class="work__glyph" set:html={signatureGlyph(slug, { size: 44 })} />
         {captureMeta.length > 0 && (
           <p class="work__capture">
