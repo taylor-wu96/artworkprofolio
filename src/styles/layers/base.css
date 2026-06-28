@@ -14,7 +14,7 @@
     color: var(--text);
     /* 介面預設：瑞士式中性無襯線（長文另切換為宋體 --font-read） */
     font-family: var(--font-ui);
-    font-size: 17px;
+    font-size: 16px;
     line-height: 1.55;
     -webkit-text-size-adjust: 100%;
     transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
@@ -93,7 +93,7 @@
 
   .display {
     font-size: var(--display);
-    line-height: 1.02;
+    line-height: 1.05;
     font-weight: var(--display-weight);
     /* 依房間：暗房輕量 / 亮房半粗 */
     letter-spacing: -0.015em;

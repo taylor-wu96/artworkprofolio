@@ -1,4 +1,4 @@
-# 光・門檻・衰敗 — 攝影 zine
+# 潮濕的質地 — 攝影 zine
 
 前台 **Astro 6 + React Three Fiber**｜後台 **Sanity**｜部署 **Cloudflare Pages**。
 主題：光 / 門檻與邊界 / 衰敗與生機並存。

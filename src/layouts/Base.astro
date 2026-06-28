@@ -17,7 +17,7 @@ interface Props {
 }
 
 const {
-  title = '光・門檻・衰敗 — 攝影檔案',
+  title = '潮濕的質地 — 攝影檔案',
   description = '一個關於光、門檻與邊界、衰敗與生機並存的攝影檔案。',
   image,
   imageAlt,
@@ -27,7 +27,7 @@ const {
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = image ? new URL(image, Astro.site).toString() : undefined;
-const SITE_NAME = '光・門檻・衰敗';
+const SITE_NAME = '潮濕的質地';
 const path = Astro.url.pathname;
 const isWorks = activeSection ? activeSection === 'works' : (path === '/' || path.startsWith('/post'));
 const isGallery = activeSection ? activeSection === 'gallery' : path.startsWith('/gallery');
@@ -95,7 +95,7 @@ const showWritings = (navCounts?.essays ?? 0) > 0 || isWritings;
 
     <header class="site-header">
       <div class="container site-header__inner">
-        <a class="brand" href="/">光・門檻・衰敗</a>
+        <a class="brand" href="/">潮濕的質地</a>
         <div class="site-header__right">
         <nav class="nav" aria-label="主導覽">
           <a href="/" aria-current={isWorks ? 'page' : undefined}>作品</a>
@@ -130,7 +130,7 @@ const showWritings = (navCounts?.essays ?? 0) > 0 || isWritings;
 
     <footer class="site-footer">
       <div class="container site-footer__inner">
-        <span>光・門檻・衰敗</span>
+        <span>潮濕的質地</span>
         <span>攝影檔案 · {new Date().getFullYear()}</span>
         <a href="/rss.xml">RSS</a>
       </div>

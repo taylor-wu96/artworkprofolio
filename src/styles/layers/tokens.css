@@ -46,7 +46,7 @@
     --space-3xl: 96px;
     --space-4xl: 128px;
     --space-5xl: 160px;
-    --margin: clamp(20px, 5vw, 90px);
+    --margin: clamp(20px, 5vw, 64px);
     --col-gap: clamp(16px, 2.2vw, 30px);
     --measure: 40rem; /* 約 38–40 個中文字寬 */
     /* 進門退一步：所有內頁標頭與黏性導覽之間的統一呼吸（ROADMAP-v4 B1）。

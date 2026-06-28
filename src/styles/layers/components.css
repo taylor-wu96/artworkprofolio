@@ -11,15 +11,15 @@
 
   .year-marker {
     grid-column: 1 / -1;
-    padding-block: clamp(2.5rem, 7vh, 5rem) 1rem;
-    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    padding-block: clamp(2rem, 5vh, 3.5rem) 0.8rem;
+    font-size: var(--step-1);
     font-weight: 500;
     color: var(--text-muted);
     border-top: 1px solid var(--line);
   }
 
   .entry {
-    padding-block: clamp(2.2rem, 6vh, 4.5rem);
+    padding-block: clamp(1.8rem, 5vh, 3.5rem);
   }
 
   .entry__meta {
@@ -120,7 +120,7 @@
 
   .entry__title {
     margin-top: 1rem;
-    font-size: clamp(1.2rem, 2.6vw, 1.7rem);
+    font-size: var(--step-2);
     /* v2.2 收斂 */
     font-weight: var(--fw-regular);
     /* 暗房圖錄條目：展覽輕量 */
@@ -316,7 +316,7 @@
   }
 
   .work__header {
-    margin-bottom: clamp(2rem, 6vh, 4rem);
+    margin-bottom: clamp(1.5rem, 4vh, 3rem);
   }
 
   .work__title {
@@ -330,7 +330,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    font-size: 0.78rem;
+    font-size: var(--step--1);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--text-dim);
@@ -360,14 +360,14 @@
     max-width: var(--measure);
     font-family: var(--font-read);
     font-size: var(--read-size);
-    line-height: 1.85;
+    line-height: 1.8;
     /* 中文舒適行高 */
     color: var(--text-body);
     /* 亮房實墨／暗房軟白（DESIGN §6 閱讀對比）*/
   }
 
   .prose>*+* {
-    margin-top: 1.6em;
+    margin-top: 1.4em;
   }
 
   .prose img {
@@ -405,12 +405,12 @@
 
   .prose h2 {
     font-size: 1.2rem;
-    margin-top: 2.4rem;
+    margin-top: 2rem;
   }
 
   .prose h3 {
     font-size: 1.05rem;
-    margin-top: 1.9rem;
+    margin-top: 1.6rem;
   }
 
   /* 內文連結＝墨色字＋地衣綠下緣細線；hover 整體轉綠（v2.2：綠回到內文，
@@ -433,7 +433,7 @@
     margin-inline: 0;
     padding-left: 1.4rem;
     border-left: 2px solid var(--text);
-    font-size: 1.32rem;
+    font-size: var(--step-1);
     line-height: 1.7;
     color: var(--text);
   }
@@ -508,10 +508,10 @@
 
   /* ---- 影像集（不裁切、單欄為主、大量留白）--------------------------- */
   .plates {
-    margin-top: clamp(3rem, 9vh, 6rem);
+    margin-top: clamp(2rem, 6vh, 4rem);
     display: grid;
     grid-template-columns: 1fr;
-    gap: clamp(2.5rem, 8vh, 5rem);
+    gap: clamp(2rem, 6vh, 4rem);
   }
 
   .plates figure {
@@ -537,7 +537,7 @@
   /* ---- 頁尾 ------------------------------------------------------------ */
   .site-footer {
     border-top: 1px solid var(--line);
-    margin-top: clamp(4rem, 12vh, 9rem);
+    margin-top: clamp(3rem, 8vh, 6rem);
     padding-block: 2.5rem clamp(2.5rem, 6vh, 4rem);
   }
 
@@ -569,10 +569,10 @@
   }
 
   .plates--gallery {
-    margin-top: var(--space-2xl);
+    margin-top: clamp(var(--space-lg), 8vh, var(--space-3xl));
     display: flex;
     flex-direction: column;
-    gap: clamp(var(--space-3xl), 16vh, var(--space-5xl));
+    gap: clamp(var(--space-2xl), 12vh, var(--space-4xl));
   }
 
   /* 行動／窄屏：單純直欄堆疊（aside 在影像之上、各自滿寬）。不用 12 欄 grid——
@@ -599,19 +599,19 @@
   }
 
   .gallery-item__n {
-    font-size: var(--step-3);
-    /* 編輯級大編號 */
+    font-size: var(--step-2);
+    /* 編輯級大編號（收斂至 step-2 = 1.5625rem） */
     color: var(--text);
     letter-spacing: 0.02em;
   }
 
   .gallery-item__total {
-    font-size: var(--step-0);
+    font-size: var(--step--1);
     color: var(--text-dim);
   }
 
   .gallery-caption {
-    font-size: 0.86rem;
+    font-size: var(--step--1);
     letter-spacing: 0.02em;
     color: var(--text-dim);
     line-height: 1.7;

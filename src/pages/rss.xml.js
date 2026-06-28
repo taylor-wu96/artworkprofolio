@@ -5,7 +5,7 @@ import { POSTS_LIST } from '../lib/queries.js';
 export async function GET(context) {
   const posts = await safeFetch(POSTS_LIST);
   return rss({
-    title: '光・門檻・衰敗 — 攝影 zine',
+    title: '潮濕的質地 — 攝影 zine',
     description: '關於光、門檻與邊界、衰敗與生機並存的攝影作品集。',
     site: context.site,
     items: posts
