@@ -282,12 +282,7 @@
     z-index: 4;
     padding: clamp(2rem, 6vh, 3.5rem) clamp(1.4rem, 5vw, 4rem)
       calc(clamp(2rem, 6vh, 3.5rem) + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(
-      to top,
-      color-mix(in oklab, #0c0c0b 92%, transparent) 0%,
-      color-mix(in oklab, #0c0c0b 78%, transparent) 70%,
-      transparent 100%
-    );
+    background: color-mix(in oklab, #0c0c0b 85%, transparent);
     transform: translateY(101%);
     opacity: 0;
     pointer-events: none;
@@ -314,12 +309,7 @@
     letter-spacing: 0.01em;
   }
   .pjx--light .pjx__statement {
-    background: linear-gradient(
-      to top,
-      color-mix(in oklab, var(--paper) 94%, transparent) 0%,
-      color-mix(in oklab, var(--paper) 82%, transparent) 70%,
-      transparent 100%
-    );
+    background: color-mix(in oklab, var(--paper) 88%, transparent);
   }
   .pjx--light .pjx__statement-body { color: var(--ink-70); }
   @media (prefers-reduced-motion: reduce) {
@@ -409,20 +399,10 @@
     height: calc(env(safe-area-inset-top, 0px) + 4.4rem);
     z-index: 2;
     pointer-events: none;
-    background: linear-gradient(
-      to bottom,
-      #0c0c0b 55%,
-      color-mix(in oklab, #0c0c0b 60%, transparent) 82%,
-      transparent 100%
-    );
+    background: #0c0c0b;
   }
   .pjx--light.pjx.is-grid::before {
-    background: linear-gradient(
-      to bottom,
-      var(--paper) 55%,
-      color-mix(in oklab, var(--paper) 60%, transparent) 82%,
-      transparent 100%
-    );
+    background: var(--paper);
   }
 
   .pjx__cell {

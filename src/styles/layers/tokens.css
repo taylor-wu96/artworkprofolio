@@ -57,8 +57,8 @@
     --step-1: 1.25rem;
     --step-2: 1.5625rem;
     --step-3: 1.953rem;
-    --display: clamp(1.7rem, 3.6vw, 3rem); /* v2.2 收斂：max 4.6→3rem */
-    --hero-title: clamp(1.6rem, 3.4vw, 2.7rem); /* v2.2 收斂：max 3.4→2.7rem */
+    --display: clamp(1.7rem, 3.6vw, 2.2rem); /* v2.3 收斂：max 3rem→2.2rem */
+    --hero-title: clamp(1.6rem, 3.4vw, 2.0rem); /* v2.3 收斂：max 2.7rem→2.0rem */
     --read-size: 1.12rem; /* ≈19px，亮房長文基準 */
 
     /* ---- 地基 ③：動態（duration / easing）----------------------------- */
@@ -67,6 +67,14 @@
     --dur-slow: 1.5s;
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     --ease: ease;
+
+    /* ---- 地基 ③′：母拍（ROADMAP-v3 · T1 一致的呼吸）-------------------
+     全館「活訊號」共用的同一個心跳。所有循環式呼吸（WIP 綠標、聲音波形、
+     入口邀請、3D 那一粒綠光）一律是它的諧波或同源，讓散落各處的脈動收成
+     「一個生命體的同一次吸吐」，而非五個各跳各的時鐘（DESIGN §4.1 那一粒活點
+     的時間化）。跨介質誠實：CSS 共用此變數；WebGL/WebAudio 讀不到 CSS 變數，
+     故以同一個數字 3.6 為基底推導頻率並寫進註解——是「諧波鎖定」，非「碰巧接近」。 */
+    --pulse: 3.6s;
 
     /* ---- 地基 ④：字重階梯（取代「全部 500」的平階層）------------------
      依房間混用：標題字重由 --display-weight 驅動——

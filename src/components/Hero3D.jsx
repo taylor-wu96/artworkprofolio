@@ -6,6 +6,13 @@ import * as THREE from 'three';
 // 沉思內核（Anadol 點雲 / Turrell・Eliasson 光場）不變；
 // 階段 B 演化：① 滾動驅動 ② 指標互動（門檻/被觸碰）③ 一粒綠光（衰敗中的生機）。
 
+// 母拍（ROADMAP-v3 · T1 一致的呼吸）：與 CSS 的 --pulse 同一個數字 3.6s。
+// WebGL 讀不到 CSS 變數，故在此以同一基底推導「那一粒綠光」的脈動頻率——
+// 綠光脈動週期 = 母拍 × 14（≈50.4s，維持 Turrell 沉思的慢），與全館每一處
+// 綠的呼吸諧波鎖定（非碰巧接近）。改母拍＝全館同步改，這裡也跟著動。
+const PULSE = 3.6;
+const GREEN_PULSE_HZ = (2 * Math.PI) / (PULSE * 14);
+
 function softSprite() {
   const size = 64;
   const canvas = document.createElement('canvas');
@@ -125,7 +132,9 @@ function LightField({ scroll, prefersReduced }) {
 
     if (greenMat.current) {
       // 綠光獨立、更慢的脈動——像還在呼吸的生命；淡得最慢，最後消融。
-      const pulse = prefersReduced ? 0.85 : 0.6 + (Math.sin(t * 0.12) + 1) * 0.22;
+      // 頻率鎖定母拍諧波（T1）：與 CSS 的 WIP 綠標、聲音波形同源同吸吐。
+      const pulse =
+        prefersReduced ? 0.85 : 0.6 + (Math.sin(t * GREEN_PULSE_HZ) + 1) * 0.22;
       greenMat.current.opacity = pulse * Math.max(0, 1 - s * 0.55); // 綠光續存最久
     }
 

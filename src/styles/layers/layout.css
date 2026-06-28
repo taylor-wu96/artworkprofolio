@@ -2,6 +2,7 @@
    閱讀進度條、頁首/導覽/聲音開關、光揭示轉場層、HERO、區段標頭。
    頁面骨架與全站固定構件。 */
 @layer layout {
+
   /* ---- 閱讀進度條（亮房長文；綠填充＝你在這/進行中）-------------------- */
   .read-progress {
     position: fixed;
@@ -13,7 +14,8 @@
     background: transparent;
     pointer-events: none;
   }
-  .read-progress > span {
+
+  .read-progress>span {
     display: block;
     height: 100%;
     width: 0;
@@ -28,6 +30,7 @@
     background: var(--header-bg);
     backdrop-filter: blur(6px);
   }
+
   .site-header__inner {
     display: flex;
     align-items: baseline;
@@ -36,16 +39,19 @@
     padding-block: 1.1rem;
     border-bottom: 1px solid var(--line);
   }
+
   .brand {
     font-size: 0.82rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     font-weight: 600;
   }
+
   .nav {
     display: flex;
     gap: clamp(1rem, 3vw, 2.4rem);
   }
+
   .nav a {
     font-size: var(--step--2);
     letter-spacing: 0.14em;
@@ -53,13 +59,17 @@
     color: var(--text-dim);
     padding-bottom: 2px;
     border-bottom: 1px solid transparent;
-    white-space: nowrap; /* 標籤恆單行：窄屏不被擠成上下兩字（階段 I3）*/
+    white-space: nowrap;
+    /* 標籤恆單行：窄屏不被擠成上下兩字（階段 I3）*/
     transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
   }
+
   .nav a:hover {
     color: var(--text);
-    border-color: var(--accent); /* hover 預示「當前」的綠 */
+    border-color: var(--accent);
+    /* hover 預示「當前」的綠 */
   }
+
   /* 當前所在＝唯一的生命跡象：地衣綠標記。 */
   .nav a[aria-current='page'] {
     color: var(--accent);
@@ -81,10 +91,12 @@
       align-items: baseline;
       gap: var(--space-2xs) var(--space-md);
     }
+
     .site-header__right {
       flex-basis: 100%;
       gap: clamp(0.85rem, 4.5vw, 1.4rem);
     }
+
     .nav {
       gap: clamp(0.85rem, 4.5vw, 1.4rem);
     }
@@ -103,13 +115,16 @@
     color: var(--text-dim);
     transition: color var(--dur-fast) var(--ease);
   }
+
   .sound-toggle:hover {
     color: var(--text);
   }
+
   .sound-toggle__label {
     font-size: var(--step--2);
     letter-spacing: 0.14em;
   }
+
   .sound-toggle__waves {
     display: inline-flex;
     align-items: flex-end;
@@ -117,33 +132,50 @@
     height: 11px;
     transform: translateY(1px);
   }
+
   .sound-toggle__waves i {
     width: 2px;
     height: 3px;
     background: currentColor;
     transition: height var(--dur) var(--ease), background var(--dur-fast) var(--ease);
   }
+
   /* 啟用＝機器活著的訊號：綠（DESIGN §8 合法綠＝狀態）＋三條波呼吸。 */
   .sound-toggle[data-on] {
     color: var(--accent);
   }
+
   .sound-toggle[data-on] .sound-toggle__waves i {
     background: var(--accent);
   }
+
+  /* 三條波＝母拍的快諧波（--pulse/3，T1）：聲音的視覺起伏與全館同一個心跳
+     同源，相鄰波各錯開 1/18、1/9 母拍＝諧波內的相位差（機器活著的訊號）。 */
   .sound-toggle[data-on] .sound-toggle__waves i:nth-child(1) {
-    animation: sound-wave 1.4s var(--ease) infinite;
+    animation: sound-wave calc(var(--pulse) / 3) var(--ease) infinite;
   }
+
   .sound-toggle[data-on] .sound-toggle__waves i:nth-child(2) {
     height: 9px;
-    animation: sound-wave 1.4s var(--ease) infinite 0.2s;
+    animation: sound-wave calc(var(--pulse) / 3) var(--ease) infinite calc(var(--pulse) / 18);
   }
+
   .sound-toggle[data-on] .sound-toggle__waves i:nth-child(3) {
-    animation: sound-wave 1.4s var(--ease) infinite 0.4s;
+    animation: sound-wave calc(var(--pulse) / 3) var(--ease) infinite calc(var(--pulse) / 9);
   }
+
   @keyframes sound-wave {
-    0%, 100% { height: 3px; }
-    50% { height: 11px; }
+
+    0%,
+    100% {
+      height: 3px;
+    }
+
+    50% {
+      height: 11px;
+    }
   }
+
   @media (prefers-reduced-motion: reduce) {
     .sound-toggle[data-on] .sound-toggle__waves i {
       animation: none;
@@ -161,9 +193,54 @@
     background: var(--gallery);
     transition: opacity var(--dur) var(--ease);
   }
+
   /* 亮房目標：光從中心徑向亮起（Turrell 的「光場」）。 */
   #room-veil.is-light {
     background: radial-gradient(circle at 50% 44%, #ffffff 0%, var(--paper) 58%);
+  }
+
+  /* ---- T3 門檻作為被感覺到的儀式（ROADMAP-v3）-------------------------
+   站名就是「門檻」。跨房（暗↔亮）那一刻，veil 淡出時讓一道光從中央水平漫開——
+   一個被身體感覺到的「跨越」，而非單純的淡出（Turrell 的光閘）。
+   純加性：只加 ::after，不動 room-veil.ts 的 JS 時序（避開 v2 警告的最脆弱全域過場）。
+   reduced-motion 自動安全：room-veil.ts 在 reduce 下早退、不加 .is-revealing → 此動畫不觸發。 */
+  #room-veil::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    transform: translateY(-50%) scaleX(0);
+    transform-origin: center;
+    background: var(--paper);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* 進入亮房：白場上的門檻改用墨色，仍是「被跨越」的那道線。 */
+  #room-veil.is-light::after {
+    background: var(--ink);
+  }
+
+  #room-veil.is-revealing::after {
+    animation: threshold-cross var(--dur) var(--ease-out);
+  }
+
+  @keyframes threshold-cross {
+    0% {
+      transform: translateY(-50%) scaleX(0);
+      opacity: 0;
+    }
+
+    45% {
+      opacity: 0.85;
+    }
+
+    100% {
+      transform: translateY(-50%) scaleX(1);
+      opacity: 0;
+    }
   }
 
   /* ---- HERO：全螢幕藝術品 ---------------------------------------------- */
@@ -173,10 +250,12 @@
     min-height: 520px;
     background: var(--hero-bg);
   }
+
   .hero__canvas {
     position: absolute;
     inset: 0;
   }
+
   .hero__caption {
     position: absolute;
     left: var(--margin);
@@ -185,19 +264,24 @@
     color: var(--paper);
     /* 無漸層遮罩；文字直接落在暗場邊緣 */
   }
+
   .hero__title {
     font-size: var(--hero-title);
-    font-weight: var(--fw-regular); /* hero 恆為暗房展覽：輕量大字 */
+    font-weight: var(--fw-regular);
+    /* hero 恆為暗房展覽：輕量大字 */
     letter-spacing: -0.01em;
     line-height: 1.04;
-    mix-blend-mode: difference; /* 讓字隨光場明暗自適應，仍只用紙/墨 */
+    mix-blend-mode: difference;
+    /* 讓字隨光場明暗自適應，仍只用紙/墨 */
   }
+
   .hero__sub {
     margin-top: 0.8rem;
     max-width: 42ch;
     font-size: 0.92rem;
     color: color-mix(in oklab, var(--paper) 72%, transparent);
   }
+
   .hero__index {
     position: absolute;
     top: clamp(1.2rem, 4vh, 2.4rem);
@@ -208,15 +292,101 @@
     text-transform: uppercase;
   }
 
+  /* ---- C2 第一次接觸：入口邀請（ROADMAP-v3）---------------------------
+   陌生人落在一片暗的 hero，需要一個「往下穿過光」的暗示。一道極克制的光門檻：
+   一行 mono 字＋一條向下漸隱的細線，呼吸於母拍（T1，像還在運轉的機器在邀請）；
+   一捲就淡出退場（scroll-driven，不喧賓奪主）。底色文字仍只用紙/墨，綠不入此處。 */
+  .hero__enter {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(1.1rem, 3.5vh, 2.2rem);
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    color: color-mix(in oklab, var(--paper) 52%, transparent);
+    transition: color var(--dur) var(--ease);
+  }
+
+  .hero__enter:hover {
+    color: var(--paper);
+  }
+
+  .hero__enter-label {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .hero__enter-line {
+    width: 1px;
+    height: clamp(1.5rem, 4vh, 2.4rem);
+    background: currentColor;
+    transform-origin: top center;
+    /* 呼吸於母拍：與 WIP 綠標、聲音波形、3D 綠光同一次吸吐（T1）。 */
+    animation: hero-enter-breathe var(--pulse) var(--ease) infinite;
+  }
+
+  @keyframes hero-enter-breathe {
+
+    0%,
+    100% {
+      opacity: 0.32;
+      transform: scaleY(0.66);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+  }
+
+  /* 捲動即退場：穿過門檻後，邀請就完成了任務（scroll-driven，零 JS）。 */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .hero__enter {
+        animation: hero-enter-fade linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 38vh;
+      }
+
+      @keyframes hero-enter-fade {
+        to {
+          opacity: 0;
+          transform: translate(-50%, 0.8rem);
+        }
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__enter-line {
+      animation: none;
+      opacity: 0.55;
+    }
+  }
+
+  /* 手機：底部中央會與靠左的標題塊相撞；觸控本就習慣捲動，故隱去（誠實克制）。 */
+  @media (max-width: 560px) {
+    .hero__enter {
+      display: none;
+    }
+  }
+
   /* ---- 區段標頭 -------------------------------------------------------- */
   .section-head {
     padding-block: clamp(3.5rem, 9vh, 7rem) clamp(1.5rem, 4vh, 3rem);
     border-bottom: 1px solid var(--line);
   }
+
   .section-head__title {
     grid-column: 1 / -1;
     margin-top: 0.6rem;
   }
+
   /* 策展短語（G1）：一句「門後是什麼」，把分類學翻成館的語言。 */
   .section-head__lede {
     grid-column: 1 / -1;
@@ -226,6 +396,7 @@
     font-size: var(--step-0);
     line-height: 1.6;
   }
+
   /* 三道門指路（G1）：作品·影像·系列彼此看得見，當前房間實墨、其餘可點轉綠。 */
   .section-cross {
     grid-column: 1 / -1;
@@ -237,24 +408,32 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
+
   .section-cross a {
     color: var(--text-dim);
     transition: color var(--dur-fast) var(--ease);
   }
+
   .section-cross a:hover {
-    color: var(--accent); /* 被觸碰的生機（DESIGN §4.1 白名單） */
+    color: var(--accent);
+    /* 被觸碰的生機（DESIGN §4.1 白名單） */
   }
+
   .section-cross__here {
-    color: var(--text); /* 你在這裡：實墨、不可點 */
+    color: var(--text);
+    /* 你在這裡：實墨、不可點 */
   }
+
   @media (min-width: 720px) {
     .section-head__title {
       grid-column: 4 / -1;
     }
+
     .section-head__label {
       grid-column: 1 / 4;
       padding-top: 0.5rem;
     }
+
     .section-head__lede,
     .section-cross {
       grid-column: 4 / -1;

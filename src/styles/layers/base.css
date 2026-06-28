@@ -2,6 +2,7 @@
    reset、根字體與表面、選取、聚焦環、排版尺度（.label/.display）、
    12 欄網格與容器。結構性原語。 */
 @layer base {
+
   *,
   *::before,
   *::after {
@@ -23,6 +24,30 @@
     margin: 0;
   }
 
+  /* ---- T2 持續的光：圖錄背後的環境殘光（ROADMAP-v3 · DESIGN §9 第二樂章）----
+   暗房不該是一頁頁各自獨立地黑——光場捲出 hero 後不歸零，而稀釋成牆上的餘溫。
+   「一整座館共用同一片黑」從宣言變事實——黑裡留著光走過的記憶。
+   合法漸層：global.css「無漸層」鐵律明文「光場除外」，此即光場的殘餘。
+   做法：把殘光疊成 body 的背景圖——刻意疊在 body（普通區塊）而非 html（根元素）：
+   根元素背景的尺寸/定位相對「初始包含塊（視口）」，捕捉視口外時會失效；body 背景
+   相對自身整份文件，永遠正確繪製、亦避開 `::before{z-index:-1}` 在 html 有不透明
+   底色時被蓋掉的經典堆疊陷阱。底色仍由 html 的 var(--surface) 提供（body 透明、
+   只疊這層光，繪於 html 黑底之上、內容之下）。
+   錨定文件頂部、固定像素高度的一帶（非 fixed attachment——fixed 會隨視口稀釋、iOS
+   有 bug）：餘溫最濃在你推門進來的門口，隨你愈深入檔案愈淡——與 T4 衰敗刻齡同向
+   （愈舊愈沉）。色用 --gallery-ink 極低比例融入，不新增色號、不帶綠（綠只在那一粒
+   活光點）。純 CSS、零 JS、零 GPU。 */
+  /* html[data-room='dark'] body {
+    background-image: radial-gradient(
+      120% 100% at 50% 0%,
+      color-mix(in oklab, var(--gallery-ink) 12%, transparent),
+      transparent 62%
+    );
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: 100% 760px;
+  } */
+
   ::selection {
     background: var(--text);
     color: var(--surface);
@@ -43,7 +68,8 @@
   img {
     display: block;
     max-width: 100%;
-    height: auto; /* 永不裁切：只限寬，保留原始比例 */
+    height: auto;
+    /* 永不裁切：只限寬，保留原始比例 */
   }
 
   h1,
@@ -68,7 +94,8 @@
   .display {
     font-size: var(--display);
     line-height: 1.02;
-    font-weight: var(--display-weight); /* 依房間：暗房輕量 / 亮房半粗 */
+    font-weight: var(--display-weight);
+    /* 依房間：暗房輕量 / 亮房半粗 */
     letter-spacing: -0.015em;
   }
 

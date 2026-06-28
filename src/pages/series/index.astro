@@ -26,31 +26,34 @@ const total = series.length;
     </header>
 
     {total > 0 ? (
-      <ol class="archive">
+      /* C3 三道門差異（ROADMAP-v3）：系列＝作者手排的「一條連續動線」，故形態是
+         一條裝訂線把各站串起（節點＋細線），與「作品」的各自獨立敬awe、與「影像」的
+         印樣密排刻意分化——三扇門後是三種不同的看法，不只是三份平行目錄。 */
+      <ol class="series-thread">
         {series.map((s, i) => (
-          <li class="entry grid-12" data-reveal>
-            <div class="entry__meta">
-              <span class="entry__num">系列 {String(i + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}</span>
-              <span class="entry__num">{s.count ?? 0} 件序列</span>
-            </div>
-            <a class="entry__plate" href={`/series/${s.slug}`}>
+          <li class="series-link" data-reveal>
+            <a class="series-link__a" href={`/series/${s.slug}`}>
+              <span class="series-link__index">
+                <span class="series-link__n">{String(i + 1).padStart(2, '0')}</span>
+                <span class="series-link__count">{s.count ?? 0} 件序列</span>
+              </span>
+              <span class="series-link__body">
+                <span class="series-link__title">{s.title}</span>
+                {s.description && (
+                  <span class="series-link__desc">{s.description}</span>
+                )}
+              </span>
               {s.cover ? (
                 <Plate
                   image={s.cover}
-                  class="entry__img"
-                  width={1600}
-                  sizes="(min-width: 720px) min(56rem, 60vw), 100vw"
+                  class="series-link__cover"
+                  width={640}
+                  sizes="(min-width: 720px) 15rem, 40vw"
                   alt={s.title}
-                  loading={i < 2 ? 'eager' : 'lazy'}
+                  loading={i < 3 ? 'eager' : 'lazy'}
                 />
               ) : (
-                <div class="entry__placeholder">無封面 / NO COVER</div>
-              )}
-              <h2 class="entry__title" style={s.cover ? undefined : 'margin-top:0'}>{s.title}</h2>
-              {s.description && (
-                <p class="hero__sub" style="color:var(--text-dim);margin-top:0.6rem;max-width:46ch">
-                  {s.description}
-                </p>
+                <span class="series-link__cover series-link__cover--empty">無封面 / NO COVER</span>
               )}
             </a>
           </li>

@@ -18,6 +18,18 @@ const fmtDate = (d) =>
 // 依年份分組，呈現時間性的檔案瀏覽。
 let lastYear = null;
 const total = works.length;
+
+// T4 衰敗刻齡（實驗・ROADMAP-v3）：把「時間」從 year-marker 的資訊，升為可被感覺的
+// 物質狀態——越舊的作品，索引條目的 chrome（編號/資料條）越沉一點點。
+// 只算出 0(最新)→1(最舊) 的年歲，交給 CSS 極克制地施作（絕不碰影像，見 DESIGN §5）。
+const years = works.map((w) => year(w.publishedAt)).filter(Boolean);
+const newestYr = years.length ? Math.max(...years) : null;
+const oldestYr = years.length ? Math.min(...years) : null;
+const ageOf = (d) => {
+  const y = year(d);
+  if (!y || newestYr === null || newestYr === oldestYr) return 0;
+  return (newestYr - y) / (newestYr - oldestYr);
+};
 // 「最新」標記跟著真正最新的日期走（列表已先依精選置頂，i===0 未必最新）。
 const newestSlug = [...works].sort(
   (a, b) => new Date(b.publishedAt ?? 0) - new Date(a.publishedAt ?? 0),
@@ -39,9 +51,16 @@ const newestSlug = [...works].sort(
         光如何落下、邊界如何被跨越、衰敗與生機如何在同一格底片裡共存。
       </p>
     </div>
+
+    {/* C2 第一次接觸：陌生人落在暗 hero 的入口邀請——一道呼吸於母拍的光，
+        指向門檻之下的檔案。也是鍵盤可用的「跳過 hero」捷徑。捲動即淡出。 */}
+    <a class="hero__enter" href="#works" aria-label="往下進入作品檔案">
+      <span class="hero__enter-label">穿過光 / Enter</span>
+      <span class="hero__enter-line" aria-hidden="true"></span>
+    </a>
   </section>
 
-  <div class="container">
+  <div class="container" id="works">
     <header class="section-head grid-12">
       <span class="label section-head__label">索引 / Works</span>
       <h2 class="display section-head__title">作品檔案</h2>
@@ -66,7 +85,7 @@ const newestSlug = [...works].sort(
                   <p class="year-marker">{y}</p>
                 </li>
               )}
-              <li class="entry grid-12" data-reveal>
+              <li class="entry grid-12" data-reveal style={`--age:${ageOf(p.publishedAt).toFixed(3)}`}>
                 <div class="entry__meta">
                   <span class="entry__num">作品 {num} / {String(total).padStart(2, '0')}</span>
                   {isSketch && <span class="entry__num entry__live">互動 / LIVE</span>}
