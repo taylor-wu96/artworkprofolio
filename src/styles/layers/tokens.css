@@ -5,14 +5,14 @@
   :root {
     /* ---- 原色：亮房灰階（中性、肉眼近乎無暖）------------------------------ */
     --paper: #f4f4f2;
-    --ink: #0e0e0d;
+    --ink: #0f0f0ecd;
     /* 墨濃度＝同色透明度層級，不算新色 */
     --ink-70: color-mix(in oklab, var(--ink) 70%, var(--paper));
     --ink-45: color-mix(in oklab, var(--ink) 45%, var(--paper));
     --ink-15: color-mix(in oklab, var(--ink) 15%, var(--paper));
 
     /* ---- 原色：暗房（圖錄・作品・3D）＋平行墨階 ------------------------- */
-    --gallery: #0c0c0b;
+    --gallery: #101110;
     --gallery-ink: #ececea;
     --g-ink-70: color-mix(in oklab, var(--gallery-ink) 70%, var(--gallery));
     --g-ink-45: color-mix(in oklab, var(--gallery-ink) 45%, var(--gallery));
@@ -22,8 +22,10 @@
 
     /* ---- 唯一重點色：地衣／氧化銅綠（低彩、帶灰、沉靜的生機）------------
      用量嚴格克制（見 DESIGN §8 白名單）：只給狀態/當前/聚焦/進度/一粒綠光。 */
-    --life: #4f5e44; /* 亮底上 */
-    --life-dark: #93a47f; /* 暗底上 */
+    --life: #4f5e44;
+    /* 亮底上 */
+    --life-dark: #93a47f;
+    /* 暗底上 */
 
     /* ---- 編輯雙體：介面無襯線 / 長文宋體 -------------------------------- */
     --font-ui: 'Helvetica Neue', Helvetica, 'Inter', Arial, 'PingFang TC',
@@ -48,21 +50,28 @@
     --space-5xl: 160px;
     --margin: clamp(20px, 5vw, 64px);
     --col-gap: clamp(16px, 2.2vw, 30px);
-    --measure: 40rem; /* 約 38–40 個中文字寬 */
+    --measure: 40rem;
+    /* 約 38–40 個中文字寬 */
     /* 進門退一步：所有內頁標頭與黏性導覽之間的統一呼吸（ROADMAP-v4 B1）。
        黏性 .site-header 高約 4rem，此距讓標頭不貼導覽下緣（痛點2）。 */
     --page-top: clamp(2.5rem, 7vh, 6rem);
 
     /* ---- 地基 ②：字級（modular scale・1.25 大三度）-------------------- */
-    --step--2: 0.72rem; /* micro label */
-    --step--1: 0.82rem; /* small UI / caption */
-    --step-0: 1rem; /* UI 基準（17px root）*/
+    --step--2: 0.72rem;
+    /* micro label */
+    --step--1: 0.82rem;
+    /* small UI / caption */
+    --step-0: 1rem;
+    /* UI 基準（17px root）*/
     --step-1: 1.25rem;
     --step-2: 1.5625rem;
     --step-3: 1.953rem;
-    --display: clamp(1.7rem, 3.6vw, 2.2rem); /* v2.3 收斂：max 3rem→2.2rem */
-    --hero-title: clamp(1.6rem, 3.4vw, 2.0rem); /* v2.3 收斂：max 2.7rem→2.0rem */
-    --read-size: 1.12rem; /* ≈19px，亮房長文基準 */
+    --display: clamp(1.2rem, 3.6vw, 1.6rem);
+    /* v2.3 收斂：max 3rem→2.2rem */
+    --hero-title: clamp(1.6rem, 3.4vw, 2.0rem);
+    /* v2.3 收斂：max 2.7rem→2.0rem */
+    --read-size: 1.12rem;
+    /* ≈19px，亮房長文基準 */
 
     /* ---- 地基 ③：動態（duration / easing）----------------------------- */
     --dur-fast: 0.4s;
@@ -83,10 +92,14 @@
      依房間混用：標題字重由 --display-weight 驅動——
      暗房＝展覽輕量(400，大字加寬字距的圖錄標籤感)；
      亮房＝報導半粗(600，長文裡清晰可掃描的段落頭)。 */
-    --fw-regular: 400; /* 內文、暗房大標 */
-    --fw-medium: 500; /* 介面標籤、導覽、meta */
-    --fw-semibold: 600; /* 亮房標題與段落頭 */
-    --display-weight: var(--fw-semibold); /* 亮房預設；暗房重映為輕量 */
+    --fw-regular: 400;
+    /* 內文、暗房大標 */
+    --fw-medium: 500;
+    /* 介面標籤、導覽、meta */
+    --fw-semibold: 600;
+    /* 亮房標題與段落頭 */
+    --display-weight: var(--fw-semibold);
+    /* 亮房預設；暗房重映為輕量 */
 
     /* ---- 圓角：刻意接近 0（建築／印刷氣質，非網頁 App）---------------- */
     --radius: 0px;

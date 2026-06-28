@@ -316,12 +316,13 @@
   }
 
   .work__header {
-    margin-bottom: clamp(1.5rem, 4vh, 3rem);
+    margin-top: clamp(1rem, 4vh, 3rem);
+    margin-bottom: clamp(1rem, 4vh, 3rem);
   }
 
   .work__title {
     grid-column: 1 / -1;
-    margin-top: 0.8rem;
+    margin-top: 0.4rem;
   }
 
   .work__meta {
