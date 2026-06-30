@@ -3,6 +3,7 @@
    頁面骨架與全站固定構件。 */
 @layer layout {
 
+
   /* ---- 閱讀進度條（亮房長文；綠填充＝你在這/進行中）-------------------- */
   .read-progress {
     position: fixed;
@@ -37,7 +38,8 @@
     justify-content: space-between;
     gap: var(--space-md);
     padding-block: 1.1rem;
-    border-bottom: 1px solid var(--line);
+    /* 下緣分隔線移除（creator 回饋 2026-06-30）：Tillmans/Porodina 式無框。
+       捲動時的分離交給 --header-bg 半透明底 + backdrop blur，不靠線。 */
   }
 
   .brand {
@@ -376,10 +378,16 @@
     }
   }
 
-  /* ---- 區段標頭 -------------------------------------------------------- */
+  /* ---- 區段標頭：展牆式題名 ──────────────────────────────────────────────
+     和諧來自三件事，不靠堆元素：
+       ① 單一左緣——眉標、題名、短語、指路、與分隔線全部對齊同一條左緣（不再有
+          「題名縮排到第 4 欄、分隔線卻從第 1 欄拉滿」的漂浮錯位）。
+       ② 一個緊湊的題名群（眉標→題名→短語）＋ 明顯下沉的次級指路，主次分明。
+       ③ 以字級撐出 figure/ground：題名放大、眉標縮小加寬字距；灰度拉開層級。
+     重複母題＝一道安靜的髮絲豎線（題名三聯式與指路共用），克制到近乎留白。 */
   .section-head {
-    padding-block: clamp(2.5rem, 6vh, 5rem) clamp(1.2rem, 3vh, 2rem);
-    border-bottom: 1px solid var(--line);
+    padding-block: clamp(2rem, 5vh, 3.5rem) clamp(1.8rem, 4.5vh, 3rem);
+    /* 底線移除（creator 回饋 2026-06-30）：分離交給留白，不靠線。間距收緊：原版過寬。 */
   }
 
   /* 頁內錨點跳轉（首頁 #works）留位：黏性 .site-header 不蓋住被跳到的標頭
@@ -388,30 +396,48 @@
     scroll-margin-top: calc(4rem + var(--space-md));
   }
 
+  /* 眉標：展牆左上角的編目號。極小、寬字距、最淡——只定位，不爭焦點。 */
+  .section-head__label {
+    grid-column: 1 / -1;
+    letter-spacing: 0.3em;
+  }
+
+  /* 題名：展牆題名的存在感——放大但維持暗房輕量（400），靠尺寸與字距而非粗細。
+     刻意覆寫 .display 的 --display（區段標頭是 index 立面，無單張作品與之競爭，
+     可比內頁題名更有份量；捲到下方印樣台後焦點自然交還影像）。 */
   .section-head__title {
     grid-column: 1 / -1;
-    margin-top: 0.6rem;
+    margin-top: clamp(1rem, 2.6vh, 1.7rem);
+    font-family: var(--font-title);
+    /* 英數→Helvetica，中文→明體 */
+    font-size: clamp(1.7rem, 3.2vw, 2.3rem);
+    font-weight: var(--fw-regular);
+    line-height: 1.18;
+    letter-spacing: 0.06em;
+    /* 明體 CJK 加 0.06em 字距＝展覽的從容呼吸（不靠粗細，靠尺寸與間距） */
   }
 
-  /* 策展短語（G1）：一句「門後是什麼」，把分類學翻成館的語言。 */
+  /* 策展短語：一句「門後是什麼」。小、軟灰、行高鬆——退成題名的註腳，不與之競爭。 */
   .section-head__lede {
     grid-column: 1 / -1;
-    margin-top: 0.6rem;
-    max-width: var(--measure);
+    margin-top: clamp(1rem, 2.4vh, 1.5rem);
+    max-width: 32em;
     color: var(--text-muted);
     font-size: var(--step-0);
-    line-height: 1.6;
+    line-height: 1.7;
   }
 
-  /* 三道門指路（G1）：作品·影像·系列彼此看得見，當前房間實墨、其餘可點轉綠。 */
+  /* 三道門指路（G1）：作品·影像·系列彼此看得見，當前實墨、其餘最淡。明顯下沉成安靜的
+     次級導覽——大留白拉開、無詞間線（不靠線，靠留白）。 */
   .section-cross {
     grid-column: 1 / -1;
-    margin-top: 0.8rem;
+    margin-top: clamp(1.2rem, 2.6vh, 1.8rem);
     display: flex;
     flex-wrap: wrap;
-    gap: 0.8rem;
+    align-items: baseline;
+    gap: clamp(1.1rem, 2vw, 1.5rem);
     font-size: var(--step--2);
-    letter-spacing: 0.12em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
   }
 
@@ -428,21 +454,5 @@
   .section-cross__here {
     color: var(--text);
     /* 你在這裡：實墨、不可點 */
-  }
-
-  @media (min-width: 720px) {
-    .section-head__title {
-      grid-column: 4 / -1;
-    }
-
-    .section-head__label {
-      grid-column: 1 / 4;
-      padding-top: 0.5rem;
-    }
-
-    .section-head__lede,
-    .section-cross {
-      grid-column: 4 / -1;
-    }
   }
 }

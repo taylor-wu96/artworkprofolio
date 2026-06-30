@@ -152,58 +152,81 @@ const statement = (() => {
     ) : category === 'gallery' ? (
       /* --- 影像集排版 --- */
       <div class="gallery-layout">
-        <header class="work__header grid-12">
-          <span class="label" style="grid-column: 1 / -1">{labelName}</span>
-          <h1 class="display work__title">{post.title}</h1>
-          <div class="work__meta">
-            <span>{fmtDate(post.publishedAt)}</span>
-            {post.themes?.length > 0 &&
-              post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
-            {seriesInfo && (
-              <a href={`/series/${seriesInfo.slug}`}>
-                系列 · {seriesInfo.title}{seriesInfo.pos ? ` ${seriesInfo.pos}/${seriesInfo.total}` : ''}
-              </a>
+        {/* 封面滿版領銜到場，標題與 meta 疊在影像下緣（produx /studio 模型・creator 回饋
+            2026-06-30）。影像第一眼撞進來，文字是其上的圖說，不再孤浮於上半屏死黑。 */}
+        {post.cover ? (
+          <figure class="work__hero">
+            <Plate
+              image={post.cover}
+              class="work__hero-img"
+              width={2400}
+              full={2800}
+              zoomable
+              reveal
+              sizes="100vw"
+              alt={post.title}
+              transitionName={`cover-${slug}`}
+            />
+            <figcaption class="work__hero-cap">
+              <span class="label work__hero-eyebrow">{labelName}</span>
+              <h1 class="work__hero-title">{post.title}</h1>
+              <div class="work__meta work__hero-meta">
+                <span>{fmtDate(post.publishedAt)}</span>
+                {post.themes?.length > 0 &&
+                  post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
+                {seriesInfo && (
+                  <a href={`/series/${seriesInfo.slug}`}>
+                    系列 · {seriesInfo.title}{seriesInfo.pos ? ` ${seriesInfo.pos}/${seriesInfo.total}` : ''}
+                  </a>
+                )}
+              </div>
+            </figcaption>
+          </figure>
+        ) : (
+          /* 無封面退回純文字標頭（不丟資訊）。 */
+          <header class="work__header grid-12">
+            <span class="label" style="grid-column: 1 / -1">{labelName}</span>
+            <h1 class="work__title">{post.title}</h1>
+            <div class="work__meta">
+              <span>{fmtDate(post.publishedAt)}</span>
+              {post.themes?.length > 0 &&
+                post.themes.map((t) => <a href={`/themes/${t.slug}`}>{t.title}</a>)}
+              {seriesInfo && (
+                <a href={`/series/${seriesInfo.slug}`}>
+                  系列 · {seriesInfo.title}{seriesInfo.pos ? ` ${seriesInfo.pos}/${seriesInfo.total}` : ''}
+                </a>
+              )}
+            </div>
+          </header>
+        )}
+
+        {/* 機器讀檔 chrome 降到影像之下：資料條／簽名章／拍攝參數／真 EXIF，安靜成檔案註腳。 */}
+        {(sig.real || captureMeta.length > 0 || exif.length > 0) && (
+          <div class="work__filemeta grid-12">
+            {sig.real && (
+              <p class="data-strip work__data">
+                {sig.coord && <span>{sig.coord}</span>}
+                <span class="data-strip__sig">{sig.code}</span>
+                <span>CH.{sig.channel}</span>
+              </p>
+            )}
+            <div class="work__glyph" set:html={signatureGlyph(slug, { size: 44 })} />
+            {captureMeta.length > 0 && (
+              <p class="work__capture">
+                {captureMeta.map((m) => <span>{m}</span>)}
+              </p>
+            )}
+            {exif.length > 0 && (
+              <details class="work__exif">
+                <summary>
+                  <span class="work__exif__hint">讀取檔案 / Read file</span>
+                </summary>
+                <p class="work__exif__row">
+                  {exif.map((p) => <span>{p}</span>)}
+                </p>
+              </details>
             )}
           </div>
-          {/* S1 誠實化：有真座標/年份才顯示資料條，否則沉默（不捏造觀看痕跡）。 */}
-          {sig.real && (
-            <p class="data-strip work__data">
-              {sig.coord && <span>{sig.coord}</span>}
-              <span class="data-strip__sig">{sig.code}</span>
-              <span>CH.{sig.channel}</span>
-            </p>
-          )}
-          <div class="work__glyph" set:html={signatureGlyph(slug, { size: 44 })} />
-          {captureMeta.length > 0 && (
-            <p class="work__capture">
-              {captureMeta.map((m) => <span>{m}</span>)}
-            </p>
-          )}
-          {exif.length > 0 && (
-            /* 機器讀檔：預設收起（克制），點擊／鍵盤展開真 EXIF。配角，影像為主。 */
-            <details class="work__exif">
-              <summary>
-                <span class="work__exif__hint">讀取檔案 / Read file</span>
-              </summary>
-              <p class="work__exif__row">
-                {exif.map((p) => <span>{p}</span>)}
-              </p>
-            </details>
-          )}
-        </header>
-
-        {post.cover && (
-          <Plate
-            image={post.cover}
-            class="work__cover"
-            width={2000}
-            full={2600}
-            zoomable
-            reveal
-            sizes="100vw"
-            alt={post.title}
-            transitionName={`cover-${slug}`}
-          />
         )}
 
         {post.body && (
@@ -378,6 +401,61 @@ const statement = (() => {
 </Base>
 
 <style>
+  /* ---- 影像集內頁：封面滿版 + 標題疊圖（produx /studio 模型・creator 回饋 2026-06-30）----
+     封面 100vw 滿版領銜（自然比例、不裁切，DESIGN §五），標題與 meta 疊在影像下緣的
+     漸層遮罩上；機器 chrome 全降到影像之下。治「標題孤浮於上半屏死黑」的根因。 */
+  .work__hero {
+    position: relative;
+    width: 100vw;
+    overflow:hidden;  
+    margin-left: calc(50% - 50vw);
+    margin-bottom: clamp(1.8rem, 5vh, 3.4rem);
+  }
+  .work__hero :global(.work__hero-img) {
+    display: block;
+    width: 100%;
+  }
+  .work__hero-cap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: clamp(3rem, 14vh, 9rem) var(--margin) clamp(1.5rem, 4.5vh, 2.8rem);
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.76) 0%,
+      rgba(0, 0, 0, 0.42) 40%,
+      rgba(0, 0, 0, 0) 100%
+    );
+  }
+  .work__hero-eyebrow {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: color-mix(in oklab, var(--paper) 62%, transparent);
+  }
+  .work__hero-title {
+    font-family: var(--font-title);
+    font-size: clamp(1.5rem, 3vw, 2.3rem);
+    font-weight: var(--fw-regular);
+    line-height: 1.2;
+    letter-spacing: 0.05em;
+    color: var(--paper);
+    max-width: 22ch;
+  }
+  .work__hero-meta {
+    margin-top: clamp(0.7rem, 2vh, 1.1rem);
+    color: color-mix(in oklab, var(--paper) 70%, transparent);
+  }
+  .work__hero-meta a:hover {
+    color: var(--paper);
+  }
+
+  /* 機器 chrome 降到影像之下，在 12 欄內安靜成檔案註腳。 */
+  .work__filemeta {
+    margin-bottom: clamp(2.5rem, 7vh, 5rem);
+    align-items: start;
+  }
+
   /* 作品頭部資料條（Ikeda 式檔案座標）*/
   .work__data {
     grid-column: 1 / -1;

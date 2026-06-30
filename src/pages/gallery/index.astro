@@ -24,7 +24,7 @@ const fmtDate = (d) =>
   <div class="container">
     <header class="section-head grid-12">
       <span class="label section-head__label">影像 / Galleries</span>
-      <h1 class="display section-head__title">Video | Frame | Photo</h1>
+      <h1 class="display section-head__title">錄像、影像、畫面</h1>
       <p class="section-head__lede">各種感官與經驗產生烙印在視覺的地方。</p>
       <RoomNav current="gallery" />
     </header>
@@ -34,13 +34,10 @@ const fmtDate = (d) =>
          與首頁「作品」單欄敬畏式分流——影像是複數的一捲，作品是單一的一張。 */
       <ol class="contact-sheet">
         {galleries.map((p, i) => {
-          const num = String(i + 1).padStart(2, '0');
           const sig = archiveSignature(p.slug, p.capture, p.cover?.asset?.metadata);
           return (
             <li class="cs-cell" data-reveal>
               <a class="cs-frame" href={`/post/${p.slug}`}>
-                <span class="cs-frame__num">格 {num}</span>
-                {p.status === 'wip' && <span class="cs-frame__wip entry__wip">WIP</span>}
                 {p.cover ? (
                   <Plate
                     image={p.cover}
@@ -66,7 +63,7 @@ const fmtDate = (d) =>
                   )}
                 </div>
                 <span class="data-strip cs-cell__sig">
-                  <span>{sig.coord}</span>
+                  {sig.coord && <span>{sig.coord}</span>}
                   <span class="data-strip__sig">{sig.code}</span>
                   <span>CH.{sig.channel}</span>
                 </span>
@@ -115,8 +112,9 @@ const fmtDate = (d) =>
     display: block;
     aspect-ratio: 3 / 2; /* 35mm 膠捲比例：印樣的母題 */
     overflow: hidden;
-    background: var(--g-ink-20);
-    border: 1px solid var(--hairline-dark);
+    /* 編框與灰底已移除（creator 回饋 2026-06-30）：影像直接 bleed 進暗房，
+       不再是浮在灰色塊上的幻燈片。載入前的佔位底交給 Plate 自身的 --plate-bg。 */
+    background: transparent;
   }
   /* 把 Plate 的自然比例框約束成統一 3:2 cover——印樣需要規整的格。
      覆寫 Plate 內聯的 aspect-ratio（故用 !important，範圍鎖在印樣格內）。 */
@@ -133,30 +131,8 @@ const fmtDate = (d) =>
     height: 100%;
     object-fit: cover;
   }
-  /* 格號＝膠捲齒孔旁的編號（mono），落在左上角。 */
-  .cs-frame__num {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 2;
-    padding: 0.3rem 0.55rem;
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-    font-size: var(--step--2);
-    letter-spacing: 0.12em;
-    color: var(--g-ink-70);
-    background: color-mix(in oklab, var(--gallery) 70%, transparent);
-  }
-  .cs-frame__wip {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 2;
-    padding: 0.3rem 0.55rem;
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    background: color-mix(in oklab, var(--gallery) 70%, transparent);
-  }
+  /* 格角標（格 01）與 WIP 方塊已移除（creator 回饋 2026-06-30）：框沒了之後它們
+     讀作浮在影像上的殘餘 chrome。影像獨自呈現，編目交給圖下的文字。 */
   .cs-frame__placeholder {
     position: absolute;
     inset: 0;
@@ -169,16 +145,19 @@ const fmtDate = (d) =>
     text-transform: uppercase;
   }
 
+  /* 圖下文字：標題（明體 CJK／Helvetica 拉丁）＋日期＋精緻化的資料條。 */
   .cs-cell__info {
-    margin-top: 0.8rem;
+    margin-top: clamp(0.85rem, 1.6vh, 1.15rem);
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.5rem;
   }
   .cs-cell__title {
-    font-size: var(--step-0);
+    font-family: var(--font-title);
+    font-size: var(--step-1);
     font-weight: var(--fw-regular); /* 暗房展覽輕量 */
-    letter-spacing: -0.01em;
+    letter-spacing: 0.01em;
+    line-height: 1.25;
     color: var(--text);
     transition: color var(--dur) var(--ease);
   }
@@ -191,8 +170,11 @@ const fmtDate = (d) =>
     gap: 0.8rem;
     align-items: baseline;
   }
+  /* 資料條精緻化：更小、更淡、更寬字距——退成近乎潛意識的識別細節（Ikeda）。 */
   .cs-cell__sig {
     font-size: var(--step--2);
-    opacity: 0.85;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    opacity: 0.7;
   }
 </style>
