@@ -24,10 +24,16 @@
 
   .entry__meta {
     grid-column: 1 / -1;
+    order: 2;
+    /* A4 降噪（v7）：mobile 堆疊序讓「影像＋題名」先到，資料退到其下——影像的存在感
+       高於資料（DESIGN §5、參照站的安靜 metadata）。桌機 sticky 側欄不受影響（見 ≥720）。 */
     display: flex;
-    gap: 1.2rem;
+    flex-wrap: wrap;
+    /* 不再擠成一長行：換行成安靜的註腳 */
+    gap: 0.4rem 1rem;
+    /* 收緊間距，退成 whisper */
     align-items: baseline;
-    margin-bottom: 1.2rem;
+    margin-top: clamp(0.9rem, 2vh, 1.2rem);
     /* T4 衰敗刻齡（實驗・ROADMAP-v3）：越舊（--age 趨近 1）的條目，chrome 越沉、
        生機（綠 sig）越褪——時間的物質化。極克制（最舊也僅 ~0.82 透明／0.55 飽和），
        近乎潛意識。鐵律：只作用於此 meta chrome，絕不及於 .entry__img（DESIGN §5）。
@@ -38,6 +44,8 @@
 
   .entry__plate {
     grid-column: 1 / -1;
+    order: 1;
+    /* A4：影像＋題名先於資料（mobile 堆疊序） */
     display: block;
   }
 
@@ -120,11 +128,13 @@
 
   .entry__title {
     margin-top: 1rem;
-    font-size: var(--step-2);
-    /* v2.2 收斂 */
+    font-family: var(--font-title);
+    /* A1：圖錄條目題名走單件尺度（原 --step-2 固定值→token，隨視口流動） */
+    font-size: var(--title-work);
     font-weight: var(--fw-regular);
     /* 暗房圖錄條目：展覽輕量 */
-    letter-spacing: -0.01em;
+    line-height: var(--title-lead);
+    letter-spacing: var(--title-tracking);
     transition: color var(--dur) var(--ease);
   }
 
@@ -149,8 +159,11 @@
   @media (min-width: 720px) {
     .entry__meta {
       grid-column: 1 / 4;
+      order: 0;
+      /* 桌機還原原序：sticky 側欄，不吃 mobile 的影像先到堆疊 */
       flex-direction: column;
       gap: 0.6rem;
+      margin-top: 0;
       margin-bottom: 0;
       position: sticky;
       top: 5rem;
@@ -325,10 +338,11 @@
     margin-top: 0.4rem;
     font-family: var(--font-title);
     /* 英數→Helvetica，中文→黑體 Noto Sans TC（creator 回饋 2026-07-01） */
-    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    font-size: var(--title-work);
+    /* A1：作品內頁題名統一尺度（原 clamp(1.6,3vw,2.1)→token） */
     font-weight: 300;
-    line-height: 1.18;
-    letter-spacing: 0.015em;
+    line-height: var(--title-lead);
+    letter-spacing: var(--title-tracking);
   }
 
   .work__meta {

@@ -410,11 +410,12 @@
     margin-top: clamp(1rem, 2.6vh, 1.7rem);
     font-family: var(--font-title);
     /* 英數→Helvetica，中文→黑體 Noto Sans TC */
-    font-size: clamp(1.7rem, 3.2vw, 2.3rem);
+    font-size: var(--title-display);
+    /* A1：立面大標統一尺度（原 clamp(1.7,3.2vw,2.3)→token） */
     font-weight: 300;
     /* 精緻黑體：展示用輕量＋收字距＝當代美術館的冷靜（不靠粗細，靠尺寸與留白） */
     line-height: 1.2;
-    letter-spacing: 0.015em;
+    letter-spacing: var(--title-tracking);
   }
 
   /* 策展短語：一句「門後是什麼」。小、軟灰、行高鬆——退成題名的註腳，不與之競爭。 */

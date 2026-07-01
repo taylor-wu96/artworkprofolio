@@ -85,8 +85,8 @@ const newestSlug = [...works].sort(
                   <p class="year-marker">{y}</p>
                 </li>
               )}
-              <li class="entry grid-12" data-reveal style={`--age:${ageOf(p.publishedAt).toFixed(3)}`}>
-                <div class="entry__meta">
+              <li class="entry grid-12" style={`--age:${ageOf(p.publishedAt).toFixed(3)}`}>
+                <div class="entry__meta" data-reveal>
                   <span class="entry__num">作品 {num} / {String(total).padStart(2, '0')}</span>
                   {isSketch && <span class="entry__num entry__live">互動 / LIVE</span>}
                   {p.status === 'wip' && <span class="entry__wip">進行中 / WIP</span>}
@@ -108,7 +108,7 @@ const newestSlug = [...works].sort(
                     </span>
                   )}
                 </div>
-                <a class="entry__plate" href={href}>
+                <a class="entry__plate" href={href} data-reveal>
                   {p.cover ? (
                     <Plate
                       image={p.cover}

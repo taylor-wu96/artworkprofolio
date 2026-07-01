@@ -49,6 +49,16 @@
     transform: none;
   }
 
+  /* ---- B1 揭示編排（ROADMAP-v7）：把「入場」從開關變成一句編排 ------------------
+     首頁檔案不再整塊一起淡入——「影像＋題名」先落定，「資料」一拍（140ms）後跟上，
+     讓眼睛先遇到影像、再讀到它的名字與檔案號（DESIGN §5 影像先於資料）。純 CSS，
+     吃既有 --dur-slow/--ease-out，不新增動態方言（DoD 8）。放在 media 層＝與
+     [data-reveal] 的 transition 同層，只加 transition-delay、不重設 transition 本身。
+     reduced-motion 下 [data-reveal] 已被強制 opacity:1（檔尾全域規則），延遲自動失效。 */
+  .entry__meta[data-reveal] {
+    transition-delay: 140ms;
+  }
+
   /* ---- D1 兩房溫差到體感層（ROADMAP-v5）------------------------------------
      把暗/亮的差異從「資訊層（換底色）」帶到「體感層（換體溫）」：同一套入場機制，
      不同的落定深度。暗房＝沉入、屏息（更深的落定，像影像浮上暗牆）；亮房＝鬆開、
