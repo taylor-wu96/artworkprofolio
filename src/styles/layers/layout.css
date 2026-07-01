@@ -409,12 +409,12 @@
     grid-column: 1 / -1;
     margin-top: clamp(1rem, 2.6vh, 1.7rem);
     font-family: var(--font-title);
-    /* 英數→Helvetica，中文→明體 */
+    /* 英數→Helvetica，中文→黑體 Noto Sans TC */
     font-size: clamp(1.7rem, 3.2vw, 2.3rem);
-    font-weight: var(--fw-regular);
-    line-height: 1.18;
-    letter-spacing: 0.06em;
-    /* 明體 CJK 加 0.06em 字距＝展覽的從容呼吸（不靠粗細，靠尺寸與間距） */
+    font-weight: 300;
+    /* 精緻黑體：展示用輕量＋收字距＝當代美術館的冷靜（不靠粗細，靠尺寸與留白） */
+    line-height: 1.2;
+    letter-spacing: 0.015em;
   }
 
   /* 策展短語：一句「門後是什麼」。小、軟灰、行高鬆——退成題名的註腳，不與之競爭。 */

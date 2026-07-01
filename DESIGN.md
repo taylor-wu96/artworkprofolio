@@ -112,11 +112,16 @@
 
 **核心原則：字體是空間材質，不只是文字載體。**
 
-兩套字體，各自服務一個房間的氣質：
+三套字體，各司其職：標題＝精緻黑體、長文＝明體、資料＝等寬。
 
 ```css
+--font-title: 'Helvetica Neue', Helvetica, 'Inter', Arial, 'Noto Sans TC', 'PingFang TC', sans-serif;
+/* 標題（暗房 index/作品題名・影像集 hero）。拉丁→Helvetica grotesque，中文→思源黑體。
+   中英同為無襯線＝混排一致；精緻靠展示輕量(300–400)＋收字距＋留白，不靠粗細。
+   對標 clab／produx／studioarvia 的冷冽當代設計感（2026-07-01，取代原明體標題）。*/
+
 --font-read: 'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', Georgia, serif;
-/* 亮房長文。宋體有文學的重量與溫度，讓閱讀者沉進去。*/
+/* 亮房長文。宋體有文學的重量與溫度，讓閱讀者沉進去。明體只留給長文閱讀。*/
 
 --font-ui:   'Helvetica Neue', Helvetica, 'Inter', Arial, 'PingFang TC', sans-serif;
 /* 介面預設。瑞士無襯線：中性、精準、不干擾內容。*/
@@ -311,6 +316,7 @@
 | 2026-06-25 | v4 | 響應式正式化（直幅/橫幅/四斷點）、觸控誤觸修正、可維護性契約 |
 | 2026-06-27 | v5 | 文件重構：以視覺設計師為受眾、補設計脈絡分析、系統成熟度評估 |
 | 2026-06-27 | v6 | ROADMAP H0／H1 執行：主題降 facet、放映 Grid 總覽、真 EXIF 讀檔、image-forward OG、論述面板、Series 連續放映；成熟度表校正（OG／內文對比已達標）。修印樣台短視窗重疊（vh padding → 固定 min ＋ 頂部遮罩帶 ＋ `min-height:0` 內捲） |
+| 2026-07-01 | v6.1 | **標題改精緻黑體**（`--font-title`：明體→思源黑體 grotesque，明體只留長文）；影像集 hero 遮罩改「顯影式」暗房色漸層＋字體節奏重配；印樣資訊塊精修。**修總覽手機無法捲動**（.pjx 由 grid→block 後 `grid-row/min-height` 失效→ `.pjx__grid` 改 `position:absolute; inset:0` 才真正內捲；修正 v6 的 `min-height:0` 內捲已隨 A1 refactor 失效） |
 
 ---
 

@@ -53,12 +53,13 @@ const showWritings = (navCounts?.essays ?? 0) > 0 || isWritings;
     <meta name="theme-color" content={room === 'dark' ? '#0c0c0b' : '#f4f4f2'} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- 編輯雙體：長文宋體 Noto Serif TC（CJK 由 unicode-range 自動 subset） -->
+    <!-- 三體：標題黑體 Noto Sans TC（grotesque，展示用輕量→中量）＋ 長文宋體 Noto Serif TC
+         （CJK 由 unicode-range 自動 subset；display=swap 避免 FOIT）。 -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600&display=swap"
     />
     <title>{title}</title>
     <meta name="description" content={description} />

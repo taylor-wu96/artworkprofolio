@@ -324,10 +324,11 @@
     grid-column: 1 / -1;
     margin-top: 0.4rem;
     font-family: var(--font-title);
-    /* 英數→Helvetica，中文→明體（creator 回饋 2026-06-30） */
+    /* 英數→Helvetica，中文→黑體 Noto Sans TC（creator 回饋 2026-07-01） */
     font-size: clamp(1.6rem, 3vw, 2.1rem);
-    line-height: 1.15;
-    letter-spacing: 0.01em;
+    font-weight: 300;
+    line-height: 1.18;
+    letter-spacing: 0.015em;
   }
 
   .work__meta {

@@ -563,13 +563,18 @@
   /* ---- 印樣台（Grid 總覽）：整捲密排，膠捲齒孔編號 ----------------------
      佔 stage 同一格（grid-row 1），is-grid 時頂出 stage/chrome/nav。 */
   .pjx__grid {
-    grid-row: 1;
-    min-height: 0;
-    /* grid item 預設 min-height:auto 會撐到內容高而不內捲；歸零才保證
-                      長影像集在短視窗（IG 內建瀏覽器）內部捲動、到得了底。 */
+    /* ★ 手機捲動修復：.pjx 在 ROADMAP-v4 A1 由 grid 改為 display:block 後，原本靠
+       `grid-row:1; min-height:0` 撐出的高度約束失效——.pjx__grid 於是撐到內容高、
+       overflow-y 永不觸發，折疊線以下的縮圖到不了（.pjx 又 touch-action:none，無原生
+       fallback）。改為絕對定位獨佔整個放映層，overflow-y 才真正產生內部捲動區。
+       用 inset:0（相對 fixed 的 .pjx）而非 100vh，避開 IG 內建瀏覽器短視窗的 bug。 */
+    position: absolute;
+    inset: 0;
     display: none;
     overflow-y: auto;
     overflow-x: hidden;
+    overscroll-behavior: contain;
+    /* 止住 iOS 捲動鏈/橡皮筋外溢到底層頁面 */
     touch-action: pan-y;
     /* 總覽恢復原生垂直捲動（覆蓋 .pjx 的 touch-action:none） */
     -webkit-overflow-scrolling: touch;

@@ -35,13 +35,14 @@
     /* 資料精度層（Ikeda）：等寬字承載座標／編碼／時間戳。 */
     --font-mono: 'SF Mono', 'JetBrains Mono', 'Roboto Mono', ui-monospace,
       'Menlo', 'Consolas', monospace;
-    /* 標題雙體（creator 回饋 2026-06-30）：英文＋數字＝一種字體（Helvetica grotesque），
-       中文＝另一種（明體 Noto Serif TC）。靠 font stack 的 script fallback：拉丁/數字命中
-       前段 Helvetica；中文無命中、落到後段明體。標題不論中／英／混排都各取其字。
-       鐵律：前段絕不放 generic（sans-serif）——否則它一定命中、CJK 永遠到不了明體。
-       散文閱讀層不動（仍用 --font-read），只有暗房題名／作品題名吃這個。 */
+    /* 標題＝精緻黑體（creator 回饋 2026-07-01，取代原明體標題）：拉丁/數字命中前段
+       Helvetica grotesque；中文無命中、落到 Noto Sans TC（思源黑體）／PingFang。中英
+       同為無襯線＝混排一致，順帶解掉原「明體×Helvetica」的違和。對標 clab／produx／
+       studioarvia 的冷冽當代設計感——精緻靠展示輕量＋寬字距＋留白，不靠粗細。
+       與舊明體版相反：此處「可」以 sans-serif 收尾，因為現在就是要 CJK 落到黑體。
+       散文閱讀層不動（仍用宋體 --font-read）——明體只留給長文的文學重量。 */
     --font-title: 'Helvetica Neue', Helvetica, 'Inter', Arial,
-      'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', serif;
+      'Noto Sans TC', 'PingFang TC', 'Source Han Sans TC', system-ui, sans-serif;
 
     /* ---- 地基 ①：間距（8px 模數・t-shirt 命名）------------------------- */
     --space-3xs: 4px;
